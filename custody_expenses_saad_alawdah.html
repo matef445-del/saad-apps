@@ -238,20 +238,11 @@ tr:hover td{background:rgba(184,146,26,.07)}
         تحويل من حساب العقار ← صادر من العقار للرئيسي (يُخصم من رصيد العقار)
       </div>
     </div>
-    <div class="sec"><h2>📎 تفعيل مرفقات الفواتير (تخزين سحابي)</h2>
+    <div class="sec"><h2>📎 مرفقات الفواتير</h2>
       <div style="font-size:13px;color:var(--muted);line-height:2.1">
-        لرفع الفواتير سحابياً تحتاج تفعيل خدمة التخزين مرة واحدة من لوحة فايربيس:<br>
-        ١. افتح مشروعك في Firebase Console ثم Build ثم Storage واضغط Get started.<br>
-        ٢. في تبويب Rules الصق القاعدة التالية واحفظها:<br>
-        <span style="display:block;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:8px;padding:10px;margin:8px 0;color:var(--cream);font-family:monospace;font-size:11.5px;direction:ltr;text-align:left;white-space:pre-wrap">rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if true;
-    }
-  }
-}</span>
-        بعدها يصبح زر «رفع فاتورة» داخل أي قيد جاهزاً، وتُضغط الصور تلقائياً قبل الرفع.
+        مرفقات الفواتير تُحفظ تلقائياً في قاعدة البيانات الحالية — لا حاجة لأي إعداد أو خدمة إضافية أو بطاقة دفع.<br>
+        افتح أي قيد، اضغط «رفع فاتورة»، واختر صورة أو ملف. تُضغط الصور تلقائياً ثم تُخزَّن سحابياً وتُزامن مع باقي بياناتك، وتُفتح بالنقر على شارة «📎» في الجدول.<br>
+        ملاحظة: يُفضّل أن يكون كل مرفق صورة فاتورة معتادة؛ فالملفات الكبيرة جداً يُطلب تصويرها بدقّة أقل لتبقى ضمن حدود الحفظ.
       </div>
     </div>
     <div class="sec"><h2>💾 النسخ الاحتياطي</h2>
@@ -387,7 +378,6 @@ function setSync(state){
 function initFB(){
   try{
     firebase.initializeApp(FB); db=firebase.firestore(); fbReady=true;
-    try{storage=firebase.storage();}catch(e){storage=null;}
     db.collection(COLLECTION).doc(DOCID).get().then(function(doc){
       if(doc.exists && doc.data() && doc.data().payload){
         try{var p=JSON.parse(doc.data().payload);
@@ -548,7 +538,7 @@ function renderAcc(){
   });
   tbl.querySelectorAll('[data-att]').forEach(function(b){
     b.onclick=function(){var r=STATE.accounts[CUR].rows.filter(function(x){return x.id===b.dataset.att;})[0];
-      if(r&&r.att&&r.att.length){r.att.forEach(function(a){if(a.url)window.open(a.url,'_blank');});}};
+      if(r&&r.att&&r.att.length){r.att.forEach(function(a){openAttRef(a);});}};
   });
 }
 
@@ -586,7 +576,8 @@ function syncCatForType(){
 }
 function closeOv(){g('ov-entry').classList.remove('show');}
 
-/* ====== ATTACHMENTS (Firebase Storage) ====== */
+/* ====== ATTACHMENTS (stored in Firestore, no Storage needed) ====== */
+var ATTCOL='custody_attachments_db';
 var currentAtt=[];
 function renderAttList(){
   var box=g('em-att-list');
@@ -596,50 +587,71 @@ function renderAttList(){
     return '<span class="chip" style="display:inline-flex;gap:6px;align-items:center">'+ic+' <span style="cursor:pointer;text-decoration:underline" onclick="openAtt('+i+')">'+esc((a.name||'فاتورة').slice(0,20))+'</span> <span style="cursor:pointer;color:#f0a8a8" onclick="removeAtt('+i+')">✕</span></span>';
   }).join('');
 }
-function openAtt(i){var a=currentAtt[i];if(a&&a.url)window.open(a.url,'_blank');}
-function compressImage(file){
-  return new Promise(function(res){
-    if(file.type.indexOf('image')<0){res(file);return;}
-    var img=new Image(), rd=new FileReader();
-    rd.onload=function(e){img.onload=function(){
-      var max=1400, w=img.width,h=img.height;
-      if(w>max||h>max){if(w>h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;}}
-      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
-      cv.getContext('2d').drawImage(img,0,0,w,h);
-      cv.toBlob(function(b){res(b||file);},'image/jpeg',0.82);
-    };img.src=e.target.result;};
+function readDataUrl(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(e){res(e.target.result);};r.onerror=function(){rej();};r.readAsDataURL(file);});}
+function compressToLimit(file){
+  return new Promise(function(res,rej){
+    if((file.type||'').indexOf('image')<0){ readDataUrl(file).then(function(d){res({dataUrl:d,type:file.type||'application/octet-stream'});}).catch(rej); return; }
+    var rd=new FileReader();
+    rd.onload=function(e){
+      var img=new Image();
+      img.onload=function(){
+        var tryOne=function(maxDim,q){
+          var w=img.width,h=img.height;
+          if(w>maxDim||h>maxDim){if(w>h){h=Math.round(h*maxDim/w);w=maxDim;}else{w=Math.round(w*maxDim/h);h=maxDim;}}
+          var cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
+          return cv.toDataURL('image/jpeg',q);
+        };
+        var dims=[1500,1200,1000,820], qs=[0.82,0.7,0.6,0.5], out=null;
+        for(var i=0;i<dims.length && !out;i++){for(var j=0;j<qs.length;j++){var d=tryOne(dims[i],qs[j]); if(d.length<930000){out=d;break;}}}
+        if(!out)out=tryOne(680,0.42);
+        res({dataUrl:out,type:'image/jpeg'});
+      };
+      img.onerror=function(){rej();};
+      img.src=e.target.result;
+    };
+    rd.onerror=function(){rej();};
     rd.readAsDataURL(file);
   });
 }
 function uploadAtt(files){
   if(!files||!files.length)return;
-  if(!storage){toast('فعّل خدمة Firebase Storage أولاً (راجع الإعدادات)');g('em-att-file').value='';return;}
-  var id=g('em-id').value||('new_'+Date.now());
-  var arr=Array.prototype.slice.call(files), done=0;
-  g('em-att-prog').textContent='جارٍ الرفع… 0/'+arr.length;
-  arr.forEach(function(file){
-    compressImage(file).then(function(blob){
-      var clean=(file.name||'invoice').replace(/[^\w\u0600-\u06FF.\-]/g,'_');
-      var path='custody_invoices/'+CUR+'/'+id+'_'+Date.now()+'_'+clean;
-      var ref=storage.ref().child(path);
-      ref.put(blob).then(function(snap){
-        return snap.ref.getDownloadURL();
-      }).then(function(url){
-        currentAtt.push({name:file.name||'فاتورة',url:url,path:path,type:file.type||'image/jpeg'});
-        done++; g('em-att-prog').textContent='جارٍ الرفع… '+done+'/'+arr.length;
-        renderAttList();
-        if(done===arr.length){g('em-att-prog').textContent='تم الرفع ✓';setTimeout(function(){g('em-att-prog').textContent='';},1800);}
-      }).catch(function(err){
-        done++; g('em-att-prog').textContent='';
-        toast('تعذّر الرفع — تأكد من تفعيل Storage وقواعده');
-      });
-    });
-  });
+  var arr=Array.prototype.slice.call(files), counters={done:0,fail:0};
+  var step=function(idx){
+    if(idx>=arr.length){g('em-att-prog').textContent= counters.fail?('اكتمل مع '+counters.fail+' فشل'):'تم الحفظ ✓'; if(!counters.fail)setTimeout(function(){g('em-att-prog').textContent='';},1800); return;}
+    var file=arr[idx];
+    g('em-att-prog').textContent='جارٍ الحفظ… '+(idx+1)+'/'+arr.length;
+    compressToLimit(file).then(function(o){
+      if(o.dataUrl.length>950000){counters.fail++; toast('الفاتورة كبيرة جداً — صوّرها بدقّة أقل أو اقتصّها'); step(idx+1); return;}
+      var attId='att_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+      var ref={id:attId,name:file.name||'فاتورة',type:o.type};
+      try{localStorage.setItem('SAAD_ATT_'+attId,o.dataUrl);}catch(e){}
+      var finish=function(){currentAtt.push(ref); renderAttList(); counters.done++; step(idx+1);};
+      if(db){ db.collection(ATTCOL).doc(attId).set({data:o.dataUrl,name:ref.name,type:ref.type,created:Date.now()}).then(finish).catch(function(){toast('حُفظت محلياً (ستُزامن عند الاتصال)'); finish();}); }
+      else { toast('حُفظت محلياً'); finish(); }
+    }).catch(function(){counters.fail++; toast('تعذّرت قراءة الملف'); step(idx+1);});
+  };
+  step(0);
   g('em-att-file').value='';
 }
+function attToBlobUrl(dataUrl){
+  var parts=dataUrl.split(','), mime=((parts[0]||'').match(/data:([^;]+)/)||[])[1]||'application/octet-stream';
+  var bin=atob(parts[1]||''), len=bin.length, u8=new Uint8Array(len);
+  for(var i=0;i<len;i++)u8[i]=bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([u8],{type:mime}));
+}
+function resolveAtt(att){
+  return new Promise(function(res,rej){
+    try{var l=localStorage.getItem('SAAD_ATT_'+att.id); if(l){res(l);return;}}catch(e){}
+    if(db){db.collection(ATTCOL).doc(att.id).get().then(function(d){
+      if(d.exists&&d.data()&&d.data().data){try{localStorage.setItem('SAAD_ATT_'+att.id,d.data().data);}catch(e){} res(d.data().data);} else rej();
+    }).catch(rej);} else rej();
+  });
+}
+function openAttRef(att){ resolveAtt(att).then(function(d){window.open(attToBlobUrl(d),'_blank');}).catch(function(){toast('تعذّر فتح المرفق');}); }
+function openAtt(i){var a=currentAtt[i]; if(a)openAttRef(a);}
 function removeAtt(i){
   var a=currentAtt[i]; currentAtt.splice(i,1); renderAttList();
-  if(a&&a.path&&storage){try{storage.ref().child(a.path).delete().catch(function(){});}catch(e){}}
+  if(a){try{localStorage.removeItem('SAAD_ATT_'+a.id);}catch(e){} if(db)db.collection(ATTCOL).doc(a.id).delete().catch(function(){});}
 }
 function saveEntry(){
   var m=ACCMETA[CUR], id=g('em-id').value;
