@@ -135,11 +135,24 @@ footer{margin-top:42px;text-align:center;color:var(--muted);font-size:12px;line-
       <div class="ac-body"><div class="ac-name">أرشيف العهد والمصروفات<span class="badge">أرشيف</span></div>
       <div class="ac-desc">نسخة أرشيفية مستقلة لبيانات الفترات السابقة، معزولة تماماً عن البرنامج الجاري وعن مزامنته.</div></div>
       <div class="ac-open">افتح ›</div></a>
+<a class="appcard" href="الأرشيف-الشخصي.html">
+      <div class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><path d="M12 15v2"/></svg></div>
+      <div class="ac-body"><div class="ac-name">الأرشيف الشخصي<span class="badge">شخصي</span></div>
+      <div class="ac-desc">أرشيف وثائق شخصي مُعمّى بالكامل، يُفتح بكلمة المرور من أي جهاز. منفصل عن بيانات المكتب.</div></div>
+      <div class="ac-open">افتح ›</div></a>
     <a class="appcard soon" href="#">
       <div class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M21 12v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11"/></svg></div>
       <div class="ac-body"><div class="ac-name">إدارة المهام والمشاريع<span class="badge">قيد النشر</span></div>
       <div class="ac-desc">لوحة كانبان، تتبّع الموظفين، والمشاريع. (قيد النشر — أضف الرابط لاحقاً)</div></div>
       <div class="ac-open">غير متاح ›</div></a>
+  </div>
+
+  <div id="discSection" style="display:none">
+  <hr class="gold-rule">
+  <span class="eyebrow">اكتشاف تلقائي</span>
+  <h2 class="sec">تطبيقات إضافية في المستودع <button class="btn" style="font-size:12px;padding:6px 12px;vertical-align:middle" onclick="discScan(true)">تحديث القائمة</button></h2>
+  <div class="grid3" id="discGrid"></div>
+  <p class="muted" id="discNote" style="margin-top:8px"></p>
   </div>
 
   <hr class="gold-rule">
@@ -214,5 +227,123 @@ function loadFin(force){
   }catch(e){ if(!fromLocal()) document.getElementById('f-src').textContent='خطأ: '+e.message; }
 }
 loadFin(false);
+</script>
+<script>
+/* ===== اكتشاف تلقائي للتطبيقات الجديدة في المستودع ===== */
+(function(){
+  var OWNER='matef445-del', REPO='saad-apps', BRANCH='main';
+  var API='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents?ref='+BRANCH;
+  var RAW='https://raw.githubusercontent.com/'+OWNER+'/'+REPO+'/'+BRANCH+'/';
+  var CACHE_KEY='dash_disc_v1';
+
+  /* الملفات المعروضة مسبقاً ببطاقات منسّقة (تطبيقات + أدوات) إضافةً إلى اللوحة نفسها */
+  var SHOWN={
+    'partnerships_manager.html':1,'payroll_hr_saad_alawdah_v2.html':1,
+    'rental_management.html':1,'سيارات_الشيخ_سعد.html':1,
+    'سجل_أملاك_الشيخ_سعد_العقارية__PRO.html':1,
+    'custody_expenses_saad_alawdah.html':1,
+    'custody_expenses_archive_saad_alawdah.html':1,
+    'backup_tool.html':1,'app_template.html':1,'user_manual.html':1,
+    'dashboard_home.html':1,
+    'الأرشيف-الشخصي.html':1
+  };
+  /* ملفات مستبعدة دائماً من الاكتشاف (فارغة حالياً) */
+  var HIDE={};
+  function isHidden(n){ return !!HIDE[n]; }
+
+  /* أوصاف وأيقونات للملفات المعروفة حالياً لتحسين العرض فوراً */
+  var LABELS={
+    'bank_analytics_saad_alawdah.html':{name:'الحساب البنكي العقاري',
+      desc:'تحليل الحساب البنكي العقاري ومطابقة الكشوف مع منصّة إيجار.',
+      icon:'<path d="M3 10l9-6 9 6M5 10v9h14v-9M9 19v-5h6v5M3 21h18"/>'},
+    'مؤسسة_سعد_آل_عوضة.html':{name:'مؤسسة سعد آل عوضة',
+      desc:'ملف المؤسسة وسجلّها المالي والوثائق الخاصة بها.',
+      icon:'<path d="M4 21h16M6 21V8l6-4 6 4v13M9 12h.01M15 12h.01M9 16h.01M15 16h.01"/>'}
+  };
+  var DEF_ICON='<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>';
+
+  function pretty(n){ return n.replace(/\.html$/i,'').replace(/[_\-]+/g,' ').trim(); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  function cardHTML(file, info){
+    var icon=(info&&info.icon)||DEF_ICON;
+    var name=esc((info&&info.name)||pretty(file));
+    var desc=esc((info&&info.desc)||'تطبيق ضمن مجموعة المكتب — اكتُشف تلقائياً من المستودع.');
+    return '<a class="appcard" href="'+esc(file)+'">'+
+      '<div class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+icon+'</svg></div>'+
+      '<div class="ac-body"><div class="ac-name">'+name+'<span class="badge">مُكتشَف</span></div>'+
+      '<div class="ac-desc">'+desc+'</div></div>'+
+      '<div class="ac-open">افتح ›</div></a>';
+  }
+
+  function render(files){
+    var grid=document.getElementById('discGrid');
+    var sec=document.getElementById('discSection');
+    var note=document.getElementById('discNote');
+    if(!grid) return;
+    var list=(files||[]).filter(function(n){ return /\.html$/i.test(n) && !SHOWN[n] && !isHidden(n); });
+    if(!list.length){ if(sec) sec.style.display='none'; return; }
+    grid.innerHTML=list.map(function(f){ return cardHTML(f, LABELS[f]); }).join('');
+    if(sec) sec.style.display='';
+    if(note) note.textContent='عُثر على '+list.length+' تطبيق إضافي في المستودع غير مُدرَج ببطاقة ثابتة.';
+    list.forEach(function(f){ if(!LABELS[f]) fetchTitle(f); });
+  }
+
+  /* جلب عنوان الصفحة لملف غير معروف مع تقييد حجم التنزيل وإيقافه فور إيجاد العنوان */
+  function fetchTitle(file){
+    try{
+      var ctrl=new AbortController();
+      fetch(RAW+encodeURIComponent(file),{signal:ctrl.signal}).then(function(r){
+        if(!r.body){ return; }
+        var reader=r.body.getReader(), dec=new TextDecoder('utf-8'), buf='';
+        function step(){
+          return reader.read().then(function(res){
+            if(res.value) buf+=dec.decode(res.value,{stream:true});
+            var m=buf.match(/<title[^>]*>([^<]*)<\/title>/i);
+            if(m || buf.length>60000 || res.done){
+              try{ctrl.abort();}catch(e){}
+              if(m){ updateName(file, (m[1]||'').split('—')[0].trim()); }
+              return;
+            }
+            return step();
+          });
+        }
+        return step();
+      }).catch(function(){});
+    }catch(e){}
+  }
+  function updateName(file,name){
+    if(!name) return;
+    var grid=document.getElementById('discGrid'); if(!grid) return;
+    try{
+      var a=grid.querySelector('a[href="'+CSS.escape(file)+'"] .ac-name');
+      if(a && a.childNodes[0]){ a.childNodes[0].nodeValue=name; }
+    }catch(e){}
+  }
+
+  function discScan(force){
+    var note=document.getElementById('discNote');
+    if(!force){
+      try{
+        var c=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');
+        if(c && c.files){ render(c.files); }
+      }catch(e){}
+    } else if(note){ note.textContent='يجري التحديث…'; }
+    fetch(API,{headers:{'Accept':'application/vnd.github+json'}}).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(arr){
+      var files=(arr||[]).filter(function(x){return x&&x.type==='file';}).map(function(x){return x.name;});
+      try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ts:Date.now(),files:files})); }catch(e){}
+      render(files);
+    }).catch(function(e){
+      if(note && document.getElementById('discSection').style.display===''){
+        note.textContent='تعذّر تحديث القائمة الآن — يُعرض آخر ما تم العثور عليه.';
+      }
+    });
+  }
+  window.discScan=discScan;
+  discScan(false);
+})();
 </script>
 </body></html>
