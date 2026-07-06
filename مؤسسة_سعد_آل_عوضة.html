@@ -131,7 +131,6 @@ body{font-family:'Tajawal',sans-serif;background:#F4F5F7;color:#111;font-size:14
 <!-- ===== Firebase SDK ===== -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",
@@ -667,56 +666,39 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 
 render();
 </script>
-<script>window.__APP_BOOT__=loadAllFromCloud;</script>
-
-<!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
-<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<script>document.addEventListener("DOMContentLoaded",loadAllFromCloud);</script>
+<!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
-    <img id="authLogo" alt="" style="height:88px;margin-bottom:8px;display:none">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
-    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <input id="authEmail" type="hidden" value="matef445@gmail.com">
     <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
     <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>
-<button id="authLogoutBtn" title="تسجيل الخروج" style="display:none;position:fixed;top:10px;left:10px;z-index:99998;padding:6px 12px;border:1px solid #1d4a2c;border-radius:9px;background:rgba(10,32,16,.85);color:#9db3a3;font-family:'Cairo',system-ui,sans-serif;font-weight:700;font-size:12px;cursor:pointer">خروج</button>
+<button id="authLogoutBtn" title="تسجيل الخروج" style="display:none;position:fixed;top:10px;left:10px;z-index:2147483001;padding:6px 12px;border:1px solid #1d4a2c;border-radius:9px;background:rgba(10,32,16,.85);color:#9db3a3;font-family:'Cairo',system-ui,sans-serif;font-weight:700;font-size:12px;cursor:pointer">خروج</button>
 <script>
 (function(){
   var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
   try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
   var _auth=firebase.auth();
   try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
-  var gate=document.getElementById('authGate');
-  var logoutBtn=document.getElementById('authLogoutBtn');
-  var booted=false;
-  try{
-    var lg=document.getElementById('authLogo'), src='';
-    if(typeof LOGO!=='undefined' && typeof LOGO==='string') src=LOGO;
-    if(!src){ var im=document.querySelector('#splash img, img[id*="logo" i], img[id*="brand" i]'); if(im && im.src) src=im.src; }
-    if(src){ lg.src=src; lg.style.display='inline'; }
-  }catch(e){}
+  var FIXED_EMAIL='matef445@gmail.com';
+  var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn');
   function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; }
   function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; }
-  _auth.onAuthStateChanged(function(user){
-    if(user){
-      hideGate();
-      try{ var sp=document.getElementById('splash'); if(sp) sp.style.display='none'; }catch(e){}
-      if(!booted){ booted=true; try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){} }
-    } else { showGate(); }
-  });
+  _auth.onAuthStateChanged(function(user){ if(user){ hideGate(); } else { showGate(); } });
   function doLogin(){
-    var em=(document.getElementById('authEmail').value||'').trim();
     var pw=document.getElementById('authPass').value||'';
     var msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
-    if(!em||!pw){ msg.textContent='أدخل البريد وكلمة المرور'; return; }
+    if(!pw){ msg.textContent='أدخل كلمة المرور'; return; }
     msg.textContent=''; btn.disabled=true; btn.textContent='جارٍ الدخول…';
-    _auth.signInWithEmailAndPassword(em,pw).catch(function(err){
-      var code=err&&err.code?err.code:'';
-      var m='تعذّر تسجيل الدخول';
-      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m='البريد أو كلمة المرور غير صحيحة';
-      else if(code==='auth/invalid-email') m='صيغة البريد غير صحيحة';
+    _auth.signInWithEmailAndPassword(FIXED_EMAIL,pw).catch(function(err){
+      var code=err&&err.code?err.code:''; var m='تعذّر تسجيل الدخول';
+      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m='كلمة المرور غير صحيحة';
       else if(code==='auth/too-many-requests') m='محاولات كثيرة، حاول لاحقاً';
       else if(code==='auth/network-request-failed') m='تعذّر الاتصال بالشبكة';
       msg.textContent=m;
@@ -727,6 +709,5 @@ render();
   if(logoutBtn) logoutBtn.addEventListener('click',function(){ _auth.signOut(); });
 })();
 </script>
-
 </body>
 </html>

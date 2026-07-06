@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مدير المستندات</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--bg2:#16161e;--bg3:#1e1e2a;--bg4:#252533;
+  --border:#2a2a3a;--border2:#353550;
+  --gold:#c8a96e;--gold2:#e8c98a;
+  --text:#e8e4d8;--text2:#a09880;--text3:#6a6458;
+  --accent:#4a7fa5;--accent2:#64a0c8;
+  --green2:#5ab882;--red:#8f3a3a;--red2:#c87070;
+  --r:10px;--r2:6px;
+}
+body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--text);direction:rtl;min-height:100vh}
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:56px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:34px;height:34px;background:var(--gold);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand-name{font-size:15px;font-weight:600;color:var(--gold2);letter-spacing:.3px}
+.conn-badge{display:flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid}
+.conn-badge.ok{color:var(--green2);border-color:rgba(90,184,130,.3);background:rgba(90,184,130,.08)}
+.conn-badge.err{color:var(--red2);border-color:rgba(200,112,112,.3);background:rgba(200,112,112,.08)}
+.conn-badge.loading{color:var(--text3);border-color:var(--border);background:var(--bg3)}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.search-wrap{flex:1;min-width:180px;position:relative}
+.search-wrap i{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+.search-wrap input{width:100%;padding:8px 36px 8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text);font-size:13px;font-family:inherit;direction:rtl;outline:none;transition:border .2s}
+.search-wrap input:focus{border-color:var(--gold)}
+.search-wrap input::placeholder{color:var(--text3)}
+
+/* Buttons */
+.btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text2);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap;text-decoration:none}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:#0f0f13;font-weight:600}
+.btn.primary:hover{background:var(--gold2)}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.danger:hover{background:var(--red2)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn i{font-size:15px}
+
+/* Layout */
+.main{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:215px;flex-shrink:0;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:12px 0}
+.sidebar-label{font-size:10px;color:var(--text3);font-weight:600;padding:6px 16px 4px;letter-spacing:1px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 16px;cursor:pointer;transition:all .15s;font-size:13px;color:var(--text2);border-radius:var(--r2);margin:1px 6px}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--bg4);color:var(--gold);border:1px solid var(--border2)}
+.nav-item i{font-size:16px;flex-shrink:0}
+.nav-badge{margin-right:auto;background:var(--bg4);color:var(--text3);font-size:11px;padding:2px 7px;border-radius:20px}
+.sidebar-footer{margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}
+
+/* Content */
+.content{flex:1;overflow:auto;padding:20px;background:var(--bg)}
+
+/* Breadcrumb */
+.breadcrumb{display:flex;align-items:center;gap:6px;margin-bottom:16px;font-size:13px;color:var(--text3);flex-wrap:wrap}
+.bc-sep{color:var(--border2)}
+.bc-link{cursor:pointer;color:var(--text2);transition:color .15s}
+.bc-link:hover{color:var(--gold)}
+.bc-cur{color:var(--gold2);font-weight:500}
+
+/* Projects grid */
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+.project-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px;cursor:pointer;transition:all .2s;position:relative}
+.project-card:hover{border-color:var(--gold);background:var(--bg3);transform:translateY(-2px)}
+.project-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.project-icon{font-size:36px;color:var(--gold)}
+.proj-menu{width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--text3);cursor:pointer;font-size:15px;opacity:0;transition:opacity .15s;background:transparent;border:none}
+.project-card:hover .proj-menu{opacity:1}
+.proj-menu:hover{background:var(--bg4);color:var(--text)}
+.project-name{font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px}
+.project-stats{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pstat{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:3px 9px;font-size:11px;color:var(--text2)}
+
+/* Row cards */
+.grid-1{display:grid;grid-template-columns:1fr;gap:8px}
+.row-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px}
+.row-card:hover{border-color:var(--accent2);background:var(--bg3)}
+.row-card.file-row{cursor:default}
+.row-icon{font-size:26px;flex-shrink:0}
+.row-info{flex:1;min-width:0}
+.row-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-meta{font-size:11px;color:var(--text3)}
+.row-actions{display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+.file-open-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(74,127,165,.15);border:1px solid rgba(74,127,165,.3);border-radius:20px;color:var(--accent2);font-size:12px;cursor:pointer;text-decoration:none;font-family:inherit;transition:all .15s;white-space:nowrap}
+.file-open-btn:hover{background:rgba(74,127,165,.3)}
+.no-file-lbl{font-size:11px;color:var(--text3);white-space:nowrap}
+
+.icon-btn{width:30px;height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:14px;transition:all .15s}
+.icon-btn:hover{background:var(--bg4);color:var(--text)}
+.icon-btn.del:hover{background:var(--red);color:#fff}
+
+/* Section header */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.sec-title{font-size:14px;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:8px}
+.sec-title i{font-size:16px;color:var(--gold)}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500}
+.tag-contract{background:rgba(74,127,165,.15);border:1px solid rgba(74,127,165,.4);color:var(--accent2)}
+.tag-trademark{background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.4);color:var(--gold2)}
+.tag-cr{background:rgba(74,143,106,.15);border:1px solid rgba(74,143,106,.4);color:var(--green2)}
+.tag-general{background:var(--bg3);border:1px solid var(--border2);color:var(--text3)}
+
+/* Empty state */
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty i{font-size:48px;display:block;margin-bottom:12px;color:var(--border2)}
+.empty p{font-size:14px}
+
+/* Modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:440px;padding:24px;direction:rtl;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:600;color:var(--gold2);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:14px}
+.form-label{font-size:13px;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{width:100%;padding:9px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r2);color:var(--text);font-size:14px;font-family:inherit;direction:rtl;outline:none;transition:border .2s}
+.form-input:focus{border-color:var(--gold)}
+.form-input::placeholder{color:var(--text3)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+/* Upload area */
+.upload-area{border:2px dashed var(--border2);border-radius:var(--r2);padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;color:var(--text3)}
+.upload-area:hover,.upload-area.drag{border-color:var(--gold);color:var(--text2);background:rgba(200,169,110,.04)}
+.upload-area i{font-size:36px;display:block;margin-bottom:10px}
+.upload-area p{font-size:13px}
+.upload-area input{display:none}
+.progress-bar{height:5px;background:var(--bg4);border-radius:4px;overflow:hidden;margin-top:12px;display:none}
+.progress-fill{height:100%;background:var(--gold);border-radius:4px;transition:width .3s}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 22px;border-radius:var(--r2);font-size:13px;z-index:9999;animation:fadeIn .2s ease;white-space:nowrap;font-family:'IBM Plex Sans Arabic',sans-serif}
+.toast.success{background:rgba(74,143,106,.95);color:#fff}
+.toast.error{background:rgba(143,58,58,.95);color:#fff}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* Loading */
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center}
+.spinner{width:42px;height:42px;border:3px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Context menu */
+.ctx-menu{position:fixed;z-index:2000;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:4px;min-width:185px;box-shadow:0 8px 28px rgba(0,0,0,.6)}
+.ctx-item{display:flex;align-items:center;gap:9px;padding:9px 12px;cursor:pointer;font-size:13px;color:var(--text2);border-radius:4px;transition:all .1s}
+.ctx-item:hover{background:var(--bg4);color:var(--text)}
+.ctx-item.danger:hover{background:var(--red);color:#fff}
+.ctx-item i{font-size:15px}
+.ctx-div{height:1px;background:var(--border);margin:3px 0}
+
+/* Stats bar */
+.statsbar{display:flex;gap:16px;padding:10px 20px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;align-items:center}
+.stat{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)}
+.stat strong{color:var(--text2);font-weight:500}
+.stat i{font-size:13px;color:var(--gold)}
+
+/* Mobile */
+@media(max-width:640px){
+  .sidebar{width:180px}
+  .projects-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .sidebar{display:none}
+  .content{padding:12px}
+  .projects-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon">📁</div>
+      <span class="brand-name">مدير المستندات</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="btn" onclick="loadAll()" title="تحديث البيانات">
+        <i class="ti ti-refresh"></i>
+      </button>
+      <div id="conn-status" class="conn-badge loading">
+        <i class="ti ti-loader"></i> جاري الاتصال...
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="ti ti-search"></i>
+      <input type="text" id="search-input" placeholder="البحث في المشاريع والملفات..." oninput="doSearch(this.value)">
+    </div>
+    <button class="btn primary" onclick="openModal('add-project')">
+      <i class="ti ti-folder-plus"></i> مشروع جديد
+    </button>
+  </div>
+
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-label">التنقل</div>
+      <div class="nav-item active" id="nav-all" onclick="navFilter('all',this)">
+        <i class="ti ti-home"></i>كل المشاريع
+        <span class="nav-badge" id="nb-all">0</span>
+      </div>
+      <div class="nav-item" id="nav-c" onclick="navFilter('contract',this)">
+        <i class="ti ti-file-text"></i>العقود
+        <span class="nav-badge" id="nb-c">0</span>
+      </div>
+      <div class="nav-item" id="nav-t" onclick="navFilter('trademark',this)">
+        <i class="ti ti-award"></i>العلامات التجارية
+        <span class="nav-badge" id="nb-t">0</span>
+      </div>
+      <div class="nav-item" id="nav-r" onclick="navFilter('cr',this)">
+        <i class="ti ti-building-store"></i>السجلات التجارية
+        <span class="nav-badge" id="nb-r">0</span>
+      </div>
+      <div class="sidebar-footer">
+        <div class="nav-item" onclick="loadAll()">
+          <i class="ti ti-refresh"></i>تحديث
+        </div>
+        <div class="nav-item" onclick="openModal('add-project')">
+          <i class="ti ti-plus"></i>مشروع جديد
+        </div>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="empty">
+        <i class="ti ti-loader"></i>
+        <p>جاري التحميل...</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="statsbar">
+    <div class="stat"><i class="ti ti-folder"></i><strong id="st-p">0</strong> مشروع</div>
+    <div class="stat"><i class="ti ti-folder-open"></i><strong id="st-f">0</strong> حافظة</div>
+    <div class="stat"><i class="ti ti-files"></i><strong id="st-fi">0</strong> ملف</div>
+    <div class="stat" style="margin-right:auto">
+      <i class="ti ti-cloud"></i>
+      <span style="color:var(--text2)">Supabase Cloud</span>
+    </div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div id="ctx-root"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ========== إعدادات Supabase ==========
+const SUPA_URL = 'https://agiffstrobvqhtozlonr.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnaWZmc3Ryb2J2cWh0b3psb25yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1Njg2NjMsImV4cCI6MjA5NDE0NDY2M30.8JDFxxOaokh9TUkLhmvf40vX4k9cNP___YpuxqdSHWE';
+const BUCKET = 'docmgr-files';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ========== الحالة ==========
+let path = { project: null, folder: null };
+let filter = 'all';
+let q = '';
+let allProjects = [];
+let allFolders = {};
+let allFiles = {};
+let chosenFile = null;
+
+const tagLabel = { contract: 'عقد تسويق', trademark: 'علامة تجارية', cr: 'سجل تجاري' };
+const tagClass = { contract: 'tag-contract', trademark: 'tag-trademark', cr: 'tag-cr' };
+const fileIcons = { PDF: 'ti-file-type-pdf', Word: 'ti-file-type-docx', Excel: 'ti-file-type-xls', 'صورة': 'ti-photo' };
+const fileColors = { PDF: 'var(--accent2)', Word: 'var(--green2)', Excel: 'var(--gold)', 'صورة': 'var(--text2)' };
+
+// ========== مساعد ==========
+function toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function showLoad() {
+  if (document.getElementById('ld')) return;
+  const d = document.createElement('div');
+  d.className = 'loading-overlay'; d.id = 'ld';
+  d.innerHTML = '<div class="spinner"></div>';
+  document.body.appendChild(d);
+}
+
+function hideLoad() {
+  const d = document.getElementById('ld');
+  if (d) d.remove();
+}
+
+function setConn(ok) {
+  const el = document.getElementById('conn-status');
+  el.className = 'conn-badge ' + (ok ? 'ok' : 'err');
+  el.innerHTML = ok
+    ? '<i class="ti ti-cloud-check"></i> متصل بـ Supabase'
+    : '<i class="ti ti-cloud-off"></i> خطأ في الاتصال';
+}
+
+// ========== تحميل البيانات ==========
+async function loadAll() {
+  try {
+    const [{ data: projects, error: pe }, { data: folders, error: fe }, { data: files, error: fie }] = await Promise.all([
+      sb.from('docmgr_projects').select('*').order('created_at'),
+      sb.from('docmgr_folders').select('*').order('created_at'),
+      sb.from('docmgr_files').select('*').order('created_at')
+    ]);
+    if (pe || fe || fie) throw pe || fe || fie;
+    allProjects = projects || [];
+    allFolders = {};
+    (folders || []).forEach(f => { (allFolders[f.project_id] = allFolders[f.project_id] || []).push(f); });
+    allFiles = {};
+    (files || []).forEach(f => { (allFiles[f.folder_id] = allFiles[f.folder_id] || []).push(f); });
+    setConn(true);
+    updateStats();
+    render();
+  } catch (e) {
+    setConn(false);
+    document.getElementById('content').innerHTML = '<div class="empty"><i class="ti ti-cloud-off"></i><p>تعذّر الاتصال بـ Supabase<br><small style="font-size:11px;color:var(--text3)">' + (e.message || '') + '</small></p></div>';
+    toast('خطأ في الاتصال', 'error');
+  }
+}
+
+function updateStats() {
+  const tf = Object.values(allFolders).flat().length;
+  const tfi = Object.values(allFiles).flat().length;
+  document.getElementById('st-p').textContent = allProjects.length;
+  document.getElementById('st-f').textContent = tf;
+  document.getElementById('st-fi').textContent = tfi;
+  document.getElementById('nb-all').textContent = allProjects.length;
+  const fl = Object.values(allFolders).flat();
+  document.getElementById('nb-c').textContent = new Set(fl.filter(f => f.tag === 'contract').map(f => f.project_id)).size;
+  document.getElementById('nb-t').textContent = new Set(fl.filter(f => f.tag === 'trademark').map(f => f.project_id)).size;
+  document.getElementById('nb-r').textContent = new Set(fl.filter(f => f.tag === 'cr').map(f => f.project_id)).size;
+}
+
+// ========== التنقل ==========
+function navFilter(f, el) {
+  filter = f; path = { project: null, folder: null };
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function doSearch(v) { q = v.trim(); render(); }
+
+function goHome() { path = { project: null, folder: null }; render(); }
+function goProject(id) { path = { project: id, folder: null }; render(); }
+function openFolder(id) { path.folder = id; render(); }
+
+// ========== Breadcrumb ==========
+function renderBreadcrumb() {
+  if (!path.project) return '';
+  const proj = allProjects.find(x => x.id === path.project);
+  let parts = [{ label: 'الرئيسية', fn: 'goHome()' }];
+  if (path.folder) {
+    parts.push({ label: proj ? proj.name : '', fn: `goProject('${path.project}')` });
+    const folder = (allFolders[path.project] || []).find(x => x.id === path.folder);
+    parts.push({ label: folder ? folder.name : '' });
+  } else {
+    parts.push({ label: proj ? proj.name : '' });
+  }
+  return '<div class="breadcrumb">' + parts.map((p, i) => {
+    if (i === parts.length - 1) return `<span class="bc-cur">${p.label}</span>`;
+    return `<span class="bc-link" onclick="${p.fn}">${p.label}</span><span class="bc-sep">/</span>`;
+  }).join('') + '</div>';
+}
+
+// ========== الرسم الرئيسي ==========
+function render() {
+  const c = document.getElementById('content');
+  const bc = renderBreadcrumb();
+
+  // المشاريع
+  if (!path.project) {
+    let projs = [...allProjects];
+    const fl = Object.values(allFolders).flat();
+    if (filter === 'contract') projs = projs.filter(p => fl.some(f => f.project_id === p.id && f.tag === 'contract'));
+    else if (filter === 'trademark') projs = projs.filter(p => fl.some(f => f.project_id === p.id && f.tag === 'trademark'));
+    else if (filter === 'cr') projs = projs.filter(p => fl.some(f => f.project_id === p.id && f.tag === 'cr'));
+    if (q) projs = projs.filter(p => p.name.includes(q));
+
+    let html = bc + `<div class="sec-head">
+      <div class="sec-title"><i class="ti ti-folders"></i>المشاريع (${projs.length})</div>
+    </div><div class="projects-grid">`;
+
+    projs.forEach(p => {
+      const folders = allFolders[p.id] || [];
+      const totalFiles = folders.reduce((a, f) => a + (allFiles[f.id] || []).length, 0);
+      const tags = [...new Set(folders.map(f => f.tag).filter(Boolean))];
+      const nm = esc(p.name);
+      html += `<div class="project-card" onclick="goProject('${p.id}')" oncontextmenu="showCtxP(event,'${p.id}','${nm}')">
+        <div class="project-top">
+          <i class="ti ti-folder-filled project-icon"></i>
+          <button class="proj-menu" onclick="event.stopPropagation();showCtxP(event,'${p.id}','${nm}')"><i class="ti ti-dots-vertical"></i></button>
+        </div>
+        <div class="project-name">${p.name}</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
+          ${tags.map(t => `<span class="tag ${tagClass[t] || 'tag-general'}">${tagLabel[t] || t}</span>`).join('')}
+        </div>
+        <div class="project-stats">
+          <span class="pstat"><i class="ti ti-folder-open"></i>${folders.length} حافظة</span>
+          <span class="pstat"><i class="ti ti-files"></i>${totalFiles} ملف</span>
+        </div>
+      </div>`;
+    });
+    if (!projs.length) html += `<div class="empty" style="grid-column:1/-1"><i class="ti ti-folder-off"></i><p>لا توجد مشاريع${q ? ' تطابق البحث' : ''}</p></div>`;
+    html += `</div>`;
+    c.innerHTML = html;
+    return;
+  }
+
+  // الحافظات
+  if (path.project && !path.folder) {
+    const proj = allProjects.find(x => x.id === path.project);
+    if (!proj) { goHome(); return; }
+    let folders = allFolders[proj.id] || [];
+    if (q) folders = folders.filter(f => f.name.includes(q));
+
+    let html = bc + `<div class="sec-head">
+      <div class="sec-title"><i class="ti ti-folder-open"></i>حافظات ${proj.name} (${folders.length})</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="openModal('add-folder',{pid:'${proj.id}'})"><i class="ti ti-folder-plus"></i>حافظة جديدة</button>
+        <button class="btn" onclick="openModal('edit-project',{id:'${proj.id}',name:'${esc(proj.name)}'})"><i class="ti ti-edit"></i>تعديل</button>
+        <button class="btn danger" onclick="deleteProject('${proj.id}')"><i class="ti ti-trash"></i>حذف</button>
+      </div>
+    </div><div class="grid-1">`;
+
+    folders.forEach(f => {
+      const cnt = (allFiles[f.id] || []).length;
+      const nm = esc(f.name);
+      html += `<div class="row-card" onclick="openFolder('${f.id}')" oncontextmenu="showCtxF(event,'${f.id}','${proj.id}','${nm}','${f.tag || ''}')">
+        <i class="ti ti-folder-filled row-icon" style="color:var(--accent2)"></i>
+        <div class="row-info">
+          <div class="row-name">${f.name}</div>
+          <div class="row-meta">${cnt} ملف · <span class="tag ${tagClass[f.tag] || 'tag-general'}" style="padding:1px 6px">${tagLabel[f.tag] || 'عام'}</span></div>
+        </div>
+        <div class="row-actions">
+          <button class="icon-btn" onclick="event.stopPropagation();openModal('edit-folder',{pid:'${proj.id}',fid:'${f.id}',name:'${nm}',tag:'${f.tag || ''}'})" title="تعديل"><i class="ti ti-edit"></i></button>
+          <button class="icon-btn del" onclick="event.stopPropagation();deleteFolder('${proj.id}','${f.id}')" title="حذف"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;
+    });
+    if (!folders.length) html += `<div class="empty"><i class="ti ti-folder-off"></i><p>لا توجد حافظات — أضف حافظة جديدة</p></div>`;
+    html += `</div>`;
+    c.innerHTML = html;
+    return;
+  }
+
+  // الملفات
+  if (path.folder) {
+    const proj = allProjects.find(x => x.id === path.project);
+    const folder = (allFolders[path.project] || []).find(x => x.id === path.folder);
+    if (!folder) { path.folder = null; render(); return; }
+    let files = allFiles[path.folder] || [];
+    if (q) files = files.filter(f => f.name.includes(q));
+
+    let html = bc + `<div class="sec-head">
+      <div class="sec-title"><i class="ti ti-files"></i>ملفات "${folder.name}" (${files.length})</div>
+      <button class="btn primary" onclick="openModal('add-file',{pid:'${proj.id}',fid:'${folder.id}'})">
+        <i class="ti ti-upload"></i>رفع ملف
+      </button>
+    </div><div class="grid-1">`;
+
+    files.forEach(f => {
+      const ic = fileIcons[f.type] || 'ti-file';
+      const col = fileColors[f.type] || 'var(--text2)';
+      const hasUrl = f.file_url && f.file_url.trim() !== '';
+      html += `<div class="row-card file-row">
+        <i class="ti ${ic} row-icon" style="color:${col}"></i>
+        <div class="row-info">
+          <div class="row-name">${f.name}</div>
+          <div class="row-meta">${f.type || 'PDF'}</div>
+        </div>
+        <div class="row-actions">
+          ${hasUrl
+          ? `<a href="${f.file_url}" target="_blank" class="file-open-btn"><i class="ti ti-external-link" style="font-size:12px"></i>فتح الملف</a>`
+          : `<span class="no-file-lbl">لا يوجد ملف مرفوع</span>`}
+          <button class="icon-btn del" onclick="deleteFile('${f.id}','${folder.id}')" title="حذف"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>`;
+    });
+    if (!files.length) html += `<div class="empty"><i class="ti ti-file-off"></i><p>لا توجد ملفات — ارفع ملفاً الآن</p></div>`;
+    html += `</div>`;
+    c.innerHTML = html;
+  }
+}
+
+function esc(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+// ========== Context Menu ==========
+function showCtxP(e, id, name) {
+  e.preventDefault(); e.stopPropagation(); closeCtx();
+  const m = document.createElement('div'); m.className = 'ctx-menu'; m.id = 'ctx-m';
+  m.innerHTML = `
+    <div class="ctx-item" onclick="closeCtx();goProject('${id}')"><i class="ti ti-folder-open"></i>فتح المشروع</div>
+    <div class="ctx-item" onclick="closeCtx();openModal('edit-project',{id:'${id}',name:'${name}'})"><i class="ti ti-edit"></i>تعديل الاسم</div>
+    <div class="ctx-item" onclick="closeCtx();openModal('add-folder',{pid:'${id}'})"><i class="ti ti-folder-plus"></i>إضافة حافظة</div>
+    <div class="ctx-div"></div>
+    <div class="ctx-item danger" onclick="closeCtx();deleteProject('${id}')"><i class="ti ti-trash"></i>حذف المشروع</div>`;
+  posCtx(m, e);
+}
+
+function showCtxF(e, fid, pid, name, tag) {
+  e.preventDefault(); e.stopPropagation(); closeCtx();
+  const m = document.createElement('div'); m.className = 'ctx-menu'; m.id = 'ctx-m';
+  m.innerHTML = `
+    <div class="ctx-item" onclick="closeCtx();openFolder('${fid}')"><i class="ti ti-folder-open"></i>فتح الحافظة</div>
+    <div class="ctx-item" onclick="closeCtx();openModal('edit-folder',{pid:'${pid}',fid:'${fid}',name:'${name}',tag:'${tag}'})"><i class="ti ti-edit"></i>تعديل</div>
+    <div class="ctx-item" onclick="closeCtx();openModal('add-file',{pid:'${pid}',fid:'${fid}'})"><i class="ti ti-upload"></i>رفع ملف</div>
+    <div class="ctx-div"></div>
+    <div class="ctx-item danger" onclick="closeCtx();deleteFolder('${pid}','${fid}')"><i class="ti ti-trash"></i>حذف الحافظة</div>`;
+  posCtx(m, e);
+}
+
+function posCtx(m, e) {
+  const x = Math.min(e.clientX, window.innerWidth - 195);
+  const y = Math.min(e.clientY, window.innerHeight - 180);
+  m.style.left = x + 'px'; m.style.top = y + 'px';
+  document.getElementById('ctx-root').appendChild(m);
+  setTimeout(() => document.addEventListener('click', closeCtx, { once: true }), 10);
+}
+function closeCtx() { const m = document.getElementById('ctx-m'); if (m) m.remove(); }
+
+// ========== Modals ==========
+function openModal(type, data = {}) {
+  closeCtx();
+  let body = '';
+
+  if (type === 'add-project') {
+    body = `<div class="modal-title"><i class="ti ti-folder-plus"></i>مشروع جديد</div>
+    <div class="form-group"><label class="form-label">اسم المشروع</label>
+      <input class="form-input" id="mp-n" type="text" placeholder="مثال: رايق" onkeydown="if(event.key==='Enter')addProject()"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="addProject()"><i class="ti ti-plus"></i>إنشاء</button>
+    </div>`;
+  } else if (type === 'edit-project') {
+    body = `<div class="modal-title"><i class="ti ti-edit"></i>تعديل اسم المشروع</div>
+    <div class="form-group"><label class="form-label">الاسم</label>
+      <input class="form-input" id="ep-n" type="text" value="${data.name || ''}" onkeydown="if(event.key==='Enter')editProject('${data.id}')"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="editProject('${data.id}')"><i class="ti ti-check"></i>حفظ</button>
+    </div>`;
+  } else if (type === 'add-folder') {
+    body = `<div class="modal-title"><i class="ti ti-folder-plus"></i>حافظة جديدة</div>
+    <div class="form-group"><label class="form-label">اسم الحافظة</label>
+      <input class="form-input" id="af-n" type="text" placeholder="مثال: عقود التسويق"></div>
+    <div class="form-group"><label class="form-label">التصنيف</label>
+      <select class="form-input" id="af-t">
+        <option value="contract">عقد تسويق</option>
+        <option value="trademark">علامة تجارية</option>
+        <option value="cr">سجل تجاري</option>
+        <option value="">عام</option>
+      </select></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="addFolder('${data.pid}')"><i class="ti ti-plus"></i>إضافة</button>
+    </div>`;
+  } else if (type === 'edit-folder') {
+    body = `<div class="modal-title"><i class="ti ti-edit"></i>تعديل الحافظة</div>
+    <div class="form-group"><label class="form-label">الاسم</label>
+      <input class="form-input" id="ef-n" type="text" value="${data.name || ''}"></div>
+    <div class="form-group"><label class="form-label">التصنيف</label>
+      <select class="form-input" id="ef-t">
+        <option value="contract" ${data.tag === 'contract' ? 'selected' : ''}>عقد تسويق</option>
+        <option value="trademark" ${data.tag === 'trademark' ? 'selected' : ''}>علامة تجارية</option>
+        <option value="cr" ${data.tag === 'cr' ? 'selected' : ''}>سجل تجاري</option>
+        <option value="" ${!data.tag ? 'selected' : ''}>عام</option>
+      </select></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" onclick="editFolder('${data.pid}','${data.fid}')"><i class="ti ti-check"></i>حفظ</button>
+    </div>`;
+  } else if (type === 'add-file') {
+    body = `<div class="modal-title"><i class="ti ti-upload"></i>رفع ملف جديد</div>
+    <div class="form-group"><label class="form-label">اسم الملف</label>
+      <input class="form-input" id="fi-n" type="text" placeholder="اسم الملف..."></div>
+    <div class="form-group"><label class="form-label">النوع</label>
+      <select class="form-input" id="fi-t">
+        <option>PDF</option><option>Word</option><option>Excel</option><option>صورة</option>
+      </select></div>
+    <div class="form-group"><label class="form-label">الملف</label>
+      <div class="upload-area" id="drop-area" onclick="document.getElementById('fi-file').click()">
+        <i class="ti ti-cloud-upload"></i>
+        <p id="upload-lbl">اضغط لاختيار الملف أو اسحبه هنا</p>
+        <input type="file" id="fi-file" onchange="fileChosen(this)">
+      </div>
+      <div class="progress-bar" id="prog-wrap"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">إلغاء</button>
+      <button class="btn primary" id="upload-btn" onclick="uploadFile('${data.pid}','${data.fid}')">
+        <i class="ti ti-upload"></i>رفع الملف
+      </button>
+    </div>`;
+  }
+
+  document.getElementById('modal-root').innerHTML =
+    `<div class="modal-ov" onclick="closeModal(event)"><div class="modal">${body}</div></div>`;
+  const inp = document.querySelector('.modal .form-input');
+  if (inp) setTimeout(() => inp.focus(), 60);
+  document.addEventListener('keydown', escH);
+
+  if (type === 'add-file') {
+    const area = document.getElementById('drop-area');
+    if (area) {
+      area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag'); });
+      area.addEventListener('dragleave', () => { area.classList.remove('drag'); });
+      area.addEventListener('drop', e => {
+        e.preventDefault(); area.classList.remove('drag');
+        if (e.dataTransfer.files[0]) fileChosenDirect(e.dataTransfer.files[0]);
+      });
+    }
+  }
+}
+
+function fileChosen(inp) { if (inp.files[0]) fileChosenDirect(inp.files[0]); }
+function fileChosenDirect(f) {
+  chosenFile = f;
+  const lbl = document.getElementById('upload-lbl');
+  if (lbl) lbl.textContent = '✓ ' + f.name;
+  const nameInp = document.getElementById('fi-n');
+  if (nameInp && !nameInp.value) nameInp.value = f.name.replace(/\.[^.]+$/, '');
+  const ext = f.name.split('.').pop().toUpperCase();
+  const sel = document.getElementById('fi-t');
+  if (sel) {
+    if (ext === 'PDF') sel.value = 'PDF';
+    else if (['DOC', 'DOCX'].includes(ext)) sel.value = 'Word';
+    else if (['XLS', 'XLSX'].includes(ext)) sel.value = 'Excel';
+    else if (['JPG', 'JPEG', 'PNG', 'GIF', 'WEBP'].includes(ext)) sel.value = 'صورة';
+  }
+}
+
+function escH(e) { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', escH); } }
+function closeModal(e) {
+  if (e && e.target.className !== 'modal-ov') return;
+  document.getElementById('modal-root').innerHTML = '';
+  document.removeEventListener('keydown', escH);
+  chosenFile = null;
+}
+
+// ========== العمليات ==========
+async function addProject() {
+  const name = document.getElementById('mp-n').value.trim();
+  if (!name) return;
+  showLoad();
+  const { data, error } = await sb.from('docmgr_projects').insert({ name }).select().single();
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  allProjects.push(data);
+  closeModal(); updateStats(); render(); toast('تم إنشاء المشروع ✓');
+}
+
+async function editProject(id) {
+  const name = document.getElementById('ep-n').value.trim();
+  if (!name) return;
+  showLoad();
+  const { error } = await sb.from('docmgr_projects').update({ name }).eq('id', id);
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  const p = allProjects.find(x => x.id === id); if (p) p.name = name;
+  closeModal(); render(); toast('تم التعديل ✓');
+}
+
+async function deleteProject(id) {
+  if (!confirm('هل تريد حذف هذا المشروع وجميع بياناته؟')) return;
+  showLoad();
+  const { error } = await sb.from('docmgr_projects').delete().eq('id', id);
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  allProjects = allProjects.filter(x => x.id !== id);
+  delete allFolders[id];
+  if (path.project === id) path = { project: null, folder: null };
+  updateStats(); render(); toast('تم الحذف ✓');
+}
+
+async function addFolder(pid) {
+  const name = document.getElementById('af-n').value.trim();
+  const tag = document.getElementById('af-t').value;
+  if (!name) return;
+  showLoad();
+  const { data, error } = await sb.from('docmgr_folders').insert({ project_id: pid, name, tag }).select().single();
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  (allFolders[pid] = allFolders[pid] || []).push(data);
+  closeModal(); updateStats(); render(); toast('تم إنشاء الحافظة ✓');
+}
+
+async function editFolder(pid, fid) {
+  const name = document.getElementById('ef-n').value.trim();
+  const tag = document.getElementById('ef-t').value;
+  if (!name) return;
+  showLoad();
+  const { error } = await sb.from('docmgr_folders').update({ name, tag }).eq('id', fid);
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  const f = (allFolders[pid] || []).find(x => x.id === fid);
+  if (f) { f.name = name; f.tag = tag; }
+  closeModal(); render(); toast('تم التعديل ✓');
+}
+
+async function deleteFolder(pid, fid) {
+  if (!confirm('هل تريد حذف هذه الحافظة وجميع ملفاتها؟')) return;
+  showLoad();
+  const { error } = await sb.from('docmgr_folders').delete().eq('id', fid);
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  if (allFolders[pid]) allFolders[pid] = allFolders[pid].filter(x => x.id !== fid);
+  delete allFiles[fid];
+  if (path.folder === fid) path.folder = null;
+  updateStats(); render(); toast('تم الحذف ✓');
+}
+
+async function uploadFile(pid, fid) {
+  const name = document.getElementById('fi-n').value.trim();
+  const type = document.getElementById('fi-t').value;
+  if (!name) { toast('أدخل اسم الملف', 'error'); return; }
+  if (!chosenFile) { toast('اختر ملفاً أولاً', 'error'); return; }
+
+  const btn = document.getElementById('upload-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ti ti-loader"></i> جاري الرفع...';
+  const pw = document.getElementById('prog-wrap');
+  const pf = document.getElementById('prog-fill');
+  pw.style.display = 'block'; pf.style.width = '20%';
+
+  const safeFileName = Date.now() + '_' + chosenFile.name.replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '') || Date.now() + '.pdf';
+  const filePath = `${pid}/${fid}/${safeFileName}`;
+  const { error: upErr } = await sb.storage.from(BUCKET).upload(filePath, chosenFile, { upsert: true });
+
+  if (upErr) {
+    toast('خطأ في رفع الملف: ' + upErr.message, 'error');
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i>رفع الملف';
+    return;
+  }
+
+  pf.style.width = '70%';
+  const { data: urlData } = sb.storage.from(BUCKET).getPublicUrl(filePath);
+  const file_url = urlData.publicUrl;
+
+  const { data: fileData, error: dbErr } = await sb.from('docmgr_files')
+    .insert({ folder_id: fid, name, type, file_url, file_path: filePath })
+    .select().single();
+
+  if (dbErr) {
+    toast('خطأ في حفظ البيانات: ' + dbErr.message, 'error');
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-upload"></i>رفع الملف';
+    return;
+  }
+
+  pf.style.width = '100%';
+  (allFiles[fid] = allFiles[fid] || []).push(fileData);
+  chosenFile = null;
+  setTimeout(() => { closeModal(); updateStats(); render(); toast('تم رفع الملف بنجاح ✓'); }, 400);
+}
+
+async function deleteFile(fileId, folderId) {
+  if (!confirm('هل تريد حذف هذا الملف نهائياً؟')) return;
+  showLoad();
+  const file = (allFiles[folderId] || []).find(x => x.id === fileId);
+  if (file && file.file_path) await sb.storage.from(BUCKET).remove([file.file_path]);
+  const { error } = await sb.from('docmgr_files').delete().eq('id', fileId);
+  hideLoad();
+  if (error) { toast('خطأ: ' + error.message, 'error'); return; }
+  if (allFiles[folderId]) allFiles[folderId] = allFiles[folderId].filter(x => x.id !== fileId);
+  updateStats(); render(); toast('تم الحذف ✓');
+}
+
+// ========== تشغيل ==========
+loadAll();
+</script>
+<!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+  <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
+    <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
+    <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
+    <input id="authEmail" type="hidden" value="matef445@gmail.com">
+    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
+    <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
+  </div>
+</div>
+<button id="authLogoutBtn" title="تسجيل الخروج" style="display:none;position:fixed;top:10px;left:10px;z-index:2147483001;padding:6px 12px;border:1px solid #1d4a2c;border-radius:9px;background:rgba(10,32,16,.85);color:#9db3a3;font-family:'Cairo',system-ui,sans-serif;font-weight:700;font-size:12px;cursor:pointer">خروج</button>
+<script>
+(function(){
+  var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
+  try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
+  var _auth=firebase.auth();
+  try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
+  var FIXED_EMAIL='matef445@gmail.com';
+  var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn');
+  function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; }
+  function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; }
+  _auth.onAuthStateChanged(function(user){ if(user){ hideGate(); } else { showGate(); } });
+  function doLogin(){
+    var pw=document.getElementById('authPass').value||'';
+    var msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
+    if(!pw){ msg.textContent='أدخل كلمة المرور'; return; }
+    msg.textContent=''; btn.disabled=true; btn.textContent='جارٍ الدخول…';
+    _auth.signInWithEmailAndPassword(FIXED_EMAIL,pw).catch(function(err){
+      var code=err&&err.code?err.code:''; var m='تعذّر تسجيل الدخول';
+      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m='كلمة المرور غير صحيحة';
+      else if(code==='auth/too-many-requests') m='محاولات كثيرة، حاول لاحقاً';
+      else if(code==='auth/network-request-failed') m='تعذّر الاتصال بالشبكة';
+      msg.textContent=m;
+    }).finally(function(){ btn.disabled=false; btn.textContent='دخول'; });
+  }
+  var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',doLogin);
+  var ap=document.getElementById('authPass'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+  if(logoutBtn) logoutBtn.addEventListener('click',function(){ _auth.signOut(); });
+})();
+</script>
+</body>
+</html>

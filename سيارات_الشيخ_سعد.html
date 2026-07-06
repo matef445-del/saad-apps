@@ -155,60 +155,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--dk3);border:1px solid var(--brbr);color:var(--tx);padding:9px 18px;border-radius:9px;font-size:.84rem;z-index:9999;transition:opacity .3s;font-family:Cairo,sans-serif;opacity:0;}
 ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-thumb{background:var(--br);border-radius:3px;}
 @media(max-width:768px){.hst{display:none;}.mn{padding:1rem;}.dg,.fg2{grid-template-columns:1fr;}.att-grid{grid-template-columns:1fr;}.rs{grid-template-columns:1fr 1fr;} #grid{grid-template-columns:1fr;}}
-
-/* ===== الهوية الموحّدة + واجهة احترافية + بطاقات قابلة للطيّ ===== */
-:root{
-  --g:#b8921a; --gl:#d8b441; --gd:#8a6f1e;
-  --dk:#0a2010; --dk2:#0f2a16; --dk3:#11331c; --dk4:#163d22;
-  --br:rgba(29,74,44,.75); --brbr:rgba(184,146,26,.55);
-  --tx:#f3ead0; --txd:#9db3a3;
-  --rd:#e0a07f; --rdd:rgba(224,128,96,.14);
-  --gr:#7fd6a0; --grd:rgba(127,214,160,.14);
-  --bl:#9cc2f0;
-}
-body{background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%) fixed !important;color:var(--tx)}
-.card{transition:border-color .15s, box-shadow .18s, transform .15s}
-.card:hover{border-color:var(--brbr);box-shadow:0 12px 28px rgba(0,0,0,.42);transform:translateY(-2px)}
-.ch{cursor:pointer;display:flex;align-items:center}
-.cvx{order:9;margin-inline-start:auto;color:var(--gl);font-size:1.05rem;transition:transform .2s;flex:0 0 auto;padding-inline-start:8px}
-.card.open .cvx{transform:rotate(180deg)}
-.card:not(.open) .cb,.card:not(.open) .cf,.card:not(.open) .abar{display:none}
-.card:not(.open){padding-bottom:6px}
-.drv .iv{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.dbtn{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;text-decoration:none;padding:3px 9px;border-radius:8px;border:1px solid var(--brbr);color:var(--gl);background:rgba(184,146,26,.10)}
-.dbtn.wa{border-color:#25D366;color:#25D366;background:rgba(37,211,102,.10)}
-.dbtn:hover{filter:brightness(1.15)}
-
-/* ===== تبويبات + جدول إكسل + تصنيف ===== */
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
-.tab{background:var(--dk3);border:1px solid var(--br);color:var(--txd);border-radius:12px;padding:9px 16px;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;transition:.15s}
-.tab:hover{border-color:var(--brbr);color:var(--gl)}
-.tab.active{background:linear-gradient(180deg,var(--gl),var(--g));color:#1a1405;border-color:var(--g)}
-.pane{display:none}.pane.active{display:block}
-.xwrap{overflow-x:auto;border-radius:12px;border:1px solid var(--br)}
-.xtbl{width:100%;border-collapse:collapse;font-size:.8rem;background:var(--dk3);min-width:900px}
-.xtbl th{background:var(--dk2);color:var(--gl);padding:10px 8px;position:sticky;top:0;white-space:nowrap;font-weight:700;border-bottom:1px solid var(--br)}
-.xtbl td{border-top:1px solid var(--br);padding:0}
-.xtbl td.vname{color:var(--gl);font-weight:700;white-space:nowrap;padding:8px 10px;background:var(--dk4)}
-.xtbl td input{width:100%;min-width:90px;background:transparent;border:none;color:var(--tx);padding:9px 8px;font-family:inherit;font-size:.8rem;text-align:center}
-.xtbl td input:focus{background:rgba(184,146,26,.14);outline:1px solid var(--brbr)}
-.xtbl tr:hover td{background:rgba(255,255,255,.02)}
-.xhint{color:var(--txd);font-size:.76rem;margin:0 0 10px}
-.bgrp{margin-bottom:14px;border:1px solid var(--br);border-radius:14px;overflow:hidden;background:var(--dk3)}
-.bgrp>summary{cursor:pointer;padding:13px 16px;font-weight:800;color:var(--gl);list-style:none;display:flex;align-items:center;gap:10px}
-.bgrp>summary::-webkit-details-marker{display:none}
-.bgrp .bgc{padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
-.bcount{margin-inline-start:auto;background:var(--dk2);border:1px solid var(--br);border-radius:999px;padding:2px 11px;font-size:.72rem;color:var(--txd);font-weight:700}
-
-.upv{margin-top:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.upthumb{max-width:120px;max-height:84px;border-radius:8px;border:1px solid var(--br);object-fit:cover}
-input.fi[type=file]{padding:7px}
 </style>
 
 <!-- ===== Firebase SDK ===== -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",
@@ -222,36 +173,8 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 </script>
 <!-- ===== End Firebase SDK ===== -->
-<style>
-.ntf-badge{position:absolute;top:-7px;left:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:10px;background:var(--rd);color:#fff;font-size:.62rem;font-weight:800;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--dk);}
-.ntf-grp{margin-bottom:18px}
-.ntf-gh{font-weight:800;font-size:.92rem;margin:0 0 8px;display:flex;align-items:center;gap:8px}
-.ntf-gc{background:rgba(255,255,255,.06);border-radius:20px;padding:1px 9px;font-size:.7rem;color:var(--tx)}
-.ntf-it{display:flex;align-items:center;gap:12px;background:var(--dk3);border:1px solid var(--br);border-right:3px solid var(--g);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.15s}
-.ntf-it:hover{border-color:var(--brbr);transform:translateX(-2px)}
-.ntf-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0}
-.ntf-tx{flex:1;min-width:0}
-.ntf-t1{font-weight:700;font-size:.86rem;color:var(--tx)}
-.ntf-plt{font-family:monospace;background:rgba(201,168,76,.12);color:var(--gl);padding:1px 7px;border-radius:6px;font-size:.74rem;margin-right:4px}
-.ntf-t2{color:var(--txd);font-size:.74rem;margin-top:2px}
-.ntf-wa{background:#25D366;color:#04340f;font-weight:800;font-size:.72rem;padding:7px 12px;border-radius:8px;text-decoration:none;flex-shrink:0;white-space:nowrap}
-.xchips{display:flex;flex-wrap:wrap;gap:5px;padding:9px 12px 0}
-.xchip{font-size:.66rem;font-weight:700;padding:3px 8px;border-radius:20px;white-space:nowrap;border:1px solid currentColor;opacity:.95}
-@media print{
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-  body{background:#0a0c10!important}
-  .hbs,.tabs,.ctrl,.cact,.abar,.mo .rct,.ntf-wa,#sync-tip,.sw,.fb,#cnt,#authLogoutBtn{display:none!important}
-  header.hd{background:#0a2010!important}
-  .lm{background:#0a2010!important;border-radius:10px;padding:4px}
-  .mo{position:static!important;display:block!important;background:none!important}
-  .mo .md{max-width:100%!important;box-shadow:none!important}
-  .card{break-inside:avoid}
-}
-.greg{color:var(--gr);font-size:.9em;font-weight:600;opacity:.9;white-space:nowrap}
-</style>
 </head>
 <body>
-<script>window.UIMG={};try{window.UIMG=JSON.parse(localStorage.getItem('ss_cars_uimg')||'{}')||{};}catch(e){window.UIMG={};}</script>
 <header class="hd">
  <div class="hdi">
   <div class="lm">🏛️</div>
@@ -262,7 +185,6 @@ const db = firebase.firestore();
    <div class="hs"><div class="hsn w" id="sw">—</div><div class="hsl">تنبيهات</div></div>
   </div>
   <div class="hbs">
-   <button class="hb" id="ntfBell" onclick="openNotif()" title="مركز التنبيهات" style="position:relative">🔔 التنبيهات<span id="ntfBadge" class="ntf-badge" style="display:none">0</span></button>
    <button class="hb" onclick="rpt()">📊 التقرير</button>
    <button class="hb" onclick="shrAll()">📤 مشاركة الكل</button>
    <button class="hb" onclick="exportUpdatedFile()" title="تحديث الملف وتحميله للاستخدام على أي جهاز" style="border-color:rgba(76,175,122,0.4);color:#4CAF7A;">💾 تحديث الملف</button>
@@ -277,7 +199,7 @@ const db = firebase.firestore();
   <button onclick="document.getElementById('sync-tip').style.display='none'" style="margin-right:auto;background:none;border:none;color:#9A9488;cursor:pointer;font-size:1rem;">✕</button>
 </div>
 <div class="abx" id="ab"><div class="abt">⚠️ مركبات تحتاج إلى متابعة</div><div class="ait" id="ai"></div></div>
- <div class="tabs"><button class="tab active" data-t="cards" onclick="showTab('cards')">🚗 البطاقات</button><button class="tab" data-t="table" onclick="showTab('table')">📋 الجدول (إكسل)</button><button class="tab" data-t="brand" onclick="showTab('brand')">🏭 حسب الشركة</button></div><div id="pane-cards" class="pane active"><div class="ctrl">
+ <div class="ctrl">
   <div class="sw">
    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
    <input class="si" id="si" type="text" placeholder="ابحث بالاسم، اللوحة، الطراز، رقم الهيكل..." oninput="filter()">
@@ -288,7 +210,7 @@ const db = firebase.firestore();
   <button class="fb" id="fb-نقل" onclick="setF('نقل')">نقل</button>
   <span id="cnt"></span>
  </div>
- <div id="grid"></div></div><div id="pane-table" class="pane"><div class="xhint">عدّل أي خلية مباشرة، وتُحفظ تلقائياً. التواريخ بصيغة هجرية YYYY-MM-DD.</div><div class="xwrap" id="tableWrap"></div></div><div id="pane-brand" class="pane"><div id="brandWrap"></div></div>
+ <div id="grid"></div>
 </main>
 <!-- Detail Modal -->
 <div class="mo" id="dm" onclick="if(event.target===this)cm('dm')">
@@ -311,8 +233,8 @@ const db = firebase.firestore();
     <div class="fg"><label class="fl">بدء التأمين</label><input class="fi" id="eis"></div>
     <div class="fg"><label class="fl">حالة التأمين</label><input class="fi" id="est" placeholder="سارية / منتهية"></div>
    </div>
-   <div class="fg2"><div class="fg"><label class="fl">اسم السائق</label><input class="fi" id="ed" placeholder="اسم السائق"></div><div class="fg"><label class="fl">جوال السائق</label><input class="fi" id="ep" placeholder="05xxxxxxxx"></div></div><div class="fg"><label class="fl">ملاحظات</label><input class="fi" id="en" placeholder="ملاحظات إضافية..."></div>
-   <div class="fg2"><div class="fg"><label class="fl">صورة الرخصة (رفع/استبدال)</label><input class="fi" type="file" accept="image/*" id="eul" onchange="readUpload(this,'lic')"><div id="pvLic" class="upv"></div></div><div class="fg"><label class="fl">ملف/صورة بيانات السيارة</label><input class="fi" type="file" accept="image/*" id="eud" onchange="readUpload(this,'doc')"><div id="pvDoc" class="upv"></div></div></div><div class="br2"><button class="btn bc" onclick="cm('em')">إلغاء</button><button class="btn bs" onclick="saveEdit()">💾 حفظ التعديلات</button></div>
+   <div class="fg"><label class="fl">ملاحظات</label><input class="fi" id="en" placeholder="ملاحظات إضافية..."></div>
+   <div class="br2"><button class="btn bc" onclick="cm('em')">إلغاء</button><button class="btn bs" onclick="saveEdit()">💾 حفظ التعديلات</button></div>
   </div>
  </div>
 </div>
@@ -331,19 +253,6 @@ const db = firebase.firestore();
  </div>
 </div>
 <!-- Report Modal -->
-<div class="mo" id="ntfm" onclick="if(event.target===this)cm('ntfm')">
- <div class="md" style="max-width:680px">
-  <div class="rha">
-   <div class="rtr"><span style="font-size:1.4rem">🔔</span><h2>مركز التنبيهات</h2><span style="flex:1"></span><div class="mcl" onclick="cm('ntfm')">✕</div></div>
-   <div class="rct">
-    <button class="btn bw" onclick="shareNotif()">📤 مشاركة الملخّص (واتساب)</button>
-    <button class="btn bc" onclick="window.print()">🖨️ طباعة</button>
-   </div>
-   <div id="ntfToday" style="color:var(--txd);font-size:.76rem;margin-top:8px"></div>
-  </div>
-  <div class="rbd" id="ntfBody"></div>
- </div>
-</div>
 <div class="mo" id="rm" onclick="if(event.target===this)cm('rm')">
  <div class="md rmd">
   <div class="rha">
@@ -449,34 +358,12 @@ const CM={"أبيض":"#f0f0f0","أسود":"#333","فضي":"#b0b8c0","ذهبي":"
 let CARS=load(),CF='all',CST='',LB_ID=null,LB_TYPE=null;
 function gb(c){return BI[c.brand]||{i:c.brand[0],c:'#C9A84C',b:'rgba(201,168,76,0.12)'};}
 
-/* ===== محرّك التواريخ الهجرية والتنبيهات (تقويم أم القرى) ===== */
-var ALERT_SOON=60, ALERT_CRIT=30;
-function _fmtHijri(d){try{var f=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'});var o={};f.formatToParts(d).forEach(function(p){o[p.type]=p.value;});return (''+o.year).padStart(4,'0')+'-'+o.month+'-'+o.day;}catch(e){return '';}}
-function hijriToGreg(h){if(!h||!/^\d{4}-\d{2}-\d{2}$/.test(h))return null;var p=h.split('-').map(Number),hy=p[0],hm=p[1],hd=p[2];var t=Date.UTC(622,6,16)+((hy-1)*354.367+(hm-1)*29.53+(hd-1))*864e5;for(var i=0;i<4;i++){var c=_fmtHijri(new Date(t)).split('-').map(Number);if(!c[0])break;var dl=(hy-c[0])*354.367+(hm-c[1])*29.53+(hd-c[2]);if(Math.abs(dl)<0.5)break;t+=Math.round(dl)*864e5;}return new Date(t);}
-function _todayG(){var n=new Date();return new Date(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate()));}
-function daysLeft(h){var g=hijriToGreg(h);if(!g)return null;return Math.round((g-_todayG())/864e5);}
-function todayHijri(){return _fmtHijri(_todayG());}
-function isHijri(h){return /^\d{4}-\d{2}-\d{2}$/.test(h||'');}
-/* حالة البند: expired منتهٍ | crit حرِج ≤30 | soon يقترب ≤60 | missing غير مُسجّل | ok ساري */
-function itemStatus(h,allowMissing){if(!isHijri(h))return {st:allowMissing?'missing':'none',d:null};var d=daysLeft(h);if(d<0)return {st:'expired',d:d};if(d<=ALERT_CRIT)return {st:'crit',d:d};if(d<=ALERT_SOON)return {st:'soon',d:d};return {st:'ok',d:d};}
-var ITEM_DEFS=[['license_exp','استمارة السير','📄',false],['inspection_exp','الفحص الدوري','🔧',true],['ins_exp','التأمين','🛡️',true]];
-function carIssues(c){return ITEM_DEFS.map(function(df){var s=itemStatus(c[df[0]],df[3]);return {key:df[0],label:df[1],icon:df[2],val:c[df[0]],st:s.st,d:s.d};});}
-var SEV_RANK={expired:5,missing:4,crit:3,soon:2,ok:0,none:0};
-var SEV_META={expired:{t:'منتهٍ',c:'var(--rd)',bg:'rgba(224,82,82,.16)'},missing:{t:'غير مُسجّل',c:'#E8A23C',bg:'rgba(232,162,60,.16)'},crit:{t:'حرِج',c:'var(--rd)',bg:'rgba(224,82,82,.13)'},soon:{t:'يقترب',c:'#E8C96A',bg:'rgba(232,201,106,.13)'},ok:{t:'ساري',c:'var(--gr)',bg:'rgba(76,175,122,.12)'},none:{t:'—',c:'var(--txd)',bg:'transparent'}};
-function carSeverity(c){var mx='ok';carIssues(c).forEach(function(it){if(SEV_RANK[it.st]>SEV_RANK[mx])mx=it.st;});return mx;}
-function hasIssue(c){return SEV_RANK[carSeverity(c)]>=2;}
-function dText(it){if(it.st==='missing'||it.st==='none')return 'غير مُسجّل';if(it.d===null)return '';if(it.d<0)return 'منتهٍ منذ '+(-it.d)+' يوم';if(it.d===0)return 'ينتهي اليوم';return 'متبقٍّ '+it.d+' يوم';}
-function liveAlert(c){var bad=carIssues(c).filter(function(it){return SEV_RANK[it.st]>=2;});if(!bad.length)return null;return bad.map(function(it){return it.label+' ('+(it.st==='missing'?'غير مُسجّل':dText(it))+')';}).join(' • ');}
-function gregOf(h){var g=hijriToGreg(h);if(!g)return '';return g.getUTCFullYear()+'-'+('0'+(g.getUTCMonth()+1)).slice(-2)+'-'+('0'+g.getUTCDate()).slice(-2);}
-function withGreg(h){if(!isHijri(h))return (h==null||h===''?'—':h);var g=gregOf(h);return h+' هـ'+(g?' <span class="greg">('+g+' م)</span>':'');}
-function gregPlain(h){if(!isHijri(h))return (h==null?'':h);var g=gregOf(h);return h+' هـ'+(g?' ('+g+' م)':'');}
-
 // ===== Firebase for Cars =====
 const CARS_DOC = db.collection('saad_apps').doc('cars_data');
 
 async function saveToCloud() {
   try {
-    const changes = CARS.map(c => ({id:c.id, alert:c.alert||'', notes:c.notes||'', ins_status:c.ins_status||false, inspection_exp:c.inspection_exp||false, license_exp:c.license_exp||'', ins_exp:c.ins_exp||'', ins_co:c.ins_co||'', ins_start:c.ins_start||'', driver:c.driver||'', driver_phone:c.driver_phone||''}));
+    const changes = CARS.map(c => ({id:c.id, alert:c.alert||'', notes:c.notes||'', ins_status:c.ins_status||false, inspection_exp:c.inspection_exp||false}));
     await CARS_DOC.set({changes, savedAt: new Date().toISOString()});
     toast('☁️ محفوظ على السحابة');
   } catch(e) { toast('❌ خطأ في الحفظ السحابي'); }
@@ -512,18 +399,15 @@ function toast(m){
   clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity='0';},2600);
 }
 function card(car){
-  var b=gb(car),al=hasIssue(car),_la=liveAlert(car),ch=CM[car.color]||'#888',rt=car.reg.indexOf('نقل')>-1?'نقل':'خاص',exp=car.id===13;var uLic=(window.UIMG&&UIMG[car.id]&&UIMG[car.id].lic)||CAR_IMAGES[car.id],uDoc=(window.UIMG&&UIMG[car.id]&&UIMG[car.id].doc)||FORM_IMAGES[car.id];
-  var licImg=uLic?('<div class="lic-wrap" onclick="det('+car.id+')"><img class="lic-img" src="'+uLic+'" loading="lazy">'+(exp?'<div class="exp-rib">منتهية</div>':'')+'</div>'):'';
-  var alertBar=al?('<div class="alert-bar">⚠️ '+(_la||car.alert||'')+'</div>'):'';
+  var b=gb(car),al=!!car.alert,ch=CM[car.color]||'#888',rt=car.reg.indexOf('نقل')>-1?'نقل':'خاص',exp=car.id===13;
+  var licImg=CAR_IMAGES[car.id]?('<div class="lic-wrap" onclick="det('+car.id+')"><img class="lic-img" src="'+CAR_IMAGES[car.id]+'" loading="lazy">'+(exp?'<div class="exp-rib">منتهية</div>':'')+'</div>'):'';
+  var alertBar=al?('<div class="alert-bar">⚠️ '+car.alert+'</div>'):'';
   var insBadge=car.ins_status?'<span class="badge bok">✓ تأمين</span>':'<span class="badge bwarn">✗ تأمين</span>';
   var insBadge2=car.inspection_exp?'<span class="badge bok">✓ فحص</span>':'<span class="badge bwarn">✗ فحص</span>';
   var noteLine=car.notes?('<div class="ir full"><span class="il">ملاحظات</span><span class="iv" style="color:#E0B84C;font-size:.73rem">'+car.notes+'</span></div>'):'';
-  var driverLine=car.driver?('<div class="ir full drv"><span class="il">السائق</span><span class="iv">'+car.driver+(car.driver_phone?(' <a class="dbtn" href="tel:'+car.driver_phone+'" onclick="event.stopPropagation()">📞 اتصال</a><a class="dbtn wa" href="https://wa.me/'+waNorm(car.driver_phone)+'" target="_blank" onclick="event.stopPropagation()">واتساب</a>'):'')+'</span></div>'):'';
-  var licThumb=uLic?('<img class="athumb" src="'+uLic+'" onclick="lb('+car.id+',\'lic\')" title="رخصة السير">'):'';
-  var frmThumb=uDoc?('<img class="athumb" src="'+uDoc+'" onclick="lb('+car.id+',\'frm\')" title="الاستمارة الكاملة">'):'';
-  var _shortL={'استمارة السير':'استمارة','الفحص الدوري':'فحص','التأمين':'تأمين'};
-  var chips='<div class="xchips">'+carIssues(car).map(function(it){var m=SEV_META[it.st];return '<span class="xchip" style="color:'+m.c+';background:'+m.bg+'" title="'+it.label+': '+(isHijri(it.val)?it.val+' هـ':'غير مُسجّل')+'">'+it.icon+' '+(_shortL[it.label]||it.label)+': '+(it.st==='ok'?(it.d+'ي'):m.t)+'</span>';}).join('')+'</div>';
-  return '<div class="card'+(al?' has-alert open':'')+'" data-id="'+car.id+'">'+alertBar+licImg+'<div class="cact"><div class="cab" onclick="edit('+car.id+')" title="تعديل">✏️</div><div class="cab" onclick="shr('+car.id+')" title="مشاركة">📤</div></div><div class="ch" onclick="tog(this)"><span class="cvx">▾</span><div class="bb" style="background:'+b.b+';color:'+b.c+'">'+b.i+'</div><div><div class="cn">'+car.brand+' — '+car.model+'</div><div class="plt">'+car.plate+'</div></div></div><div class="cb" onclick="det('+car.id+')"><div class="ir"><span class="il">سنة الصنع</span><span class="iv">'+car.year+'</span></div><div class="ir"><span class="il">اللون</span><span class="iv"><span class="cdot" style="background:'+ch+'"></span>'+car.color+'</span></div><div class="ir"><span class="il">رخصة السير</span><span class="iv" style="font-size:.73rem">'+withGreg(car.license_exp)+'</span></div><div class="ir"><span class="il">التأمين</span><span class="iv" style="font-size:.73rem">'+(car.ins_exp!=='—'?withGreg(car.ins_exp):'—')+'</span></div>'+driverLine+noteLine+'</div><div class="cf" onclick="det('+car.id+')"><span class="badge byear">'+car.year+'</span><span class="badge '+(rt==='نقل'?'breg':'bok')+'">'+car.reg+'</span>'+insBadge+insBadge2+'</div>'+chips+'<div class="abar"><span class="albl">📎</span>'+licThumb+frmThumb+'<button class="abtn" onclick="det('+car.id+')">عرض المرفقات ›</button></div></div>';
+  var licThumb=CAR_IMAGES[car.id]?('<img class="athumb" src="'+CAR_IMAGES[car.id]+'" onclick="lb('+car.id+',\'lic\')" title="رخصة السير">'):'';
+  var frmThumb=FORM_IMAGES[car.id]?('<img class="athumb" src="'+FORM_IMAGES[car.id]+'" onclick="lb('+car.id+',\'frm\')" title="الاستمارة الكاملة">'):'';
+  return '<div class="card'+(al?' has-alert':'')+'" data-id="'+car.id+'">'+alertBar+licImg+'<div class="cact"><div class="cab" onclick="edit('+car.id+')" title="تعديل">✏️</div><div class="cab" onclick="shr('+car.id+')" title="مشاركة">📤</div></div><div class="ch" onclick="det('+car.id+')"><div class="bb" style="background:'+b.b+';color:'+b.c+'">'+b.i+'</div><div><div class="cn">'+car.brand+' — '+car.model+'</div><div class="plt">'+car.plate+'</div></div></div><div class="cb" onclick="det('+car.id+')"><div class="ir"><span class="il">سنة الصنع</span><span class="iv">'+car.year+'</span></div><div class="ir"><span class="il">اللون</span><span class="iv"><span class="cdot" style="background:'+ch+'"></span>'+car.color+'</span></div><div class="ir"><span class="il">رخصة السير</span><span class="iv" style="font-size:.73rem">'+car.license_exp+'</span></div><div class="ir"><span class="il">التأمين</span><span class="iv" style="font-size:.73rem">'+(car.ins_exp!=='—'?car.ins_exp:'—')+'</span></div>'+noteLine+'</div><div class="cf" onclick="det('+car.id+')"><span class="badge byear">'+car.year+'</span><span class="badge '+(rt==='نقل'?'breg':'bok')+'">'+car.reg+'</span>'+insBadge+insBadge2+'</div><div class="abar"><span class="albl">📎</span>'+licThumb+frmThumb+'<button class="abtn" onclick="det('+car.id+')">عرض المرفقات ›</button></div></div>';
 }
 function render(list){
   var g=document.getElementById('grid');
@@ -535,10 +419,10 @@ function filtered(){
   var q=document.getElementById('si').value.toLowerCase();
   return CARS.filter(function(c){
     var rt=c.reg.indexOf('نقل')>-1?'نقل':'خاص',vin=(CAR_VINS[c.id]||'').toLowerCase();
-    var ms=!q||(c.brand+c.model+c.plate+c.year+vin+(c.driver||'')+(c.driver_phone||'')).toLowerCase().indexOf(q)>-1;
-    var mf=CF==='all'?true:CF==='alert'?hasIssue(c):CF==='نقل'?rt==='نقل':CF==='خاص'?rt==='خاص':true;
+    var ms=!q||(c.brand+c.model+c.plate+c.year+vin).toLowerCase().indexOf(q)>-1;
+    var mf=CF==='all'?true:CF==='alert'?!!c.alert:CF==='نقل'?rt==='نقل':CF==='خاص'?rt==='خاص':true;
     return ms&&mf;
-  }).sort(function(a,b){return carSoon(a).localeCompare(carSoon(b));});
+  });
 }
 function filter(){render(filtered());}
 function setF(f){
@@ -547,16 +431,15 @@ function setF(f){
   filter();
 }
 function stats(){
-  var bad=CARS.filter(hasIssue);var w=bad.length;
+  var w=CARS.filter(function(c){return c.alert;}).length;
   document.getElementById('st').textContent=CARS.length;
   document.getElementById('so').textContent=CARS.length-w;
   document.getElementById('sw').textContent=w;
   var ab=document.getElementById('ab');
   if(w){
     ab.style.display='block';
-    document.getElementById('ai').innerHTML=bad.slice().sort(function(a,b){return SEV_RANK[carSeverity(b)]-SEV_RANK[carSeverity(a)];}).map(function(c){var sv=SEV_META[carSeverity(c)];return '<span class="achip" style="border-color:'+sv.c+';color:'+sv.c+'" onclick="det('+c.id+')">'+c.brand+' '+c.model+' — '+c.plate+'</span>';}).join('');
+    document.getElementById('ai').innerHTML=CARS.filter(function(c){return c.alert;}).map(function(c){return '<span class="achip" onclick="det('+c.id+')">'+c.brand+' '+c.model+' — '+c.plate+'</span>';}).join('');
   }else{ab.style.display='none';}
-  try{renderNotif();}catch(e){}
 }
 // Detail modal
 function det(id){
@@ -577,7 +460,7 @@ function det(id){
     attHtml+='</div>';
   }
   var notesHtml=car.notes?'<div class="di full"><span class="dl2">ملاحظات</span><span class="dv" style="color:#E0B84C">'+car.notes+'</span></div>':'';
-  document.getElementById('mbd').innerHTML=al+licImg+'<div class="st">تفاصيل المركبة</div><div class="dg"><div class="di"><span class="dl2">الصنع</span><span class="dv">'+car.brand+'</span></div><div class="di"><span class="dl2">الطراز</span><span class="dv">'+car.model+'</span></div><div class="di"><span class="dl2">سنة الصنع</span><span class="dv">'+car.year+'</span></div><div class="di"><span class="dl2">اللون</span><span class="dv"><span class="cdot" style="background:'+ch+'"></span>'+car.color+'</span></div><div class="di"><span class="dl2">وضع المركبة</span><span class="sp sok">✓ صالحة</span></div><div class="di"><span class="dl2">التسجيل</span><span class="dv">'+car.reg+'</span></div><div class="di"><span class="dl2">رقم الهوية</span><span class="dv">'+car.hid+'</span></div><div class="di"><span class="dl2">الرقم التسلسلي</span><span class="dv">'+car.serial+'</span></div><div class="di full"><span class="dl2">رقم الهيكل (VIN)</span><span class="dv" style="font-size:.78rem;font-family:monospace;letter-spacing:.5px">'+(CAR_VINS[car.id]||'—')+'</span></div>'+notesHtml+'</div><div class="st">رخصة السير والفحص الدوري</div><div class="dg"><div class="di"><span class="dl2">انتهاء الرخصة</span><span class="dv">'+withGreg(car.license_exp)+'</span></div><div class="di"><span class="dl2">الفحص الدوري</span>'+(car.inspection_exp?'<span class="dv">'+withGreg(car.inspection_exp)+'</span>':'<span class="sp swarn">✗ لا يوجد فحص</span>')+'</div></div><div class="st">التأمين على المركبة</div><div class="dg"><div class="di full"><span class="dl2">اسم الشركة</span><span class="dv">'+car.ins_co+'</span></div><div class="di"><span class="dl2">تاريخ البدء</span><span class="dv">'+withGreg(car.ins_start)+'</span></div><div class="di"><span class="dl2">تاريخ الانتهاء</span><span class="dv">'+withGreg(car.ins_exp)+'</span></div><div class="di"><span class="dl2">الحالة</span>'+(car.ins_status?'<span class="sp sok">✓ سارية</span>':'<span class="sp swarn">✗ لا يوجد تأمين</span>')+'</div></div>'+attHtml+'<div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn bc" onclick="om(\'dm\');edit('+id+')">✏️ تعديل</button><button class="btn bw" onclick="om(\'dm\');shr('+id+')">📤 مشاركة</button></div>';
+  document.getElementById('mbd').innerHTML=al+licImg+'<div class="st">تفاصيل المركبة</div><div class="dg"><div class="di"><span class="dl2">الصنع</span><span class="dv">'+car.brand+'</span></div><div class="di"><span class="dl2">الطراز</span><span class="dv">'+car.model+'</span></div><div class="di"><span class="dl2">سنة الصنع</span><span class="dv">'+car.year+'</span></div><div class="di"><span class="dl2">اللون</span><span class="dv"><span class="cdot" style="background:'+ch+'"></span>'+car.color+'</span></div><div class="di"><span class="dl2">وضع المركبة</span><span class="sp sok">✓ صالحة</span></div><div class="di"><span class="dl2">التسجيل</span><span class="dv">'+car.reg+'</span></div><div class="di"><span class="dl2">رقم الهوية</span><span class="dv">'+car.hid+'</span></div><div class="di"><span class="dl2">الرقم التسلسلي</span><span class="dv">'+car.serial+'</span></div><div class="di full"><span class="dl2">رقم الهيكل (VIN)</span><span class="dv" style="font-size:.78rem;font-family:monospace;letter-spacing:.5px">'+(CAR_VINS[car.id]||'—')+'</span></div>'+notesHtml+'</div><div class="st">رخصة السير والفحص الدوري</div><div class="dg"><div class="di"><span class="dl2">انتهاء الرخصة</span><span class="dv">'+car.license_exp+'</span></div><div class="di"><span class="dl2">الفحص الدوري</span>'+(car.inspection_exp?'<span class="dv">'+car.inspection_exp+'</span>':'<span class="sp swarn">✗ لا يوجد فحص</span>')+'</div></div><div class="st">التأمين على المركبة</div><div class="dg"><div class="di full"><span class="dl2">اسم الشركة</span><span class="dv">'+car.ins_co+'</span></div><div class="di"><span class="dl2">تاريخ البدء</span><span class="dv">'+car.ins_start+'</span></div><div class="di"><span class="dl2">تاريخ الانتهاء</span><span class="dv">'+car.ins_exp+'</span></div><div class="di"><span class="dl2">الحالة</span>'+(car.ins_status?'<span class="sp sok">✓ سارية</span>':'<span class="sp swarn">✗ لا يوجد تأمين</span>')+'</div></div>'+attHtml+'<div style="margin-top:14px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn bc" onclick="om(\'dm\');edit('+id+')">✏️ تعديل</button><button class="btn bw" onclick="om(\'dm\');shr('+id+')">📤 مشاركة</button></div>';
   om('dm');
 }
 // Edit modal
@@ -592,9 +475,6 @@ function edit(id){
   document.getElementById('eis').value=car.ins_start||'';
   document.getElementById('est').value=car.ins_status||'';
   document.getElementById('en').value=car.notes||'';
-  document.getElementById('ed').value=car.driver||'';
-  document.getElementById('ep').value=car.driver_phone||'';
-  showUpPrev(id);
   om('em');
 }
 function saveEdit(){
@@ -607,8 +487,6 @@ function saveEdit(){
   var is2=document.getElementById('eis').value.trim();
   var st=document.getElementById('est').value.trim();
   var n=document.getElementById('en').value.trim();
-  var dr=document.getElementById('ed').value.trim();
-  var dp=document.getElementById('ep').value.trim();
   if(l)car.license_exp=l;
   car.inspection_exp=i||null;
   if(ie)car.ins_exp=ie;
@@ -616,8 +494,9 @@ function saveEdit(){
   if(is2)car.ins_start=is2;
   if(st)car.ins_status=st;
   car.notes=n||null;
-  car.driver=dr||null;car.driver_phone=dp||null;
-  car.alert=liveAlert(car);
+  if(!car.inspection_exp&&!car.ins_status)car.alert='لا يوجد تأمين ساري ولا فحص دوري ساري';
+  else if(!car.inspection_exp)car.alert='لا يوجد فحص دوري ساري';
+  else car.alert=null;
   save();cm('em');render(filtered());stats();
 }
 // Share
@@ -645,84 +524,11 @@ function wa(){window.open('https://wa.me/?text='+encodeURIComponent(CST),'_blank
 function cpy(){navigator.clipboard.writeText(CST).then(function(){toast('✅ تم النسخ');});}
 // Report
 function rpt(){
-  var w=CARS.filter(hasIssue).length;
+  var w=CARS.filter(function(c){return c.alert;}).length;
   var wi=CARS.filter(function(c){return c.inspection_exp;}).length;
   document.getElementById('rs').innerHTML='<div class="rsc"><div class="rsn" style="color:#C9A84C">'+CARS.length+'</div><div class="rsl">إجمالي</div></div><div class="rsc"><div class="rsn" style="color:#4CAF7A">'+(CARS.length-w)+'</div><div class="rsl">بدون تنبيهات</div></div><div class="rsc"><div class="rsn" style="color:#E05252">'+w+'</div><div class="rsl">تحتاج متابعة</div></div><div class="rsc"><div class="rsn" style="color:#4C8AE0">'+wi+'</div><div class="rsl">فحص دوري ساري</div></div>';
-  document.getElementById('rtb').innerHTML=CARS.map(function(c,i){return '<tr><td style="color:#9A9488;font-weight:700">'+(i+1)+'</td><td><strong>'+c.brand+'</strong><br><span style="color:#9A9488;font-size:.7rem">'+c.model+' '+c.year+'</span></td><td><span class="rplt">'+c.plate+'</span></td><td>'+c.year+'</td><td style="font-size:.72rem">'+c.reg+'</td><td class="'+(c.id===13?'wtd':'')+'">'+withGreg(c.license_exp)+'</td><td class="'+(c.ins_status?'gtd':'wtd')+'">'+withGreg(c.ins_exp)+'</td><td class="'+(c.inspection_exp?'gtd':'wtd')+'">'+(c.inspection_exp?withGreg(c.inspection_exp):'❌')+'</td><td>'+(hasIssue(c)?'<span style="color:#E05252;font-size:.74rem">⚠️ '+(carSeverity(c)==='expired'?'منتهٍ':carSeverity(c)==='missing'?'ناقص':'متابعة')+'</span>':'<span style="color:#4CAF7A;font-size:.74rem">✓ سليم</span>')+'</td></tr>';}).join('');
+  document.getElementById('rtb').innerHTML=CARS.map(function(c,i){return '<tr><td style="color:#9A9488;font-weight:700">'+(i+1)+'</td><td><strong>'+c.brand+'</strong><br><span style="color:#9A9488;font-size:.7rem">'+c.model+' '+c.year+'</span></td><td><span class="rplt">'+c.plate+'</span></td><td>'+c.year+'</td><td style="font-size:.72rem">'+c.reg+'</td><td class="'+(c.id===13?'wtd':'')+'">'+c.license_exp+'</td><td class="'+(c.ins_status?'gtd':'wtd')+'">'+c.ins_exp+'</td><td class="'+(c.inspection_exp?'gtd':'wtd')+'">'+(c.inspection_exp||'❌')+'</td><td>'+(c.alert?'<span style="color:#E05252;font-size:.74rem">⚠️ متابعة</span>':'<span style="color:#4CAF7A;font-size:.74rem">✓ سليم</span>')+'</td></tr>';}).join('');
   om('rm');
-}
-function _notifList(){
-  var items=[];
-  CARS.forEach(function(c){ carIssues(c).forEach(function(it){ if(SEV_RANK[it.st]>=2){items.push({car:c,it:it,rank:SEV_RANK[it.st]});} }); });
-  items.sort(function(a,b){ if(b.rank!==a.rank)return b.rank-a.rank; var da=(a.it.d==null?9999:a.it.d),db=(b.it.d==null?9999:b.it.d); return da-db; });
-  return items;
-}
-function renderNotif(){
-  var items=_notifList();
-  var badge=document.getElementById('ntfBadge');
-  if(badge){ if(items.length){badge.style.display='inline-flex';badge.textContent=items.length;}else{badge.style.display='none';} }
-  var body=document.getElementById('ntfBody'); if(!body)return;
-  var th=document.getElementById('ntfToday'); if(th)th.textContent='تاريخ اليوم: '+todayHijri()+' هـ — حدّ التنبيه: قبل '+ALERT_SOON+' يوماً من الانتهاء';
-  if(!items.length){ body.innerHTML='<div class="nores" style="padding:40px;text-align:center"><div style="font-size:3rem">✅</div><div>لا توجد تنبيهات — جميع المستندات سارية</div></div>'; return; }
-  var groups=[['expired','مستندات منتهية'],['missing','مستندات غير مُسجّلة'],['crit','حرِجة — تنتهي خلال 30 يوماً'],['soon','تقترب — خلال 60 يوماً']];
-  var html='';
-  groups.forEach(function(g){
-    var gi=items.filter(function(x){return x.it.st===g[0];});
-    if(!gi.length)return;
-    var m=SEV_META[g[0]];
-    html+='<div class="ntf-grp"><div class="ntf-gh" style="color:'+m.c+'">'+g[1]+' <span class="ntf-gc">'+gi.length+'</span></div>';
-    gi.forEach(function(x){
-      var c=x.car,it=x.it;
-      var wamsg=encodeURIComponent('تنبيه مركبة: '+c.brand+' '+c.model+' — '+c.plate+'\n'+it.label+': '+(isHijri(it.val)?it.val+' هـ':'غير مُسجّل')+'\n'+dText(it));
-      html+='<div class="ntf-it" style="border-right-color:'+m.c+'" onclick="cm(\'ntfm\');det('+c.id+')">'+
-        '<div class="ntf-ic" style="background:'+m.bg+';color:'+m.c+'">'+it.icon+'</div>'+
-        '<div class="ntf-tx"><div class="ntf-t1">'+c.brand+' '+c.model+' <span class="ntf-plt">'+c.plate+'</span></div>'+
-        '<div class="ntf-t2">'+it.label+' — '+dText(it)+(isHijri(it.val)?' ('+gregPlain(it.val)+')':'')+'</div></div>'+
-        '<a class="ntf-wa" href="https://wa.me/?text='+wamsg+'" target="_blank" onclick="event.stopPropagation()">واتساب</a>'+
-        '</div>';
-    });
-    html+='</div>';
-  });
-  body.innerHTML=html;
-}
-function openNotif(){ renderNotif(); om('ntfm'); }
-function shareNotif(){
-  var items=_notifList();
-  if(!items.length){ window.open('https://wa.me/?text='+encodeURIComponent('لا توجد تنبيهات — جميع مستندات المركبات سارية ✅'),'_blank'); return; }
-  var t='🔔 تنبيهات مركبات مكتب الشيخ سعد\n';
-  t+='تاريخ اليوم: '+todayHijri()+' هـ\nعدد التنبيهات: '+items.length+'\n\n';
-  items.forEach(function(x,i){ t+=(i+1)+'. '+x.car.brand+' '+x.car.model+' — '+x.car.plate+'\n   '+x.it.label+': '+(isHijri(x.it.val)?x.it.val+' هـ':'غير مُسجّل')+' ('+dText(x.it)+')\n'; });
-  window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
-}
-var _NOTIFIED=false;
-function maybeNotifyBrowser(){
-  try{
-    if(_NOTIFIED)return; _NOTIFIED=true;
-    if(!('Notification' in window))return;
-    var list=_notifList(),total=list.length; if(!total)return;
-    var crit=list.filter(function(x){return x.rank>=4;}).length;
-    function fire(){ try{ new Notification('🔔 تنبيهات مركبات الشيخ سعد',{body:'يوجد '+total+' تنبيه'+(crit?' منها '+crit+' عاجل':'')+' — افتح مركز التنبيهات للتفاصيل'}); }catch(e){} }
-    if(Notification.permission==='granted'){ fire(); }
-    else if(Notification.permission!=='denied'){ Notification.requestPermission().then(function(p){ if(p==='granted')fire(); }); }
-  }catch(e){}
-}
-function exportUpdatedFile(){
-  try{
-    try{localStorage.setItem('ss_cars_v3',JSON.stringify(CARS));}catch(e){}
-    var clone=document.documentElement.cloneNode(true);
-    var seed=document.createElement('script');
-    var code='try{localStorage.setItem("ss_cars_v3",'+JSON.stringify(JSON.stringify(CARS))+');';
-    if(window.UIMG&&Object.keys(window.UIMG).length){ code+='localStorage.setItem("ss_cars_uimg",'+JSON.stringify(JSON.stringify(window.UIMG))+');'; }
-    code+='}catch(e){}';
-    seed.textContent=code;
-    var b=clone.querySelector('body'); if(b)b.insertBefore(seed,b.firstChild);
-    var html='<!DOCTYPE html>\n'+clone.outerHTML;
-    var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');a.href=url;a.download='سيارات_الشيخ_سعد.html';document.body.appendChild(a);a.click();a.remove();
-    setTimeout(function(){URL.revokeObjectURL(url);},3000);
-    toast('💾 تم تجهيز نسخة محدّثة للتنزيل');
-  }catch(e){ toast('❌ تعذّر تجهيز الملف'); }
 }
 function csv(){
   var h=['#','الصنع','الطراز','السنة','اللوحة','التسجيل','الرقم التسلسلي','رقم الهيكل','انتهاء الرخصة','شركة التأمين','انتهاء التأمين','الفحص الدوري','الحالة'];
@@ -732,7 +538,7 @@ function csv(){
 }
 // Lightbox
 function lb(id,type){
-  var src=type==='lic'?((window.UIMG&&UIMG[id]&&UIMG[id].lic)||CAR_IMAGES[id]):((window.UIMG&&UIMG[id]&&UIMG[id].doc)||FORM_IMAGES[id]);if(!src)return;
+  var src=type==='lic'?CAR_IMAGES[id]:FORM_IMAGES[id];if(!src)return;
   var car=CARS.find(function(c){return c.id===id;});
   document.getElementById('lbimg').src=src;
   document.getElementById('lbnm').textContent=(type==='lic'?'🪪 رخصة السير':'📋 الاستمارة الكاملة')+' — '+(car?car.plate:'');
@@ -756,159 +562,41 @@ function om(id){document.getElementById(id).style.display='flex';document.body.s
 function cm(id){document.getElementById(id).style.display='none';document.body.style.overflow='';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){['dm','em','sm','rm'].forEach(cm);clb();}});
 // Init
-try{CARS.forEach(function(c){c.alert=liveAlert(c);});}catch(e){}
-window.__APP_BOOT__=function(){
-  try{CARS.forEach(function(c){c.alert=liveAlert(c);});stats();render(filtered());renderNotif();}catch(e){}
-  try{ loadFromCloud().then(function(){ try{CARS.forEach(function(c){c.alert=liveAlert(c);});stats();render(filtered());renderNotif();maybeNotifyBrowser();}catch(e){} }); }catch(e){ maybeNotifyBrowser(); }
-};
 stats();render(CARS);
 
 </script>
-<script>
-function tog(el){var c=el.closest('.card'); if(c) c.classList.toggle('open');}
-function carSoon(c){var ds=[c.license_exp,c.inspection_exp,c.ins_exp].filter(function(x){return x&&/^\d{4}-\d{2}-\d{2}$/.test(x);}); return ds.length? ds.sort()[0] : '9999-99-99';}
-function waNorm(p){var d=String(p||'').replace(/\D/g,''); if(d.charAt(0)==='0')d='966'+d.slice(1); else if(d.length===9&&d.charAt(0)==='5')d='966'+d; return d;}
-</script>
-<script>
-function showTab(n){
-  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-t')===n);});
-  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('active');});
-  var pn=document.getElementById('pane-'+n); if(pn)pn.classList.add('active');
-  if(n==='cards'){try{filter();}catch(e){}}
-  if(n==='table')renderTable();
-  if(n==='brand')renderBrand();
-}
-function _xesc(v){return (v==null?'':String(v)).replace(/"/g,'&quot;');}
-function renderTable(){
-  var rows=CARS.map(function(c){
-    function inp(f,val){return '<td><input data-id="'+c.id+'" data-f="'+f+'" value="'+_xesc(val)+'" oninput="saveCell(this)"></td>';}
-    return '<tr><td class="vname">'+c.brand+' '+c.model+'</td>'+
-      inp('plate',c.plate)+inp('year',c.year)+inp('license_exp',c.license_exp)+
-      inp('inspection_exp',c.inspection_exp)+inp('ins_exp',c.ins_exp)+inp('ins_co',c.ins_co)+
-      inp('ins_status',c.ins_status)+inp('driver',c.driver)+inp('driver_phone',c.driver_phone)+
-      inp('notes',c.notes)+'</tr>';
-  }).join('');
-  document.getElementById('tableWrap').innerHTML='<table class="xtbl"><thead><tr>'+
-    '<th>\u0627\u0644\u0645\u0631\u0643\u0628\u0629</th><th>\u0627\u0644\u0644\u0648\u062d\u0629</th><th>\u0627\u0644\u0633\u0646\u0629</th>'+
-    '<th>\u0631\u062e\u0635\u0629 \u0627\u0644\u0633\u064a\u0631</th><th>\u0627\u0644\u0641\u062d\u0635</th><th>\u0627\u0644\u062a\u0623\u0645\u064a\u0646</th>'+
-    '<th>\u0634\u0631\u0643\u0629 \u0627\u0644\u062a\u0623\u0645\u064a\u0646</th><th>\u062d\u0627\u0644\u0629 \u0627\u0644\u062a\u0623\u0645\u064a\u0646</th>'+
-    '<th>\u0627\u0644\u0633\u0627\u0626\u0642</th><th>\u062c\u0648\u0627\u0644 \u0627\u0644\u0633\u0627\u0626\u0642</th><th>\u0645\u0644\u0627\u062d\u0638\u0627\u062a</th>'+
-    '</tr></thead><tbody>'+rows+'</tbody></table>';
-}
-function saveCell(el){
-  var id=parseInt(el.getAttribute('data-id')),f=el.getAttribute('data-f');
-  var car=CARS.find(function(c){return c.id===id;}); if(!car)return;
-  var v=el.value.trim();
-  if(f==='year'){car.year=v;}else{car[f]=v||null;}
-  if(!car.inspection_exp&&!car.ins_status)car.alert='\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0623\u0645\u064a\u0646 \u0633\u0627\u0631\u064a \u0648\u0644\u0627 \u0641\u062d\u0635 \u062f\u0648\u0631\u064a \u0633\u0627\u0631\u064a';
-  else if(!car.inspection_exp)car.alert='\u0644\u0627 \u064a\u0648\u062c\u062f \u0641\u062d\u0635 \u062f\u0648\u0631\u064a \u0633\u0627\u0631\u064a';
-  else car.alert=null;
-  clearTimeout(window._xsv); window._xsv=setTimeout(function(){try{save();stats();}catch(e){}},700);
-}
-function renderBrand(){
-  var groups={};
-  CARS.forEach(function(c){(groups[c.brand]=groups[c.brand]||[]).push(c);});
-  var html=Object.keys(groups).sort().map(function(b){
-    var list=groups[b].slice().sort(function(x,y){return carSoon(x).localeCompare(carSoon(y));});
-    return '<details class="bgrp" open><summary>\U0001F3ED '+b+'<span class="bcount">'+list.length+' \u0645\u0631\u0643\u0628\u0629</span></summary><div class="bgc">'+list.map(card).join('')+'</div></details>';
-  }).join('');
-  document.getElementById('brandWrap').innerHTML=html||'<div class="nores">\u0644\u0627 \u062a\u0648\u062c\u062f \u0645\u0631\u0643\u0628\u0627\u062a</div>';
-}
-</script>
-<script>
-function _carCompress(file,cb){
-  var r=new FileReader();
-  r.onload=function(){
-    var img=new Image();
-    img.onload=function(){
-      var max=900,w=img.width,h=img.height;
-      if(w>max||h>max){if(w>=h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;}}
-      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
-      cv.getContext('2d').drawImage(img,0,0,w,h);
-      try{cb(cv.toDataURL('image/jpeg',0.6));}catch(e){cb(null);}
-    };
-    img.onerror=function(){cb(null);};
-    img.src=r.result;
-  };
-  r.onerror=function(){cb(null);};
-  r.readAsDataURL(file);
-}
-function readUpload(inp,kind){
-  var f=inp.files[0]; if(!f)return;
-  var id=parseInt(document.getElementById('eid').value);
-  _carCompress(f,function(data){
-    if(!data){alert('\u062a\u0639\u0630\u0651\u0631\u062a \u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0635\u0648\u0631\u0629');return;}
-    if(!window.UIMG)window.UIMG={};
-    UIMG[id]=UIMG[id]||{}; UIMG[id][kind]=data;
-    try{localStorage.setItem('ss_cars_uimg',JSON.stringify(UIMG));}
-    catch(e){alert('\u062d\u062c\u0645 \u0627\u0644\u0635\u0648\u0631 \u0643\u0628\u064a\u0631 \u0639\u0644\u0649 \u0627\u0644\u062a\u062e\u0632\u064a\u0646 \u0627\u0644\u0645\u062d\u0644\u064a');}
-    showUpPrev(id);
-    try{filter();}catch(e){}
-  });
-  inp.value='';
-}
-function _upBtn(id,kind){return '<button type="button" class="btn bc" onclick="delUp('+id+',\''+kind+'\')">\u062d\u0630\u0641 \u0627\u0644\u0635\u0648\u0631\u0629</button>';}
-function showUpPrev(id){
-  var u=(window.UIMG&&UIMG[id])||{};
-  var l=document.getElementById('pvLic'),d=document.getElementById('pvDoc');
-  if(l)l.innerHTML=u.lic?('<img src="'+u.lic+'" class="upthumb">'+_upBtn(id,'lic')):'';
-  if(d)d.innerHTML=u.doc?('<img src="'+u.doc+'" class="upthumb">'+_upBtn(id,'doc')):'';
-}
-function delUp(id,kind){
-  if(window.UIMG&&UIMG[id]){delete UIMG[id][kind];
-    try{localStorage.setItem('ss_cars_uimg',JSON.stringify(UIMG));}catch(e){}
-    showUpPrev(id);try{filter();}catch(e){}}
-}
-</script>
-
-<!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
-<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
-    <img id="authLogo" alt="" style="height:88px;margin-bottom:8px;display:none">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
-    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <input id="authEmail" type="hidden" value="matef445@gmail.com">
     <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
     <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>
-<button id="authLogoutBtn" title="تسجيل الخروج" style="display:none;position:fixed;top:10px;left:10px;z-index:99998;padding:6px 12px;border:1px solid #1d4a2c;border-radius:9px;background:rgba(10,32,16,.85);color:#9db3a3;font-family:'Cairo',system-ui,sans-serif;font-weight:700;font-size:12px;cursor:pointer">خروج</button>
+<button id="authLogoutBtn" title="تسجيل الخروج" style="display:none;position:fixed;top:10px;left:10px;z-index:2147483001;padding:6px 12px;border:1px solid #1d4a2c;border-radius:9px;background:rgba(10,32,16,.85);color:#9db3a3;font-family:'Cairo',system-ui,sans-serif;font-weight:700;font-size:12px;cursor:pointer">خروج</button>
 <script>
 (function(){
   var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
   try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
   var _auth=firebase.auth();
   try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
-  var gate=document.getElementById('authGate');
-  var logoutBtn=document.getElementById('authLogoutBtn');
-  var booted=false;
-  try{
-    var lg=document.getElementById('authLogo'), src='';
-    if(typeof LOGO!=='undefined' && typeof LOGO==='string') src=LOGO;
-    if(!src){ var im=document.querySelector('#splash img, img[id*="logo" i], img[id*="brand" i]'); if(im && im.src) src=im.src; }
-    if(src){ lg.src=src; lg.style.display='inline'; }
-  }catch(e){}
+  var FIXED_EMAIL='matef445@gmail.com';
+  var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn');
   function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; }
   function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; }
-  _auth.onAuthStateChanged(function(user){
-    if(user){
-      hideGate();
-      try{ var sp=document.getElementById('splash'); if(sp) sp.style.display='none'; }catch(e){}
-      if(!booted){ booted=true; try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){} }
-    } else { showGate(); }
-  });
+  _auth.onAuthStateChanged(function(user){ if(user){ hideGate(); } else { showGate(); } });
   function doLogin(){
-    var em=(document.getElementById('authEmail').value||'').trim();
     var pw=document.getElementById('authPass').value||'';
     var msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
-    if(!em||!pw){ msg.textContent='أدخل البريد وكلمة المرور'; return; }
+    if(!pw){ msg.textContent='أدخل كلمة المرور'; return; }
     msg.textContent=''; btn.disabled=true; btn.textContent='جارٍ الدخول…';
-    _auth.signInWithEmailAndPassword(em,pw).catch(function(err){
-      var code=err&&err.code?err.code:'';
-      var m='تعذّر تسجيل الدخول';
-      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m='البريد أو كلمة المرور غير صحيحة';
-      else if(code==='auth/invalid-email') m='صيغة البريد غير صحيحة';
+    _auth.signInWithEmailAndPassword(FIXED_EMAIL,pw).catch(function(err){
+      var code=err&&err.code?err.code:''; var m='تعذّر تسجيل الدخول';
+      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m='كلمة المرور غير صحيحة';
       else if(code==='auth/too-many-requests') m='محاولات كثيرة، حاول لاحقاً';
       else if(code==='auth/network-request-failed') m='تعذّر الاتصال بالشبكة';
       msg.textContent=m;
@@ -919,6 +607,5 @@ function delUp(id,kind){
   if(logoutBtn) logoutBtn.addEventListener('click',function(){ _auth.signOut(); });
 })();
 </script>
-
 </body>
 </html>
