@@ -383,12 +383,13 @@ function initState(){
   };
 }
 function nextRef(type){
-  var s=STATE.settings, hy=hijriYear();
+  var s=STATE.settings, hy=gregYear();
   if(type==='out'){ s.outseq=(s.outseq||0)+1; return s.outpre+'/'+hy+'/'+pad(s.outseq); }
   s.inseq=(s.inseq||0)+1; return s.inpre+'/'+hy+'/'+pad(s.inseq);
 }
+function gregYear(){ try{ return String((g('c-date')&&g('c-date').value)||todayISO()).slice(0,4); }catch(e){ return String(new Date().getFullYear()); } }
 function previewRef(type){
-  var s=STATE.settings, hy=hijriYear();
+  var s=STATE.settings, hy=gregYear();
   if(type==='out'){ return s.outpre+'/'+hy+'/'+pad((s.outseq||0)+1); }
   return s.inpre+'/'+hy+'/'+pad((s.inseq||0)+1);
 }
