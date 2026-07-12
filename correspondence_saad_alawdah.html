@@ -387,6 +387,11 @@ function nextRef(type){
   if(type==='out'){ s.outseq=(s.outseq||0)+1; return s.outpre+'/'+hy+'/'+pad(s.outseq); }
   s.inseq=(s.inseq||0)+1; return s.inpre+'/'+hy+'/'+pad(s.inseq);
 }
+function previewRef(type){
+  var s=STATE.settings, hy=hijriYear();
+  if(type==='out'){ return s.outpre+'/'+hy+'/'+pad((s.outseq||0)+1); }
+  return s.inpre+'/'+hy+'/'+pad((s.inseq||0)+1);
+}
 function pad(n){ n=String(n); while(n.length<3)n='0'+n; return n; }
 function uid(){ return 'L'+Date.now()+Math.floor(Math.random()*900+100); }
 
@@ -414,13 +419,14 @@ function fillCats(){
 function onTypeChange(){
   var t=g('c-type').value;
   g('to-label').textContent = t==='out' ? 'إلى (الجهة / المرسل إليه)' : 'من (الجهة المُرسِلة)';
-  if(!g('c-edit').value) g('c-ref').value='';
+  if(!g('c-edit').value){ g('c-ref').value=previewRef(t); g('c-ref').setAttribute('data-auto','1'); }
   updatePreview();
 }
 function syncHijri(){ g('c-hijri').value=toHijri(g('c-date').value); updatePreview(); }
 ['c-to','c-salut','c-subj','c-body','c-close','c-signer','c-signrole'].forEach(function(id){
   document.addEventListener('input',function(e){ if(e.target && e.target.id===id) updatePreview(); });
 });
+document.addEventListener('input',function(e){ if(e.target && e.target.id==='c-ref') e.target.removeAttribute('data-auto'); });
 
 function fmtBody(t){
   t=t||'';
@@ -509,6 +515,7 @@ function saveLetter(){
   var o=collectForm();
   if(!o.to){ toast('يرجى إدخال الجهة'); return; }
   if(!o.subj){ toast('يرجى إدخال الموضوع'); return; }
+  if(g('c-ref').getAttribute('data-auto')==='1'){ o.ref=nextRef(o.type); g('c-ref').value=o.ref; o.ref=o.ref; g('c-ref').removeAttribute('data-auto'); }
   if(!o.ref){ o.ref=nextRef(o.type); g('c-ref').value=o.ref; }
   o.created=o.created||Date.now();
   var i=STATE.letters.findIndex(function(x){return x.id===o.id;});
@@ -556,7 +563,9 @@ function delLetter(id){
   idbDel(id);
   persist(); toast('تم الحذف'); renderArchive(); renderRegister('out'); renderRegister('in');
 }
-function printCurrent(){ captureFreeEdit(); printLetterObj(collectForm()); }
+function printCurrent(){ captureFreeEdit();
+  if(g('c-ref').getAttribute('data-auto')==='1'){ g('c-ref').value=nextRef(g('c-type').value); g('c-ref').removeAttribute('data-auto'); persist(); }
+  printLetterObj(collectForm()); }
 function printLetterObj(o){
   g('printLetter').innerHTML=letterHTML(o);
   toast('تذكير: فعّل "الرسوم/الخلفيات" في نافذة الطباعة');
