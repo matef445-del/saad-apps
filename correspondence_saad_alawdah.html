@@ -99,7 +99,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
   .wrap{padding:0!important;margin:0!important;max-width:none!important;width:auto!important}
   .wrap>*:not(#printzone){display:none!important}
   header.top,nav.tabs,.divider{display:none!important}
-  #printzone{display:flex!important;flex-direction:column;min-height:260mm}
+  #printzone{display:flex!important;flex-direction:column;min-height:267mm}
   #printzone .letter{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
   .letter{box-shadow:none;border-radius:0;max-width:100%;padding:0;font-size:14px;line-height:1.9}
   .letter .lh{padding-bottom:12px;margin-bottom:22px}
@@ -204,6 +204,22 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
               <option value="Noto Naskh Arabic">Noto Naskh — نسخ</option>
               <option value="El Messiri">El Messiri — المسيري</option>
               <option value="Markazi Text">Markazi — مركزي</option>
+            </select></div>
+          </div>
+          <div class="grid g2" style="margin-top:12px">
+            <div><label>حجم الخط</label><select id="c-fontsize" onchange="updatePreview()">
+              <option value="13px">صغير (13)</option>
+              <option value="14px">14</option>
+              <option value="15px" selected>متوسط (15)</option>
+              <option value="16px">16</option>
+              <option value="17px">17</option>
+              <option value="18px">كبير (18)</option>
+              <option value="20px">كبير جداً (20)</option>
+            </select></div>
+            <div><label>محاذاة النص</label><select id="c-align" onchange="updatePreview()">
+              <option value="justify">ضبط (Justify)</option>
+              <option value="right">يمين</option>
+              <option value="center">توسيط</option>
             </select></div>
           </div>
           <div style="margin-top:12px"><label>نص الخطاب</label>
@@ -452,13 +468,13 @@ function letterHTML(o){
   var role=o.signrole?('<div class="muted">'+esc(o.signrole)+'</div>'):'';
   var refLine = o.type==='out' ? 'الرقم: '+esc(o.ref||'—') : 'وارد رقم: '+esc(o.ref||'—');
   var fam=(o.font||'Cairo').replace(/'/g,'');
-  return '<div class="letter" style="font-family:\''+fam+'\',\'Cairo\',system-ui,sans-serif">'
+  return '<div class="letter" style="font-size:'+(o.fontsize||'15px')+';font-family:\''+fam+'\',\'Cairo\',system-ui,sans-serif">'
     +'<div class="lh"><img src="'+LOGO+'" alt=""><div class="o">'+OFFICE+'</div></div>'
     +'<div class="meta"><div>'+refLine+'</div><div>'+esc(o.hijri||'')+'<br>'+esc(fmtGreg(o.date))+' م</div></div>'
     +'<div class="to">'+(o.type==='out'?'المكرم / ':'من: ')+esc(o.to||'')+(o.type==='out'?'&nbsp;&nbsp;حفظه الله':'')+'</div>'
     +(o.salut?'<div>'+esc(o.salut)+'</div>':'')
     +(o.subj?'<div class="subj">الموضوع: '+esc(o.subj)+'</div>':'')
-    +'<div class="body">'+fmtBody(o.body)+'</div>'
+    +'<div class="body" style="text-align:'+(o.align||'justify')+'">'+fmtBody(o.body)+'</div>'
     +(o.close?'<div style="margin-top:20px">'+esc(o.close)+'</div>':'')
     +'<div class="sign"><div class="nm">'+esc(o.signer||'')+'</div>'+role+'<div style="margin-top:30px;color:#888">التوقيع: ........................</div></div>'
     +'<div class="foot">'+OFFICE+' — '+esc(o.ref||'')+'</div>'
@@ -476,6 +492,8 @@ function collectForm(){
     subj:g('c-subj').value.trim(),
     cat:g('c-cat').value,
     font:(g('c-font')?g('c-font').value:'Cairo'),
+    fontsize:(g('c-fontsize')?g('c-fontsize').value:'15px'),
+    align:(g('c-align')?g('c-align').value:'justify'),
     body:g('c-body').value,
     close:g('c-close').value.trim(),
     signer:g('c-signer').value.trim(),
@@ -538,6 +556,7 @@ function resetCompose(){
   g('c-close').value='وتفضلوا بقبول فائق الاحترام والتقدير،';
   g('c-signer').value='مدير المكتب'; g('c-signrole').value='محمد عاطف';
   if(g('c-font')) g('c-font').value='Cairo';
+  if(g('c-fontsize')) g('c-fontsize').value='15px'; if(g('c-align')) g('c-align').value='justify';
   g('c-date').value=todayISO(); syncHijri();
   g('c-status').value='draft'; g('c-type').value='out'; onTypeChange();
   updatePreview();
@@ -550,6 +569,8 @@ function editLetter(id){
   g('c-body').value=o.body||''; g('c-close').value=o.close||''; g('c-signer').value=o.signer||'';
   g('c-signrole').value=o.signrole||''; g('c-status').value=o.status||'draft';
   if(g('c-font')) g('c-font').value=o.font||'Cairo';
+  if(g('c-fontsize')) g('c-fontsize').value=o.fontsize||'15px';
+  if(g('c-align')) g('c-align').value=o.align||'justify';
   CUSTOM_HTML=o.customHTML||''; FREE_EDIT=false;
   var pv=g('preview'); if(pv){ pv.setAttribute('contenteditable','false'); pv.classList.remove('editing'); }
   if(g('freeEditBtn')) g('freeEditBtn').textContent='✏️ تحرير حر';
