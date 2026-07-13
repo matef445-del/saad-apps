@@ -196,7 +196,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
             <input id="c-subj" placeholder="موضوع الخطاب"></div>
           <div class="grid g2" style="margin-top:12px">
             <div><label>التصنيف</label><select id="c-cat"></select></div>
-            <div><label>خط الخطاب</label><select id="c-font" onchange="updatePreview()">
+            <div><label>خط الخطاب</label><select id="c-font" onchange="applyStyleControl()">
               <option value="Cairo">Cairo — كايرو (افتراضي)</option>
               <option value="Sakkal Majalla">Sakkal Majalla — سكاكي (مجلّة)</option>
               <option value="Tajawal">Tajawal — تجوّل</option>
@@ -207,7 +207,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
             </select></div>
           </div>
           <div class="grid g2" style="margin-top:12px">
-            <div><label>حجم الخط</label><select id="c-fontsize" onchange="updatePreview()">
+            <div><label>حجم الخط</label><select id="c-fontsize" onchange="applyStyleControl()">
               <option value="13px">صغير (13)</option>
               <option value="14px">14</option>
               <option value="15px" selected>متوسط (15)</option>
@@ -216,7 +216,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
               <option value="18px">كبير (18)</option>
               <option value="20px">كبير جداً (20)</option>
             </select></div>
-            <div><label>محاذاة النص</label><select id="c-align" onchange="updatePreview()">
+            <div><label>محاذاة النص</label><select id="c-align" onchange="applyStyleControl()">
               <option value="justify">ضبط (Justify)</option>
               <option value="right">يمين</option>
               <option value="center">توسيط</option>
@@ -254,6 +254,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
             <button class="btn ghost" id="revertBtn" onclick="clearFreeEdit()" style="display:none">↩️ العودة للوضع التلقائي</button>
           </div>
           <p class="muted" id="freeEditNote" style="display:none;margin:0 0 10px">وضع التحرير الحر مفعّل: عدّل الخطاب مباشرةً في المعاينة (احذف «المكرم» أو أي كلمة، أو غيّر أي نص). سيُحفظ ويُطبع ويُصدَّر كما تراه. لن تؤثّر تعديلات الحقول أعلاه ما دام هذا الوضع مفعّلاً.</p>
+          <div id="freeTools" style="display:none;gap:6px;flex-wrap:wrap;margin:0 0 10px"><span style="align-self:center;color:#777;font-size:12px;margin-inline-end:4px">حدّد النص ثم:</span><button type="button" onclick="fmtSel('justifyRight')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">يمين ⟶</button><button type="button" onclick="fmtSel('justifyCenter')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">توسيط ⊟</button><button type="button" onclick="fmtSel('justifyLeft')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">يسار ⟵</button><button type="button" onclick="fmtSel('justifyFull')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">ضبط</button><button type="button" onclick="fmtSel('bold')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><b>عريض</b></button><button type="button" onclick="fmtSel('underline')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><u>تسطير</u></button></div>
           <div id="preview"></div>
         </div>
       </div>
@@ -505,6 +506,12 @@ function collectForm(){
 /* ===== وضع التحرير الحر ===== */
 var FREE_EDIT=false, CUSTOM_HTML='';
 function captureFreeEdit(){ if(FREE_EDIT){ CUSTOM_HTML=g('preview').innerHTML; } }
+function fmtSel(cmd){
+  if(!FREE_EDIT){ toast('فعّل «تحرير حر» أولاً ثم حدّد النص'); return; }
+  var pv=g('preview'); pv.focus();
+  try{ document.execCommand(cmd,false,null); }catch(e){}
+  captureFreeEdit();
+}
 function toggleFreeEdit(){
   var pv=g('preview');
   // ensure there is something to edit
@@ -515,6 +522,7 @@ function toggleFreeEdit(){
   g('freeEditBtn').textContent = FREE_EDIT?'✅ إنهاء التحرير الحر':'✏️ تحرير حر';
   g('revertBtn').style.display = FREE_EDIT?'inline-block':(CUSTOM_HTML?'inline-block':'none');
   g('freeEditNote').style.display = FREE_EDIT?'block':'none';
+  if(g('freeTools')) g('freeTools').style.display = FREE_EDIT?'flex':'none';
   if(FREE_EDIT){ pv.focus(); toast('وضع التحرير الحر مفعّل — عدّل الخطاب مباشرةً'); }
   else { CUSTOM_HTML=pv.innerHTML; toast('حُفظت تعديلاتك على المعاينة'); }
 }
@@ -529,6 +537,21 @@ function clearFreeEdit(){
   toast('عاد الخطاب إلى الوضع التلقائي');
 }
 function updatePreview(){ if(FREE_EDIT) return; g('preview').innerHTML=letterHTML(collectForm()); }
+function applyStyleControl(){
+  if(FREE_EDIT){
+    var pv=g('preview'); if(!pv)return;
+    var lt=pv.querySelector('.letter')||pv;
+    var fam=(((g('c-font')&&g('c-font').value)||'Cairo')).replace(/'/g,'');
+    lt.style.fontFamily="'"+fam+"','Cairo',system-ui,sans-serif";
+    if(g('c-fontsize')) lt.style.fontSize=g('c-fontsize').value;
+    var al=(g('c-align')&&g('c-align').value)||'justify';
+    var body=lt.querySelector('.body'); (body||lt).style.textAlign=al;
+    captureFreeEdit();
+    toast('تم تطبيق التنسيق على الخطاب المحرَّر');
+    return;
+  }
+  updatePreview();
+}
 
 function saveLetter(){
   captureFreeEdit();
@@ -550,7 +573,7 @@ function resetCompose(){
   var pv=g('preview'); if(pv){ pv.setAttribute('contenteditable','false'); pv.classList.remove('editing'); }
   if(g('freeEditBtn')) g('freeEditBtn').textContent='✏️ تحرير حر';
   if(g('revertBtn')) g('revertBtn').style.display='none';
-  if(g('freeEditNote')) g('freeEditNote').style.display='none';
+  if(g('freeEditNote')) g('freeEditNote').style.display='none'; if(g('freeTools')) g('freeTools').style.display='none';
   ['c-ref','c-to','c-subj','c-body','c-signrole','c-edit'].forEach(function(id){g(id).value='';});
   g('c-salut').value='السلام عليكم ورحمة الله وبركاته، وبعد:';
   g('c-close').value='وتفضلوا بقبول فائق الاحترام والتقدير،';
