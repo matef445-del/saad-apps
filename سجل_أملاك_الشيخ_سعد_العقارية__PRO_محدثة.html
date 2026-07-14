@@ -207,15 +207,25 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 
 /* ===== PRINT ===== */
 @media print{
-  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
-  body{background:#fff!important;color:#000!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;background:transparent!important;color:#000!important;box-shadow:none!important;text-shadow:none!important;filter:none!important}
+  html,body{background:#fff!important;color:#000!important}
   .filters,.pcard-foot,#syncbar,#toast,.modal-bg,#authLogoutBtn,.no-print{display:none!important}
-  #printhead{display:flex!important;align-items:center;gap:14px;border-bottom:2px solid var(--gold);padding-bottom:12px;margin-bottom:16px}
-  #printhead img{background:#0a2010;padding:12px;border-radius:14px;height:64px}
+  #printhead{display:flex!important;align-items:center;gap:14px;border-bottom:2px solid #b8921a!important;padding-bottom:12px;margin-bottom:16px}
+  #printhead img{background:#0a2010!important;padding:12px;border-radius:14px;height:64px}
   #printhead h1{color:#000!important;font-size:18px}
   .pcard,.scard{border:1px solid #888!important;background:#fff!important;break-inside:avoid}
-  .pcard *,.scard *,.prow *,.detail-grid *{color:#000!important}
-  .badge{border:1px solid #888!important;background:#eee!important;color:#000!important}
+  .ptable{border-collapse:collapse!important}
+  .ptable th,.ptable tfoot td{background:#e8e8e8!important;color:#000!important;border:1px solid #999!important;font-weight:700}
+  .ptable td{border:1px solid #ccc!important;color:#000!important}
+  .badge,.bd,.chip,[class*=badge]{border:1px solid #888!important;background:#eee!important;color:#000!important}
+  a{color:#000!important;text-decoration:none!important}
+  /* منع اقتطاع البيانات عند الطباعة */
+  .table-wrap{overflow:visible!important;border:none!important;background:#fff!important}
+  .ptable{min-width:0!important;width:100%!important;table-layout:fixed;font-size:9.5px!important;word-wrap:break-word;overflow-wrap:anywhere}
+  .ptable th,.ptable td{white-space:normal!important;word-break:break-word;overflow:visible!important;padding:4px 5px!important;vertical-align:top}
+  .pcard,.scard,.pcard *,.scard *{overflow:visible!important}
+  .btn,.badge,.bd,.chip{white-space:normal!important;overflow:visible!important}
+  tr,td,th{break-inside:avoid}
   .grid{grid-template-columns:repeat(2,1fr)}
 }
 #printhead{display:none}
