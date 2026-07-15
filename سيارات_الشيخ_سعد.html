@@ -124,16 +124,19 @@ const SEED=[{"brand": "تويوتا", "model": "فان بضاعه", "year": 2012
 const LS='saad_cars_v7';['saad_cars_v4','saad_cars_v5','saad_cars_v6'].forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});
 function stripImgs(a){return a.map(function(c){var o={};for(var k in c){if(k!=='form'&&k!=='logo')o[k]=c[k];}return o;});}
 function attachImgs(a){var by={};SEED.forEach(function(s){by[s.id]=s;});a.forEach(function(c){var s=by[c.id];if(s){if(!c.form)c.form=s.form;if(!c.logo)c.logo=s.logo;}});return a;}
-let CARS=[];
-try{const raw=localStorage.getItem(LS);CARS=raw?attachImgs(JSON.parse(raw)):JSON.parse(JSON.stringify(SEED));}catch(e){CARS=JSON.parse(JSON.stringify(SEED));}
-var CAL=localStorage.getItem('saad_cars_cal')||'h';
-function save(){try{localStorage.setItem(LS,JSON.stringify(stripImgs(CARS)));}catch(e){try{['saad_cars_v4','saad_cars_v5','saad_cars_v6'].forEach(function(k){localStorage.removeItem(k);});localStorage.setItem(LS,JSON.stringify(stripImgs(CARS)));}catch(e2){alert('تعذّر الحفظ: مساحة المتصفح ممتلئة');}}}
+let CARS=JSON.parse(JSON.stringify(SEED));
+var _db=null;
+function idbInit(cb){try{var r=indexedDB.open('saad_cars_store',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('kv');};r.onsuccess=function(e){_db=e.target.result;cb();};r.onerror=function(){cb();};}catch(e){cb();}}
+function idbGet(k,cb){if(!_db){cb(null);return;}try{var rq=_db.transaction('kv','readonly').objectStore('kv').get(k);rq.onsuccess=function(){cb(rq.result);};rq.onerror=function(){cb(null);};}catch(e){cb(null);}}
+function idbSet(k,v){if(!_db)return;try{_db.transaction('kv','readwrite').objectStore('kv').put(v,k);}catch(e){}}
+var CAL='h';
+function save(){try{idbSet('cars',stripImgs(CARS));}catch(e){}}
 const g=id=>document.getElementById(id);
 const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function jdnToGreg(jd){var a=jd+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4);var d=Math.floor((4*c+3)/1461),e2=c-Math.floor(1461*d/4),mm=Math.floor((5*e2+2)/153);return {d:e2-Math.floor((153*mm+2)/5)+1,m:mm+3-12*Math.floor(mm/10),y:100*b+d-4800+Math.floor(mm/10)};}
 function hijriToGreg(y,mo,dy){var jd=hToJDN(y,mo,dy);var g=jdnToGreg(jd);var base=Date.UTC(g.y,g.m-1,g.d);for(var off=-2;off<=2;off++){var dt=new Date(base+off*86400000);var p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'}).formatToParts(dt);var o={};for(var k=0;k<p.length;k++)o[p[k].type]=p[k].value;if(+o.year===y&&+o.month===mo&&+o.day===dy)return {y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};}return g;}
 function fd(s){if(!s||s==='—'||s==='None')return '—';var m=String(s).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return s;var Y=+m[1],M=+m[2],D=+m[3];if(CAL==='g'){var g=hijriToGreg(Y,M,D);return ('0'+g.d).slice(-2)+'/'+('0'+g.m).slice(-2)+'/'+g.y;}return ('0'+D).slice(-2)+'/'+('0'+M).slice(-2)+'/'+Y;}
-function toggleCal(){CAL=(CAL==='h')?'g':'h';try{localStorage.setItem('saad_cars_cal',CAL);}catch(e){}updateCalBtn();render();}
+function toggleCal(){CAL=(CAL==='h')?'g':'h';idbSet('cal',CAL);idbInit(function(){idbGet('cal',function(cv){if(cv==='g'||cv==='h')CAL=cv;idbGet('cars',function(d){if(d&&d.length){try{CARS=attachImgs(d);}catch(e){}}updateCalBtn();render();});});});}
 function updateCalBtn(){var b=g('calbtn');if(b)b.innerHTML=(CAL==='h')?'🗓 عرض ميلادي':'🗓 عرض هجري';}
 function hijToday(){try{const p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const o={};p.forEach(x=>o[x.type]=x.value);return o.year+'-'+o.month+'-'+o.day;}catch(e){return '1448-00-00';}}
 const TODAY=hijToday();
