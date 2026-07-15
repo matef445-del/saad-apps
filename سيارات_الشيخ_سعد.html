@@ -88,6 +88,8 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 .pill-soon{background:#3a2e10;color:#e8c45b}
 .al-ok{background:#12241a;border:1px solid #1f5233;color:#7bd88f;border-radius:12px;padding:10px 14px;font-size:13px;text-align:center}
 .blogo{width:28px;height:28px;object-fit:contain;border-radius:6px;vertical-align:middle;margin-left:6px;background:#fff;padding:1px}.blogo.big{width:40px;height:40px;border-radius:9px;margin-left:8px}
+td.cell-bad{background:#3a1616;color:#f2b0b0;font-weight:600}
+td.cell-soon{background:#3a2e10;color:#eccb5f;font-weight:600}
 </style></head><body><div class="wrap">
 <header>
  <div class="brand">
@@ -108,7 +110,7 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 <div class="tablewrap"><table>
 <thead><tr>
 <th>الماركة</th><th>الموديل</th><th class="c">السنة</th><th>اللون</th><th class="c">رقم اللوحة</th>
-<th class="c">انتهاء الرخصة</th><th class="c">انتهاء الفحص</th><th>التأمين</th><th class="c">الحالة</th>
+<th class="c">انتهاء الرخصة</th><th class="c">انتهاء الفحص</th><th>التأمين</th>
 </tr></thead><tbody id="tb"></tbody></table></div>
 <p style="text-align:center;color:#6f8578;font-size:11px;margin-top:12px">اضغط على أي سيارة لعرض استمارتها وتفاصيلها الكاملة · البيانات تُحفظ تلقائيًا في متصفحك</p>
 </div>
@@ -140,6 +142,7 @@ function carChecks(c){
    return {label:label,state:'ok',days:d,txt:'سارية'};});
 }
 function carAlerts(c){return carChecks(c).filter(function(x){return x.state!=='ok';}).map(function(x){return x.label+' — '+x.txt;});}
+function cellCls(v){var d=daysUntil(v);if(d===null||d<0)return 'cell-bad';if(d<=WARN_DAYS)return 'cell-soon';return '';}
 function statusOf(c){var ch=carChecks(c);var exp=ch.filter(function(x){return x.state==='expired'||x.state==='none';}).length;var soon=ch.filter(function(x){return x.state==='soon';}).length;if(exp)return {cls:'b-bad',t:(exp+soon>1)?(exp+soon)+' تنبيهات':'منتهية'};if(soon)return {cls:'b-warn',t:'قريب الانتهاء'};return {cls:'b-ok',t:'سليمة'};}
 function shortIns(s){s=String(s||'—');if(s==='—'||!s)return '—';var map={'التعاونية':'التعاونية','الراجحي':'الراجحي','الخليجية':'الخليجية','الوطنية':'الوطنية (سنيك)','سنيك':'الوطنية (سنيك)','المتوسط والخليج':'المتوسط والخليج','ملاذ':'ملاذ','سلامة':'سلامة','اتحاد الخليج':'اتحاد الخليج','الأهلي':'الأهلي','بروج':'بروج','ساب':'ساب','والية':'والاء','الدرع':'الدرع'};for(var k in map){if(s.indexOf(k)>=0)return map[k];}return s.replace('الشركة ','').replace('شركة ','');}
 
@@ -180,10 +183,10 @@ function render(){
   '<td>'+(c.logo?'<img src="'+c.logo+'" class="blogo">':'')+'<b>'+e(c.brand)+'</b></td><td class="muted">'+e(c.model)+'</td>'+
   '<td class="c muted">'+e(c.year)+'</td><td class="muted">'+e(c.color)+'</td>'+
   '<td class="c"><span class="mono">'+e(c.plate)+'</span></td>'+
-  '<td class="c muted">'+fd(c.license_exp)+'</td><td class="c muted">'+fd(c.inspection_exp)+'</td>'+
-  '<td class="muted" style="font-size:12px" title="'+e(c.ins_co||'')+'">'+e(shortIns(c.ins_co))+'</td>'+
-  '<td class="c"><span class="badge '+st.cls+'">'+st.t+'</span></td></tr>';}).join('')
-  ||'<tr><td colspan="9" style="text-align:center;padding:24px;color:#6f8578">لا توجد نتائج</td></tr>';
+  '<td class="c '+cellCls(c.license_exp)+'">'+fd(c.license_exp)+'</td><td class="c '+cellCls(c.inspection_exp)+'">'+fd(c.inspection_exp)+'</td>'+
+  '<td class="'+cellCls(c.ins_exp)+'" style="font-size:12px" title="'+e(c.ins_co||'')+'">'+e(shortIns(c.ins_co))+'</td>'+
+  '</tr>';}).join('')
+  ||'<tr><td colspan="8" style="text-align:center;padding:24px;color:#6f8578">لا توجد نتائج</td></tr>';
 }
 
 function openDetail(i){
