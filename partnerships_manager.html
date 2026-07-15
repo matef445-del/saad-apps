@@ -189,9 +189,14 @@ pays:[{id:'sw1',date:'2025-12-21',amount:393750,desc:'سداد 50% من مستح
 docs:[{id:'swd1',name:'عقد اتفاق وتكوين شراكة مؤسسة اللفة (سويرل) — 5 صفحات'}]}
 ];
 
-function loadD(){try{const r=localStorage.getItem(LK);if(r){const d=JSON.parse(r);if(Array.isArray(d)&&d.length)return d;}}catch(e){}return JSON.parse(JSON.stringify(SEED));}
-function saveD(a){try{localStorage.setItem(LK,JSON.stringify(a));}catch(e){}}
-let DATA=loadD(),AID=null,CPV=null,NF='all';
+let _pdb=null;
+function idbOpen(cb){try{var r=indexedDB.open('saad_partnerships_db',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('kv');};r.onsuccess=function(e){_pdb=e.target.result;cb();};r.onerror=function(){cb();};}catch(e){cb();}}
+function idbGet(k,cb){if(!_pdb){cb(null);return;}try{var rq=_pdb.transaction('kv','readonly').objectStore('kv').get(k);rq.onsuccess=function(){cb(rq.result);};rq.onerror=function(){cb(null);};}catch(e){cb(null);}}
+function idbSet(k,v){if(!_pdb)return;try{_pdb.transaction('kv','readwrite').objectStore('kv').put(v,k);}catch(e){}}
+function idbSetCb(k,v,cb){if(!_pdb){cb(false);return;}try{var t=_pdb.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=function(){cb(true);};t.onerror=function(){cb(false);};}catch(e){cb(false);}}
+function saveD(a){try{idbSet('data',a);}catch(e){}}
+function bootData(done){idbOpen(function(){idbGet('data',function(d){if(Array.isArray(d)&&d.length&&d[0].pays){DATA=d;done();return;}var r=null;try{r=localStorage.getItem(LK);}catch(e){}if(r){try{var ld=JSON.parse(r);if(Array.isArray(ld)&&ld.length&&ld[0].pays){DATA=ld;idbSetCb('data',ld,function(ok){if(ok){try{localStorage.removeItem(LK);}catch(e){}}done();});return;}}catch(e){}}done();});});}
+let DATA=JSON.parse(JSON.stringify(SEED)),AID=null,CPV=null,NF='all';
 // Reset if data looks empty or broken
 if(!DATA||!DATA.length||!DATA[0].pays){localStorage.removeItem(LK);DATA=JSON.parse(JSON.stringify(SEED));}
 
@@ -300,7 +305,7 @@ function toggleSB(){const sb=document.getElementById('SB'),ov=document.getElemen
 function closeSB(){const sb=document.getElementById('SB'),ov=document.getElementById('sbov');if(sb)sb.classList.remove('open');if(ov)ov.classList.remove('show');}
 function toast(msg,type){const w=document.getElementById('tw');if(!w)return;const t=document.createElement('div');t.className='toast'+(type?' '+type:'');const ic=type==='ok'?'<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>':type==='err'?'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>':'';t.innerHTML=ic+msg;w.appendChild(t);setTimeout(()=>t.remove(),3200);}
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){['dov','pvov','aov','cov'].forEach(id=>co(id));closeSB();}});
-render();
+bootData(function(){render();});
 
 </script>
 <!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->
