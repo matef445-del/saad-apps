@@ -90,6 +90,7 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 .blogo{width:28px;height:28px;object-fit:contain;border-radius:6px;vertical-align:middle;margin-left:6px;background:#fff;padding:1px}.blogo.big{width:40px;height:40px;border-radius:9px;margin-left:8px}
 td.cell-bad{background:#3a1616;color:#f2b0b0;font-weight:600}
 td.cell-soon{background:#3a2e10;color:#eccb5f;font-weight:600}
+.renewbtn{background:#1a3325;color:#d8b441;border:1px solid #b8921a;border-radius:7px;font-size:11px;padding:2px 9px;cursor:pointer;margin-right:6px;font-family:inherit}.renewbtn:hover{background:#224230}
 </style></head><body><div class="wrap">
 <header>
  <div class="brand">
@@ -189,6 +190,29 @@ function render(){
   ||'<tr><td colspan="8" style="text-align:center;padding:24px;color:#6f8578">لا توجد نتائج</td></tr>';
 }
 
+function renewRow(label,val,field,i){return '<div class="drow"><span>'+label+'</span><b>'+e(val||'—')+' <button class="renewbtn" onclick="renew('+i+',\''+field+'\')">🔄 تجديد</button></b></div>';}
+function renew(i,field){
+ var c=CARS[i];var L={license:'رخصة السير',inspection:'الفحص الدوري',insurance:'التأمين'};
+ var html='<div class="modal-head"><h2>🔄 تجديد '+L[field]+' — '+e(c.brand)+' '+e(c.model)+'</h2><button class="x" onclick="openDetail('+i+')">×</button></div>'+
+  '<div style="max-width:440px;margin:6px auto">'+
+  '<div class="field"><label>تاريخ الانتهاء الجديد (هجري: سنة-شهر-يوم)</label><input id="rn_date" placeholder="1450-01-15"></div>';
+ if(field==='insurance')html+='<div class="field"><label>شركة التأمين</label><input id="rn_co" list="rninsl" value="'+e(c.ins_co||'')+'"><datalist id="rninsl">'+INSCOS.map(function(x){return '<option>'+e(x)+'</option>';}).join('')+'</datalist></div><div class="field"><label>بداية التأمين (اختياري)</label><input id="rn_start"></div>';
+ if(field==='license')html+='<div class="field"><label>صورة الرخصة الجديدة (اختياري)</label><input type="file" id="rn_img" accept="image/*"></div>';
+ html+='<div class="actions"><button class="btn gold" onclick="doRenew('+i+',\''+field+'\')">💾 حفظ التجديد</button><button class="btn" onclick="openDetail('+i+')">إلغاء</button></div></div>';
+ g('modalIn').innerHTML=html;var el=g('rn_date');if(el)el.focus();
+}
+function doRenew(i,field){
+ var c=CARS[i];var d=(g('rn_date').value||'').trim();
+ if(!norm(d)){alert('اكتب تاريخ الانتهاء الجديد بصيغة سنة-شهر-يوم، مثال: 1450-01-15');return;}
+ var LN={license:'الرخصة',inspection:'الفحص الدوري',insurance:'التأمين'};
+ if(field==='license')c.license_exp=d;
+ else if(field==='inspection')c.inspection_exp=d;
+ else if(field==='insurance'){c.ins_exp=d;c.ins_status='سارية';var co=(g('rn_co').value||'').trim();if(co)c.ins_co=co;var s=(g('rn_start').value||'').trim();if(s)c.ins_start=s;}
+ function done(){save();render();openDetail(i);alert('✓ تم تجديد '+LN[field]+' حتى '+fd(d));}
+ var im=g('rn_img');
+ if(field==='license'&&im&&im.files&&im.files[0]){var r=new FileReader();r.onload=function(ev){c.form=ev.target.result;done();};r.readAsDataURL(im.files[0]);}
+ else done();
+}
 function openDetail(i){
  const c=CARS[i];const al=carAlerts(c);
  const img=c.form?('<img src="'+c.form+'" onclick="zoom(\''+i+'\')">'):('<div class="noimg"><div style="font-size:30px">🚗</div><div>لا توجد استمارة</div></div>');
@@ -198,8 +222,8 @@ function openDetail(i){
  '<div class="detail"><div class="dcol">'+
    '<div class="drow"><span>رقم اللوحة</span><b style="direction:ltr;font-family:monospace;color:#d8b441">'+e(c.plate)+'</b></div>'+
    R('اللون',c.color)+R('نوع التسجيل',c.reg)+R('رقم الهيكل',c.vin)+R('الرقم التسلسلي',c.serial)+R('الوزن',(c.weight?c.weight+' كجم':'—'))+
-   R('رقم الهوية',c.hid)+R('انتهاء رخصة السير',fd(c.license_exp))+R('انتهاء الفحص الدوري',fd(c.inspection_exp))+
-   R('شركة التأمين',c.ins_co)+R('بداية التأمين',fd(c.ins_start))+R('انتهاء التأمين',fd(c.ins_exp))+R('حالة التأمين',c.ins_status)+
+   R('رقم الهوية',c.hid)+renewRow('انتهاء رخصة السير',fd(c.license_exp),'license',i)+renewRow('انتهاء الفحص الدوري',fd(c.inspection_exp),'inspection',i)+
+   R('شركة التأمين',c.ins_co)+R('بداية التأمين',fd(c.ins_start))+renewRow('انتهاء التأمين',fd(c.ins_exp),'insurance',i)+R('حالة التأمين',c.ins_status)+
    (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'<div style="margin-top:10px;color:#7bd88f;font-size:13px">✓ جميع الأوراق سارية</div>')+
  '</div><div class="formimg"><div class="lbl">رخصة السير</div>'+img+
    '<div class="field" style="margin-top:8px"><label>تحديث صورة الرخصة</label><input type="file" accept="image/*" onchange="setForm('+i+',this)"></div>'+
