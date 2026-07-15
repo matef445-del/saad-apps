@@ -105,7 +105,7 @@ td.cell-soon{background:#3a2e10;color:#eccb5f;font-weight:600}
  <select id="fs"><option value="">كل الحالات</option><option value="ok">سليمة</option><option value="warn">فيها تنبيه</option></select>
  <button class="btn gold" onclick="openForm()">+ إضافة سيارة</button>
  <button class="btn" onclick="window.print()">🖨 طباعة</button>
- <button class="btn" onclick="exportXls()">⬇ Excel</button>
+ <button class="btn" onclick="exportXls()">⬇ Excel</button><button class="btn" id="calbtn" onclick="toggleCal()">🗓 عرض ميلادي</button>
 </div>
 <div id="alerts"></div>
 <div class="tablewrap"><table>
@@ -124,10 +124,15 @@ const SEED=[{"brand": "تويوتا", "model": "فان بضاعه", "year": 2012
 const LS='saad_cars_v6';
 let CARS=[];
 try{const raw=localStorage.getItem(LS);CARS=raw?JSON.parse(raw):JSON.parse(JSON.stringify(SEED));}catch(e){CARS=JSON.parse(JSON.stringify(SEED));}
+var CAL=localStorage.getItem('saad_cars_cal')||'h';
 function save(){try{localStorage.setItem(LS,JSON.stringify(CARS));}catch(e){alert('تعذّر الحفظ: مساحة المتصفح ممتلئة');}}
 const g=id=>document.getElementById(id);
 const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function fd(s){if(!s||s==='—'||s==='None')return '—';const m=String(s).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return ('0'+m[3]).slice(-2)+'/'+('0'+m[2]).slice(-2)+'/'+m[1];return s;}
+function jdnToGreg(jd){var a=jd+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4);var d=Math.floor((4*c+3)/1461),e2=c-Math.floor(1461*d/4),mm=Math.floor((5*e2+2)/153);return {d:e2-Math.floor((153*mm+2)/5)+1,m:mm+3-12*Math.floor(mm/10),y:100*b+d-4800+Math.floor(mm/10)};}
+function hijriToGreg(y,mo,dy){var jd=hToJDN(y,mo,dy);var g=jdnToGreg(jd);var base=Date.UTC(g.y,g.m-1,g.d);for(var off=-2;off<=2;off++){var dt=new Date(base+off*86400000);var p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'}).formatToParts(dt);var o={};for(var k=0;k<p.length;k++)o[p[k].type]=p[k].value;if(+o.year===y&&+o.month===mo&&+o.day===dy)return {y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};}return g;}
+function fd(s){if(!s||s==='—'||s==='None')return '—';var m=String(s).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return s;var Y=+m[1],M=+m[2],D=+m[3];if(CAL==='g'){var g=hijriToGreg(Y,M,D);return ('0'+g.d).slice(-2)+'/'+('0'+g.m).slice(-2)+'/'+g.y;}return ('0'+D).slice(-2)+'/'+('0'+M).slice(-2)+'/'+Y;}
+function toggleCal(){CAL=(CAL==='h')?'g':'h';try{localStorage.setItem('saad_cars_cal',CAL);}catch(e){}updateCalBtn();render();}
+function updateCalBtn(){var b=g('calbtn');if(b)b.innerHTML=(CAL==='h')?'🗓 عرض ميلادي':'🗓 عرض هجري';}
 function hijToday(){try{const p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const o={};p.forEach(x=>o[x.type]=x.value);return o.year+'-'+o.month+'-'+o.day;}catch(e){return '1448-00-00';}}
 const TODAY=hijToday();
 function norm(s){const m=String(s||'').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);return m?m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2):'';}
@@ -283,5 +288,5 @@ function exportXls(){
 }
 g('q').oninput=render;g('fb').onchange=render;g('fs').onchange=render;
 g('modal').addEventListener('click',ev=>{if(ev.target===g('modal'))closeModal();});
-render();
+updateCalBtn();render();
 </script></body></html>
