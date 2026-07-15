@@ -186,9 +186,9 @@ function render(){
   if(q&&!((c.brand||'')+(c.model||'')+(c.plate||'')).includes(q))return false;
   return true;});
  g('tb').innerHTML=list.map(({c,i})=>{const st=statusOf(c);return '<tr onclick="openDetail('+i+')">'+
-  '<td>'+(c.logo?'<img src="'+c.logo+'" class="blogo">':'')+'<b>'+e(c.brand)+'</b></td><td class="muted">'+e(c.model)+'</td>'+
+  '<td>'+(c.logo?'<img src="'+c.logo+'" class="blogo">':'')+'<b>'+e(c.brand)+'</b></td><td class="muted" dir="auto">'+e(c.model)+'</td>'+
   '<td class="c muted">'+e(c.year)+'</td><td class="muted">'+e(c.color)+'</td>'+
-  '<td class="c"><span class="mono">'+e(c.plate)+'</span></td>'+
+  '<td class="c"><span class="mono" dir="auto">'+e(c.plate)+'</span></td>'+
   '<td class="c '+cellCls(c.license_exp)+'">'+fd(c.license_exp)+'</td><td class="c '+cellCls(c.inspection_exp)+'">'+fd(c.inspection_exp)+'</td>'+
   '<td class="'+cellCls(c.ins_exp)+'" style="font-size:12px" title="'+e(c.ins_co||'')+'">'+e(shortIns(c.ins_co))+'</td>'+
   '</tr>';}).join('')
@@ -223,9 +223,9 @@ function openDetail(i){
  const img=c.form?('<img src="'+c.form+'" onclick="zoom(\''+i+'\')">'):('<div class="noimg"><div style="font-size:30px">🚗</div><div>لا توجد استمارة</div></div>');
  const R=(l,v)=>'<div class="drow"><span>'+l+'</span><b>'+e(v||'—')+'</b></div>';
  g('modalIn').innerHTML=
- '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' '+e(c.model)+' <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
+ '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' <span dir="auto">'+e(c.model)+'</span> <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
  '<div class="detail"><div class="dcol">'+
-   '<div class="drow"><span>رقم اللوحة</span><b style="direction:ltr;font-family:monospace;color:#d8b441">'+e(c.plate)+'</b></div>'+
+   '<div class="drow"><span>رقم اللوحة</span><b dir="auto" style="font-family:monospace;color:#d8b441">'+e(c.plate)+'</b></div>'+
    R('اللون',c.color)+R('نوع التسجيل',c.reg)+R('رقم الهيكل',c.vin)+R('الرقم التسلسلي',c.serial)+R('الوزن',(c.weight?c.weight+' كجم':'—'))+
    R('رقم الهوية',c.hid)+renewRow('انتهاء رخصة السير',fd(c.license_exp),'license',i)+renewRow('انتهاء الفحص الدوري',fd(c.inspection_exp),'inspection',i)+
    R('شركة التأمين',c.ins_co)+R('بداية التأمين',fd(c.ins_start))+renewRow('انتهاء التأمين',fd(c.ins_exp),'insurance',i)+R('حالة التأمين',c.ins_status)+
