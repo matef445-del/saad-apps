@@ -679,6 +679,7 @@ function initFB(){
     }).catch(function(){ setSync('off'); loadLocalOrSeed(); });
   }catch(e){ setSync('off'); loadLocalOrSeed(); }
 }
+function nextInv(){var mx=0;try{var A=(STATE&&STATE.accounts)||{};for(var k in A){var rw=(A[k]&&A[k].rows)||[];for(var i=0;i<rw.length;i++){var v=parseInt(rw[i].inv,10);if(!isNaN(v)&&v>mx)mx=v;}}}catch(e){}return String(mx+1);}
 function loadLocalOrSeed(){
   try{var l=localStorage.getItem('SAAD_CUSTODY_V1');
     if(l){var p=JSON.parse(l); if(p.accounts){STATE=p; afterLoad(); return;}}
@@ -921,7 +922,7 @@ function openEntry(id){
   }else{
     g('em-id').value=''; g('em-date').value=new Date().toISOString().slice(0,10);
     g('em-amount').value=''; g('em-desc').value=''; g('em-type').value=m.types[0];
-    g('em-cat').value=''; g('em-inv').value=''; g('em-note').value='';
+    g('em-cat').value=''; g('em-inv').value=nextInv(); g('em-note').value='';
     currentAtt=[];
   }
   g('em-att-prog').textContent=''; renderAttList();
