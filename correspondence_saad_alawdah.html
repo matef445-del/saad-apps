@@ -91,7 +91,21 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
 .letter .body{white-space:pre-wrap;text-align:justify;min-height:120px}
 .letter .sign{margin-top:44px;text-align:left}
 .letter .sign .nm{font-weight:800}
+.letter .sign .sigimg{margin:6px 0 2px}
+.letter .sign .sigimg img{display:inline-block;background:transparent;mix-blend-mode:multiply}
 .letter .foot{margin-top:auto;border-top:1px solid #ddd;padding-top:10px;text-align:center;color:#777;font-size:11.5px}
+
+#fitProbe{position:fixed;left:-99999px;top:0;width:178mm;visibility:hidden;pointer-events:none;z-index:-1}
+#fitProbe .letter{box-shadow:none;border-radius:0;max-width:100%;padding:0;font-size:14px;line-height:1.9;min-height:0;display:block}
+#fitProbe .letter .lh{padding-bottom:12px;margin-bottom:22px}
+#fitProbe .letter .lh img{height:88px}
+#fitProbe .letter .lh .o{font-size:16px;margin-top:7px}
+#fitProbe .letter .meta{font-size:13px;margin-bottom:20px}
+#fitProbe .letter .to{margin:12px 0}
+#fitProbe .letter .subj{margin:20px 0;font-size:15px}
+#fitProbe .letter .body{line-height:1.95;min-height:0}
+#fitProbe .letter .sign{margin-top:40px;padding-top:0}
+#fitProbe .letter .foot{padding-top:8px;font-size:11px}
 
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}
@@ -110,6 +124,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
   .letter .subj{margin:20px 0;font-size:15px}
   .letter .body{line-height:1.95;min-height:0}
   .letter .sign{margin-top:40px;padding-top:0}
+  .letter .sign .sigimg img{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
   .letter .foot{margin-top:auto;padding-top:8px;font-size:11px}
   #authLogoutBtn,#toast,#authGate,#splash{display:none!important}
   @page{size:A4;margin:15mm 16mm}
@@ -222,6 +237,46 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
               <option value="center">توسيط</option>
             </select></div>
           </div>
+          <div class="grid g2" style="margin-top:12px">
+            <div><label>حجم الشعار</label><select id="c-logoh" onchange="applyStyleControl()">
+              <option value="">افتراضي</option>
+              <option value="60">صغير جداً (60)</option>
+              <option value="72">صغير (72)</option>
+              <option value="88">متوسط (88)</option>
+              <option value="104">كبير (104)</option>
+            </select></div>
+            <div><label>رفع الشعار للأعلى</label><select id="c-logotop" onchange="applyStyleControl()">
+              <option value="">افتراضي (بدون رفع)</option>
+              <option value="8">قليلاً (8)</option>
+              <option value="16">متوسط (16)</option>
+              <option value="24">كثيراً (24)</option>
+            </select></div>
+          </div>
+          <div style="margin-top:12px"><label>ملاءمة الخطاب لصفحة واحدة عند الطباعة</label>
+            <select id="c-fit" onchange="applyStyleControl()">
+              <option value="auto" selected>تلقائي — يُصغَّر بحدود ٢٢٪ فقط عند الحاجة</option>
+              <option value="force">إجباري — صفحة واحدة مهما طال (حتى ٤٠٪ تصغير)</option>
+              <option value="off">معطّل — لا تصغير إطلاقاً</option>
+            </select></div>
+          <div class="grid g2" style="margin-top:12px">
+            <div><label>التباعد بين الأسطر</label><select id="c-lh" onchange="applyStyleControl()">
+              <option value="">افتراضي (كما هو)</option>
+              <option value="1">مفرد (1.0)</option>
+              <option value="1.15">1.15</option>
+              <option value="1.5">سطر ونصف (1.5)</option>
+              <option value="1.75">1.75</option>
+              <option value="2">مزدوج (2.0)</option>
+              <option value="2.5">2.5</option>
+              <option value="3">3.0</option>
+            </select></div>
+            <div><label>المسافة بعد الفقرة</label><select id="c-pspace" onchange="applyStyleControl()">
+              <option value="">افتراضي (كما هو)</option>
+              <option value="0">بدون مسافة</option>
+              <option value="6">صغيرة (6)</option>
+              <option value="10">متوسطة (10)</option>
+              <option value="16">كبيرة (16)</option>
+            </select></div>
+          </div>
           <div style="margin-top:12px"><label>نص الخطاب</label>
             <textarea id="c-body" placeholder="اكتب نص الخطاب هنا…"></textarea></div>
           <div style="margin-top:12px"><label>الخاتمة</label>
@@ -229,6 +284,23 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
           <div class="grid g2" style="margin-top:12px">
             <div><label>اسم الموقّع</label><input id="c-signer" value="مدير المكتب الإداري"></div>
             <div><label>الصفة (اختياري)</label><input id="c-signrole" placeholder="الصفة"></div>
+          </div>
+          <div class="grid g2" style="margin-top:12px">
+            <div><label>التوقيع الخطي</label><select id="c-sig" onchange="applyStyleControl()">
+              <option value="">بدون توقيع — يظهر سطر التوقيع كالمعتاد</option>
+            </select></div>
+            <div><label>حجم التوقيع</label><select id="c-sigsize" onchange="applyStyleControl()">
+              <option value="55">صغير</option>
+              <option value="75" selected>متوسط</option>
+              <option value="100">كبير</option>
+              <option value="130">كبير جداً</option>
+            </select></div>
+          </div>
+          <div class="row-actions" style="margin-top:8px">
+            <button class="btn ghost" type="button" onclick="openSigPad()">توقيع بالرسم</button>
+            <button class="btn ghost" type="button" onclick="g('sigFile').click()">رفع صورة توقيع</button>
+            <button class="btn ghost" type="button" onclick="openSigManager()">إدارة التواقيع</button>
+            <input type="file" id="sigFile" accept="image/*" style="display:none" onchange="sigFromFile(this)">
           </div>
           <div style="margin-top:12px"><label>الحالة</label>
             <select id="c-status">
@@ -254,7 +326,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
             <button class="btn ghost" id="revertBtn" onclick="clearFreeEdit()" style="display:none">↩️ العودة للوضع التلقائي</button>
           </div>
           <p class="muted" id="freeEditNote" style="display:none;margin:0 0 10px">وضع التحرير الحر مفعّل: عدّل الخطاب مباشرةً في المعاينة (احذف «المكرم» أو أي كلمة، أو غيّر أي نص). سيُحفظ ويُطبع ويُصدَّر كما تراه. لن تؤثّر تعديلات الحقول أعلاه ما دام هذا الوضع مفعّلاً.</p>
-          <div id="freeTools" style="display:none;gap:6px;flex-wrap:wrap;margin:0 0 10px"><span style="align-self:center;color:#777;font-size:12px;margin-inline-end:4px">حدّد النص ثم:</span><button type="button" onclick="fmtSel('justifyRight')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">يمين ⟶</button><button type="button" onclick="fmtSel('justifyCenter')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">توسيط ⊟</button><button type="button" onclick="fmtSel('justifyLeft')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">يسار ⟵</button><button type="button" onclick="fmtSel('justifyFull')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">ضبط</button><button type="button" onclick="fmtSel('bold')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><b>عريض</b></button><button type="button" onclick="fmtSel('underline')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><u>تسطير</u></button></div>
+          <div id="freeTools" style="display:none;gap:6px;flex-wrap:wrap;margin:0 0 10px"><span style="align-self:center;color:#777;font-size:12px;margin-inline-end:4px">حدّد النص ثم:</span><button type="button" onclick="fmtSel('justifyRight')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">يمين ⟶</button><button type="button" onclick="fmtSel('justifyCenter')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">توسيط ⊟</button><button type="button" onclick="fmtSel('justifyLeft')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">يسار ⟵</button><button type="button" onclick="fmtSel('justifyFull')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">ضبط</button><button type="button" onclick="fmtSel('bold')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><b>عريض</b></button><button type="button" onclick="fmtSel('underline')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><u>تسطير</u></button><button type="button" onclick="fmtSel('italic')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><i>مائل</i></button><button type="button" onclick="fmtSel('strikeThrough')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700"><s>شطب</s></button><button type="button" onclick="fmtSel('insertUnorderedList')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">• قائمة نقطية</button><button type="button" onclick="fmtSel('insertOrderedList')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">1. قائمة رقمية</button><button type="button" onclick="fmtSel('indent')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">← إزاحة</button><button type="button" onclick="fmtSel('outdent')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">إلغاء الإزاحة →</button><button type="button" onclick="fmtSize(1)" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">A+ تكبير</button><button type="button" onclick="fmtSize(-1)" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">A− تصغير</button><label style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px">لون النص<input type="color" value="#111111" oninput="fmtSelVal('foreColor',this.value)" style="width:26px;height:20px;padding:0;border:none;background:none;cursor:pointer"></label><label style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px">تظليل<input type="color" value="#ffee99" oninput="fmtSelVal('hiliteColor',this.value)" style="width:26px;height:20px;padding:0;border:none;background:none;cursor:pointer"></label><select onchange="fmtLineHeight(this.value);this.selectedIndex=0" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;width:auto"><option value="">تباعد الفقرة المحدّدة</option><option value="1">1.0</option><option value="1.15">1.15</option><option value="1.5">1.5</option><option value="2">2.0</option><option value="2.5">2.5</option></select><button type="button" onclick="fmtSel('removeFormat')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">مسح التنسيق</button><button type="button" onclick="fmtSel('undo')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">↶ تراجع</button><button type="button" onclick="fmtSel('redo')" style="padding:6px 12px;border-radius:8px;border:1px solid #b8921a;background:#fff7e6;color:#5a4300;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700">↷ إعادة</button></div>
           <div id="preview"></div>
         </div>
       </div>
@@ -362,6 +434,38 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="fitProbe" aria-hidden="true"></div>
+
+<!-- ===== نافذة التوقيع الخطي ===== -->
+<div id="sigModal" style="display:none;position:fixed;inset:0;z-index:99997;background:rgba(3,12,6,.82);align-items:center;justify-content:center;padding:14px;direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+  <div style="background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:18px;max-width:640px;width:100%">
+    <h3 style="color:#d8b441;font-size:15px;margin:0 0 4px">التوقيع الخطي</h3>
+    <p style="color:#9db3a3;font-size:12px;margin:0 0 12px">وقّع داخل المربع بالفأرة أو بالإصبع على الجوال، ثم احفظه باسم لإعادة استخدامه في أي خطاب.</p>
+    <canvas id="sigPad" width="900" height="320" style="width:100%;height:190px;background:#fff;border-radius:12px;border:1px solid #1d4a2c;touch-action:none;cursor:crosshair"></canvas>
+    <div class="grid g2" style="margin-top:12px">
+      <div><label>اسم التوقيع</label><input id="sigName" placeholder="مثال: توقيع مدير المكتب"></div>
+      <div><label>سُمك القلم</label><select id="sigPen">
+        <option value="2">رفيع</option><option value="3.5" selected>متوسط</option><option value="5">عريض</option>
+      </select></div>
+    </div>
+    <div class="row-actions" style="margin-top:12px">
+      <button class="btn gold" type="button" onclick="saveSigFromPad()">حفظ التوقيع</button>
+      <button class="btn ghost" type="button" onclick="clearSigPad()">مسح اللوحة</button>
+      <button class="btn ghost" type="button" onclick="closeSigPad()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== نافذة إدارة التواقيع ===== -->
+<div id="sigMgr" style="display:none;position:fixed;inset:0;z-index:99997;background:rgba(3,12,6,.82);align-items:center;justify-content:center;padding:14px;direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+  <div style="background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:18px;max-width:640px;width:100%;max-height:82vh;overflow:auto">
+    <h3 style="color:#d8b441;font-size:15px;margin:0 0 12px">التواقيع المحفوظة</h3>
+    <div id="sigList"></div>
+    <div class="row-actions" style="margin-top:12px">
+      <button class="btn ghost" type="button" onclick="g('sigMgr').style.display='none'">إغلاق</button>
+    </div>
+  </div>
+</div>
 <script>
 /* ============ CONFIG ============ */
 var FB={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
@@ -464,20 +568,40 @@ function fmtBody(t){
     return e;
   }).join('\n');
 }
+function sigBlock(o){
+  var d=(typeof sigData==='function')?sigData(o.sig||''):'';
+  if(!d) return '';
+  var h=parseInt(o.sigsize,10)||75;
+  return '<div class="sigimg"><img src="'+d+'" style="height:'+h+'px" alt=""></div>';
+}
+function fmtBodySpaced(o){
+  var html=fmtBody(o.body);
+  if(o.pspace===''||o.pspace==null) return html;
+  var gap=parseInt(o.pspace,10)||0;
+  return html.split('\n').map(function(ln){
+    if(!ln.trim()) return '';
+    return '<div style="margin:0 0 '+gap+'px">'+ln+'</div>';
+  }).join('');
+}
 function letterHTML(o){
   if(o.customHTML){ return o.customHTML; }
   var role=o.signrole?('<div class="muted">'+esc(o.signrole)+'</div>'):'';
   var refLine = o.type==='out' ? 'الرقم: '+esc(o.ref||'—') : 'وارد رقم: '+esc(o.ref||'—');
   var fam=(o.font||'Cairo').replace(/'/g,'');
-  return '<div class="letter" style="font-size:'+(o.fontsize||'15px')+';font-family:\''+fam+'\',\'Cairo\',system-ui,sans-serif">'
-    +'<div class="lh"><img src="'+LOGO+'" alt=""><div class="o">'+OFFICE+'</div></div>'
+  var lhCss = o.lh ? (';line-height:'+o.lh) : '';
+  var lt_=parseInt(o.logotop,10)||0;
+  var lhTop = lt_ ? ('margin-top:-'+lt_+'px;padding-bottom:'+Math.max(6,14-Math.round(lt_/2))+'px;margin-bottom:'+Math.max(8,22-lt_)+'px') : '';
+  var bodyStyle = 'text-align:'+(o.align||'justify') + (o.lh?(';line-height:'+o.lh):'') + (o.pspace!==''&&o.pspace!=null?(';--pspace:'+o.pspace+'px'):'');
+  return '<div class="letter" style="font-size:'+(o.fontsize||'15px')+';font-family:\''+fam+'\',\'Cairo\',system-ui,sans-serif'+lhCss+'">'
+    +'<div class="lh"'+(lhTop?' style="'+lhTop+'"':'')+'><img src="'+LOGO+'"'+(o.logoh?' style="height:'+o.logoh+'px"':'')+' alt=""><div class="o">'+OFFICE+'</div></div>'
     +'<div class="meta"><div>'+refLine+'</div><div>'+esc(o.hijri||'')+'<br>'+esc(fmtGreg(o.date))+' م</div></div>'
     +'<div class="to">'+(o.type==='out'?'المكرم / ':'من: ')+esc(o.to||'')+(o.type==='out'?'&nbsp;&nbsp;حفظه الله':'')+'</div>'
     +(o.salut?'<div>'+esc(o.salut)+'</div>':'')
     +(o.subj?'<div class="subj">الموضوع: '+esc(o.subj)+'</div>':'')
-    +'<div class="body" style="text-align:'+(o.align||'justify')+'">'+fmtBody(o.body)+'</div>'
+    +'<div class="body" style="'+bodyStyle+'">'+fmtBodySpaced(o)+'</div>'
     +(o.close?'<div style="margin-top:20px">'+esc(o.close)+'</div>':'')
-    +'<div class="sign"><div class="nm">'+esc(o.signer||'')+'</div>'+role+'<div style="margin-top:30px;color:#888">التوقيع: ........................</div></div>'
+    +'<div class="sign">'+(sigBlock(o)||'<div style="height:30px"></div>')+'<div class="nm">'+esc(o.signer||'')+'</div>'+role
+    +(sigBlock(o)?'':'<div style="margin-top:30px;color:#888">التوقيع: ........................</div>')+'</div>'
     +'<div class="foot">'+OFFICE+' — '+esc(o.ref||'')+'</div>'
     +'</div>';
 }
@@ -495,14 +619,186 @@ function collectForm(){
     font:(g('c-font')?g('c-font').value:'Cairo'),
     fontsize:(g('c-fontsize')?g('c-fontsize').value:'15px'),
     align:(g('c-align')?g('c-align').value:'justify'),
+    logoh:(g('c-logoh')?g('c-logoh').value:''),
+    logotop:(g('c-logotop')?g('c-logotop').value:''),
+    fit:(g('c-fit')?g('c-fit').value:'auto'),
+    lh:(g('c-lh')?g('c-lh').value:''),
+    pspace:(g('c-pspace')?g('c-pspace').value:''),
     body:g('c-body').value,
     close:g('c-close').value.trim(),
     signer:g('c-signer').value.trim(),
     signrole:g('c-signrole').value.trim(),
+    sig:(g('c-sig')?g('c-sig').value:''),
+    sigsize:(g('c-sigsize')?g('c-sigsize').value:'75'),
     status:g('c-status').value,
     customHTML:(CUSTOM_HTML||'')
   };
 }
+/* ===== وحدة التوقيع الخطي ===== */
+var SIGKEY='SAAD_CORR_SIGS_V1', SIGS=[];
+function sigsLoad(){
+  try{ var r=localStorage.getItem(SIGKEY); SIGS=r?(JSON.parse(r)||[]):[]; }catch(e){ SIGS=[]; }
+  fillSigSelect();
+  if(fbReady&&db){
+    db.collection(COLLECTION).doc(DOCID+'_sigs').get().then(function(d){
+      if(d.exists&&d.data()&&d.data().payload){
+        try{ var p=JSON.parse(d.data().payload);
+          if(p instanceof Array && p.length>=SIGS.length){ SIGS=p; try{localStorage.setItem(SIGKEY,JSON.stringify(SIGS));}catch(e){} fillSigSelect(); }
+        }catch(e){}
+      }
+    }).catch(function(){});
+  }
+}
+function sigsSave(){
+  try{ localStorage.setItem(SIGKEY,JSON.stringify(SIGS)); }catch(e){ toast('تعذّر الحفظ — مساحة التخزين ممتلئة'); }
+  fillSigSelect();
+  if(fbReady&&db){ db.collection(COLLECTION).doc(DOCID+'_sigs').set({payload:JSON.stringify(SIGS),updated:Date.now()}).catch(function(){}); }
+}
+function fillSigSelect(){
+  var sel=g('c-sig'); if(!sel)return;
+  var cur=sel.value;
+  sel.innerHTML='<option value="">بدون توقيع — يظهر سطر التوقيع كالمعتاد</option>'
+    + SIGS.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+'</option>';}).join('');
+  sel.value=cur;
+}
+function sigById(id){ for(var i=0;i<SIGS.length;i++) if(SIGS[i].id===id) return SIGS[i]; return null; }
+function sigData(id){ var x=sigById(id); return x?x.data:''; }
+
+/* --- لوحة الرسم --- */
+var SP={drawing:false,ctx:null,last:null};
+function openSigPad(){
+  var m=g('sigModal'); m.style.display='flex';
+  var c=g('sigPad'); SP.ctx=c.getContext('2d');
+  clearSigPad();
+  if(!c._bound){ bindSigPad(c); c._bound=true; }
+}
+function closeSigPad(){ g('sigModal').style.display='none'; }
+function clearSigPad(){
+  var c=g('sigPad'), x=SP.ctx||c.getContext('2d');
+  x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height);
+  x.lineCap='round'; x.lineJoin='round'; x.strokeStyle='#0b1b3a';
+}
+function sigPos(c,e){
+  var r=c.getBoundingClientRect();
+  var t=(e.touches&&e.touches[0])?e.touches[0]:e;
+  return {x:(t.clientX-r.left)*(c.width/r.width), y:(t.clientY-r.top)*(c.height/r.height)};
+}
+function bindSigPad(c){
+  function start(e){ e.preventDefault(); SP.drawing=true; SP.last=sigPos(c,e); }
+  function move(e){
+    if(!SP.drawing)return; e.preventDefault();
+    var p=sigPos(c,e), x=SP.ctx;
+    x.lineWidth=(parseFloat(g('sigPen').value)||3.5)*(c.width/900)*1.6;
+    x.beginPath(); x.moveTo(SP.last.x,SP.last.y); x.lineTo(p.x,p.y); x.stroke();
+    SP.last=p;
+  }
+  function end(){ SP.drawing=false; }
+  ['mousedown','touchstart'].forEach(function(ev){c.addEventListener(ev,start,{passive:false});});
+  ['mousemove','touchmove'].forEach(function(ev){c.addEventListener(ev,move,{passive:false});});
+  ['mouseup','mouseleave','touchend','touchcancel'].forEach(function(ev){c.addEventListener(ev,end);});
+}
+/* قصّ الفراغ الأبيض وجعل الخلفية شفافة */
+function trimSig(canvas){
+  var c=canvas.getContext('2d'), w=canvas.width, h=canvas.height;
+  var d=c.getImageData(0,0,w,h), px=d.data;
+  var minX=w, minY=h, maxX=0, maxY=0, found=false;
+  for(var y=0;y<h;y++){ for(var x=0;x<w;x++){
+    var i=(y*w+x)*4;
+    var lum=(px[i]*0.299+px[i+1]*0.587+px[i+2]*0.114);
+    if(px[i+3]>10 && lum<225){ found=true;
+      if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; }
+  }}
+  if(!found) return null;
+  var pad=8;
+  minX=Math.max(0,minX-pad); minY=Math.max(0,minY-pad);
+  maxX=Math.min(w-1,maxX+pad); maxY=Math.min(h-1,maxY+pad);
+  var tw=maxX-minX+1, th=maxY-minY+1;
+  var out=document.createElement('canvas'); out.width=tw; out.height=th;
+  var oc=out.getContext('2d');
+  oc.drawImage(canvas,minX,minY,tw,th,0,0,tw,th);
+  var od=oc.getImageData(0,0,tw,th), op=od.data;
+  for(var k=0;k<op.length;k+=4){
+    var l=(op[k]*0.299+op[k+1]*0.587+op[k+2]*0.114);
+    if(l>235){ op[k+3]=0; }
+    else if(l>170){ op[k+3]=Math.round(op[k+3]*(235-l)/65); }
+  }
+  oc.putImageData(od,0,0);
+  var maxW=760;
+  if(tw>maxW){
+    var sc=document.createElement('canvas'); sc.width=maxW; sc.height=Math.round(th*maxW/tw);
+    sc.getContext('2d').drawImage(out,0,0,sc.width,sc.height);
+    return sc;
+  }
+  return out;
+}
+function saveSigFromPad(){
+  var name=(g('sigName').value||'').trim();
+  if(!name){ toast('اكتب اسماً للتوقيع'); return; }
+  var t=trimSig(g('sigPad'));
+  if(!t){ toast('اللوحة فارغة — وقّع أولاً'); return; }
+  addSig(name, t.toDataURL('image/png'));
+  g('sigName').value=''; closeSigPad();
+}
+function sigFromFile(inp){
+  var f=inp.files&&inp.files[0]; if(!f)return;
+  var name=prompt('اسم التوقيع:', f.name.replace(/\.[^.]+$/,''));
+  inp.value='';
+  if(!name||!name.trim()){ return; }
+  var rd=new FileReader();
+  rd.onload=function(){
+    var im=new Image();
+    im.onload=function(){
+      var c=document.createElement('canvas');
+      var w=im.width, h=im.height, mx=1200;
+      if(w>mx){ h=Math.round(h*mx/w); w=mx; }
+      c.width=w; c.height=h;
+      var x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(im,0,0,w,h);
+      var t=trimSig(c)||c;
+      addSig(name.trim(), t.toDataURL('image/png'));
+    };
+    im.onerror=function(){ toast('تعذّرت قراءة الصورة'); };
+    im.src=rd.result;
+  };
+  rd.readAsDataURL(f);
+}
+function addSig(name,data){
+  var kb=Math.round(data.length*0.75/1024);
+  if(kb>900){ toast('حجم التوقيع كبير جداً ('+kb+' ك.ب) — جرّب صورة أوضح وأصغر'); return; }
+  var o={id:uid(),name:name,data:data,created:Date.now()};
+  SIGS.unshift(o); sigsSave();
+  if(g('c-sig')){ g('c-sig').value=o.id; applyStyleControl(); }
+  toast('حُفظ التوقيع ✓ ('+kb+' ك.ب)');
+}
+function openSigManager(){
+  var box=g('sigList');
+  if(!SIGS.length){ box.innerHTML='<p class="muted" style="font-size:13px">لا توجد تواقيع محفوظة بعد.</p>'; }
+  else{
+    box.innerHTML=SIGS.map(function(x){
+      return '<div style="display:flex;align-items:center;gap:10px;border:1px solid #1d4a2c;border-radius:12px;padding:10px;margin-bottom:8px">'
+        +'<img src="'+x.data+'" style="height:46px;background:#fff;border-radius:8px;padding:4px">'
+        +'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#f3ead0">'+esc(x.name)+'</div>'
+        +'<div class="muted" style="font-size:11px">'+Math.round(x.data.length*0.75/1024)+' ك.ب</div></div>'
+        +'<button class="btn ghost" type="button" onclick="useSig(\''+x.id+'\')">استخدام</button>'
+        +'<button class="btn ghost" type="button" onclick="renameSig(\''+x.id+'\')">تسمية</button>'
+        +'<button class="btn ghost" type="button" onclick="delSig(\''+x.id+'\')">حذف</button>'
+        +'</div>';
+    }).join('');
+  }
+  g('sigMgr').style.display='flex';
+}
+function useSig(id){ g('c-sig').value=id; applyStyleControl(); g('sigMgr').style.display='none'; toast('تم اختيار التوقيع'); }
+function renameSig(id){
+  var x=sigById(id); if(!x)return;
+  var n=prompt('الاسم الجديد:',x.name); if(!n||!n.trim())return;
+  x.name=n.trim(); sigsSave(); openSigManager();
+}
+function delSig(id){
+  if(!confirm('حذف هذا التوقيع نهائياً؟'))return;
+  SIGS=SIGS.filter(function(x){return x.id!==id;});
+  if(g('c-sig')&&g('c-sig').value===id){ g('c-sig').value=''; applyStyleControl(); }
+  sigsSave(); openSigManager(); toast('تم الحذف');
+}
+
 /* ===== وضع التحرير الحر ===== */
 var FREE_EDIT=false, CUSTOM_HTML='';
 function captureFreeEdit(){ if(FREE_EDIT){ CUSTOM_HTML=g('preview').innerHTML; } }
@@ -511,6 +807,32 @@ function fmtSel(cmd){
   var pv=g('preview'); pv.focus();
   try{ document.execCommand(cmd,false,null); }catch(e){}
   captureFreeEdit();
+}
+function fmtSelVal(cmd,val){
+  if(!FREE_EDIT){ toast('فعّل «تحرير حر» أولاً ثم حدّد النص'); return; }
+  var pv=g('preview'); pv.focus();
+  try{ document.execCommand('styleWithCSS',false,true); }catch(e){}
+  try{ document.execCommand(cmd,false,val); }catch(e){}
+  captureFreeEdit();
+}
+function fmtSize(step){
+  if(!FREE_EDIT){ toast('فعّل «تحرير حر» أولاً ثم حدّد النص'); return; }
+  var sel=window.getSelection(); if(!sel||sel.isCollapsed){ toast('حدّد النص أولاً'); return; }
+  var node=sel.anchorNode; node=node&&node.nodeType===3?node.parentElement:node;
+  var cur=node?parseFloat(window.getComputedStyle(node).fontSize):15;
+  var next=Math.max(8,Math.min(48,Math.round(cur)+step));
+  var span=document.createElement('span'); span.style.fontSize=next+'px';
+  try{ span.appendChild(sel.getRangeAt(0).extractContents()); sel.getRangeAt(0).insertNode(span); }catch(e){}
+  captureFreeEdit();
+}
+function fmtLineHeight(v){
+  if(!v) return;
+  if(!FREE_EDIT){ toast('فعّل «تحرير حر» أولاً ثم ضع المؤشر داخل الفقرة'); return; }
+  var sel=window.getSelection(); if(!sel||!sel.anchorNode){ toast('ضع المؤشر داخل الفقرة'); return; }
+  var pv=g('preview');
+  var node=sel.anchorNode; node=node.nodeType===3?node.parentElement:node;
+  while(node && node!==pv && !/^(DIV|P|LI)$/.test(node.tagName)) node=node.parentElement;
+  if(node && node!==pv){ node.style.lineHeight=v; captureFreeEdit(); toast('تم تطبيق التباعد على الفقرة'); }
 }
 function toggleFreeEdit(){
   var pv=g('preview');
@@ -546,6 +868,32 @@ function applyStyleControl(){
     if(g('c-fontsize')) lt.style.fontSize=g('c-fontsize').value;
     var al=(g('c-align')&&g('c-align').value)||'justify';
     var body=lt.querySelector('.body'); (body||lt).style.textAlign=al;
+    var lh=(g('c-lh')&&g('c-lh').value)||'';
+    lt.style.lineHeight = lh || '';
+    if(body) body.style.lineHeight = lh || '';
+    var hd=lt.querySelector('.lh');
+    if(hd){
+      var lgh=(g('c-logoh')&&g('c-logoh').value)||'';
+      var lgi=hd.querySelector('img'); if(lgi) lgi.style.height = lgh?(lgh+'px'):'';
+      var lgt=parseInt(g('c-logotop')&&g('c-logotop').value,10)||0;
+      hd.style.marginTop = lgt?('-'+lgt+'px'):'';
+      hd.style.paddingBottom = lgt?(Math.max(6,14-Math.round(lgt/2))+'px'):'';
+      hd.style.marginBottom = lgt?(Math.max(8,22-lgt)+'px'):'';
+    }
+    var sg=lt.querySelector('.sign');
+    if(sg){
+      var want=(typeof sigData==='function')?sigData((g('c-sig')&&g('c-sig').value)||''):'';
+      var cur=sg.querySelector('.sigimg');
+      if(want){
+        var hh=parseInt(g('c-sigsize')&&g('c-sigsize').value,10)||75;
+        if(!cur){ cur=document.createElement('div'); cur.className='sigimg'; cur.innerHTML='<img alt="">'; sg.insertBefore(cur,sg.firstChild); }
+        var im=cur.querySelector('img'); im.src=want; im.style.height=hh+'px';
+      } else if(cur){ cur.parentNode.removeChild(cur); }
+    }
+    var ps=(g('c-pspace')&&g('c-pspace').value);
+    if(body && ps!=='' && ps!=null){
+      Array.prototype.forEach.call(body.querySelectorAll('div,p,li'),function(d){ d.style.marginBottom=parseInt(ps,10)+'px'; });
+    }
     captureFreeEdit();
     toast('تم تطبيق التنسيق على الخطاب المحرَّر');
     return;
@@ -580,6 +928,10 @@ function resetCompose(){
   g('c-signer').value='مدير المكتب'; g('c-signrole').value='محمد عاطف';
   if(g('c-font')) g('c-font').value='Cairo';
   if(g('c-fontsize')) g('c-fontsize').value='15px'; if(g('c-align')) g('c-align').value='justify';
+  if(g('c-lh')) g('c-lh').value=''; if(g('c-pspace')) g('c-pspace').value='';
+  if(g('c-logoh')) g('c-logoh').value=''; if(g('c-logotop')) g('c-logotop').value='';
+  if(g('c-fit')) g('c-fit').value='auto';
+  if(g('c-sig')) g('c-sig').value=''; if(g('c-sigsize')) g('c-sigsize').value='75';
   g('c-date').value=todayISO(); syncHijri();
   g('c-status').value='draft'; g('c-type').value='out'; onTypeChange();
   updatePreview();
@@ -594,6 +946,13 @@ function editLetter(id){
   if(g('c-font')) g('c-font').value=o.font||'Cairo';
   if(g('c-fontsize')) g('c-fontsize').value=o.fontsize||'15px';
   if(g('c-align')) g('c-align').value=o.align||'justify';
+  if(g('c-logoh')) g('c-logoh').value=o.logoh||'';
+  if(g('c-logotop')) g('c-logotop').value=o.logotop||'';
+  if(g('c-fit')) g('c-fit').value=o.fit||'auto';
+  if(g('c-lh')) g('c-lh').value=o.lh||'';
+  if(g('c-pspace')) g('c-pspace').value=(o.pspace==null?'':o.pspace);
+  if(g('c-sig')) g('c-sig').value=(sigById(o.sig||'')?o.sig:'');
+  if(g('c-sigsize')) g('c-sigsize').value=o.sigsize||'75';
   CUSTOM_HTML=o.customHTML||''; FREE_EDIT=false;
   var pv=g('preview'); if(pv){ pv.setAttribute('contenteditable','false'); pv.classList.remove('editing'); }
   if(g('freeEditBtn')) g('freeEditBtn').textContent='✏️ تحرير حر';
@@ -612,18 +971,54 @@ function delLetter(id){
 function printCurrent(){ captureFreeEdit();
   if(g('c-ref').getAttribute('data-auto')==='1'){ g('c-ref').value=nextRef(g('c-type').value); g('c-ref').removeAttribute('data-auto'); persist(); }
   printLetterObj(collectForm()); }
+function mmToPx(mm){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;height:'+mm+'mm';
+  document.body.appendChild(d); var h=d.offsetHeight; d.parentNode.removeChild(d); return h;
+}
+function measureLetterPx(html){
+  var p=g('fitProbe'); if(!p) return 0;
+  p.innerHTML=html;
+  var lt=p.querySelector('.letter');
+  var h=lt?Math.ceil(lt.getBoundingClientRect().height):0;
+  p.innerHTML='';
+  return h;
+}
+function fitScale(o){
+  var mode=(o&&o.fit)||'auto';
+  if(mode==='off') return 1;
+  try{
+    var h=measureLetterPx(o.customHTML||letterHTML(o));
+    if(!h) return 1;
+    var page=mmToPx(267);
+    if(h<=page) return 1;
+    var sc=page/h, min=(mode==='force')?0.6:0.78;
+    if(sc<min) sc=min;
+    return Math.floor(sc*1000)/1000;
+  }catch(e){ return 1; }
+}
 function printLetterObj(o){
   g('printLetter').innerHTML=letterHTML(o);
-  toast('تذكير: فعّل "الرسوم/الخلفيات" في نافذة الطباعة');
-  setTimeout(function(){window.print();},250);
+  var sc=fitScale(o);
+  var lt=g('printLetter').querySelector('.letter');
+  if(lt){ lt.style.zoom = (sc<1)? sc : ''; }
+  if(sc<1){
+    var pct=Math.round((1-sc)*100);
+    toast(pct>=(o.fit==='force'?40:22)?('صُغّر الخطاب '+pct+'٪ وقد يمتد لصفحة ثانية — فعّل «الرسوم/الخلفيات»'):('صُغّر الخطاب '+pct+'٪ ليُطبع في صفحة واحدة — فعّل «الرسوم/الخلفيات»'));
+  } else {
+    toast('تذكير: فعّل "الرسوم/الخلفيات" في نافذة الطباعة');
+  }
+  setTimeout(function(){window.print();},260);
 }
 function printById(id){ var o=STATE.letters.find(function(x){return x.id===id;}); if(o)printLetterObj(o); }
+function docxLine(o){ return o && o.lh ? Math.round(parseFloat(o.lh)*240) : 300; }
+function docxAfter(o,def){ return (o && o.pspace!=='' && o.pspace!=null) ? Math.round(parseInt(o.pspace,10)*15) : def; }
 function docxFromEditedHTML(o,D){
   var FONT='Arial';
   var tmp=document.createElement('div'); tmp.innerHTML=o.customHTML||'';
   var letter=tmp.querySelector('.letter')||tmp;
   var k=[];
-  function para(text,opt){opt=opt||{};return new D.Paragraph({bidirectional:true,alignment:opt.align||D.AlignmentType.RIGHT,spacing:{after:opt.after==null?120:opt.after,line:300},border:opt.border,children:[new D.TextRun({text:text,font:FONT,rightToLeft:true,size:opt.size||24,bold:!!opt.bold,color:opt.color,underline:opt.underline})]});}
+  function para(text,opt){opt=opt||{};return new D.Paragraph({bidirectional:true,alignment:opt.align||D.AlignmentType.RIGHT,spacing:{after:opt.after==null?docxAfter(o,120):opt.after,line:docxLine(o)},border:opt.border,children:[new D.TextRun({text:text,font:FONT,rightToLeft:true,size:opt.size||24,bold:!!opt.bold,color:opt.color,underline:opt.underline})]});}
   var img=letter.querySelector('img');
   if(img && img.getAttribute('src') && img.getAttribute('src').indexOf('data:image/')===0){
     try{ var m=img.getAttribute('src').match(/^data:image\/(\w+);base64,(.*)$/); var bin=atob(m[2]); var a=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);
@@ -632,9 +1027,17 @@ function docxFromEditedHTML(o,D){
   var blocks=letter.children;
   for(var b=0;b<blocks.length;b++){
     var el=blocks[b]; var cls=(el.className||'')+'';
-    if(el.querySelector && el.querySelector('img')) continue;
+    if(cls.indexOf('sign')<0 && el.querySelector && el.querySelector('img')) continue;
     if(cls.indexOf('sign')>=0){
-      Array.prototype.forEach.call(el.querySelectorAll('div'),function(d){var t=(d.textContent||'').trim(); if(t) k.push(para(t,{align:D.AlignmentType.LEFT,bold:(d.className||'').indexOf('nm')>=0,color:'444444',after:0}));});
+      var si=el.querySelector('.sigimg img');
+      if(si && si.getAttribute('src') && si.getAttribute('src').indexOf('data:image/')===0){
+        try{ var sm=si.getAttribute('src').match(/^data:image\/(\w+);base64,(.*)$/); var sb=atob(sm[2]); var sa=new Uint8Array(sb.length); for(var q=0;q<sb.length;q++)sa[q]=sb.charCodeAt(q);
+          var sh=parseInt(si.style.height,10)||75; var sw=Math.round(sh*(si.naturalWidth||300)/(si.naturalHeight||100));
+          k.push(new D.Paragraph({alignment:D.AlignmentType.LEFT,spacing:{after:0},children:[new D.ImageRun({type:sm[1],data:sa,transformation:{width:Math.min(sw,320),height:sh}})]})); }catch(e){}
+      }
+      Array.prototype.forEach.call(el.querySelectorAll('div'),function(d){
+        if((d.className||'').indexOf('sigimg')>=0) return;
+        var t=(d.textContent||'').trim(); if(t) k.push(para(t,{align:D.AlignmentType.LEFT,bold:(d.className||'').indexOf('nm')>=0,color:'444444',after:0}));});
       continue;
     }
     if(cls.indexOf('meta')>=0){
@@ -661,11 +1064,12 @@ function letterToDocx(o){
   var FONT='Arial', GOLD='B8921A';
   function bytes(uri){var m=uri.match(/^data:image\/(\w+);base64,(.*)$/);var bin=atob(m[2]);var a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return {type:m[1],data:a};}
   function R(t,opt){opt=opt||{};return new D.TextRun({text:t,font:FONT,rightToLeft:true,size:opt.size||24,bold:!!opt.bold,color:opt.color,underline:opt.underline});}
-  function P(children,opt){opt=opt||{};return new D.Paragraph({bidirectional:true,alignment:opt.align||D.AlignmentType.RIGHT,spacing:{after:opt.after==null?120:opt.after,line:300},children:(children instanceof Array)?children:[children],border:opt.border});}
+  function P(children,opt){opt=opt||{};return new D.Paragraph({bidirectional:true,alignment:opt.align||D.AlignmentType.RIGHT,spacing:{after:opt.after==null?docxAfter(o,120):opt.after,line:docxLine(o)},children:(children instanceof Array)?children:[children],border:opt.border});}
   var ords=['أولاً','ثانياً','ثالثاً','رابعاً','خامساً','سادساً','سابعاً','ثامناً','تاسعاً','عاشراً'];
   function bodyPara(line){var s=line.replace(/^\s+/,'');var it=false;for(var i=0;i<ords.length;i++){if(s.indexOf(ords[i])===0){it=true;break;}}if(!it&&/^[0-9\u0660-\u0669]+[\)\.\-]/.test(s))it=true;if(it){var ci=line.indexOf(':');if(ci>=0)return P([R(line.slice(0,ci),{bold:true}),R(line.slice(ci))]);return P(R(line,{bold:true}));}return P(R(line));}
   var img=bytes(LOGO); var k=[];
-  k.push(new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{after:60},children:[new D.ImageRun({type:img.type,data:img.data,transformation:{width:150,height:125}})]}));
+  var lgH=parseInt(o.logoh,10)||104, dH=Math.round(lgH*125/104), dW=Math.round(dH*150/125);
+  k.push(new D.Paragraph({alignment:D.AlignmentType.CENTER,spacing:{after:60},children:[new D.ImageRun({type:img.type,data:img.data,transformation:{width:dW,height:dH}})]}));
   k.push(P(R(OFFICE,{bold:true,size:28}),{align:D.AlignmentType.CENTER,after:140,border:{bottom:{color:GOLD,size:12,style:D.BorderStyle.SINGLE,space:6}}}));
   k.push(P(R((o.type==='out'?'الرقم: ':'وارد رقم: ')+(o.ref||'—')),{after:0}));
   k.push(P(R('التاريخ: '+(o.hijri||'')+(o.date?(' — '+fmtGreg(o.date)+' م'):'')),{after:140}));
@@ -674,9 +1078,14 @@ function letterToDocx(o){
   if(o.subj) k.push(P([R('الموضوع: '+o.subj,{bold:true,size:28,underline:{type:D.UnderlineType.SINGLE}})],{align:D.AlignmentType.CENTER,after:160}));
   String(o.body||'').split('\n').forEach(function(l){ k.push(bodyPara(l)); });
   if(o.close) k.push(P(R(o.close),{after:220}));
+  var sgd=(typeof sigData==='function')?sigData(o.sig||''):'';
+  if(sgd){
+    try{ var sgb=bytes(sgd); var sgh=parseInt(o.sigsize,10)||75;
+      k.push(new D.Paragraph({alignment:D.AlignmentType.LEFT,spacing:{after:0},children:[new D.ImageRun({type:sgb.type,data:sgb.data,transformation:{width:Math.min(Math.round(sgh*2.6),320),height:sgh}})]})); }catch(e){}
+  }
   k.push(P(R(o.signer||'',{bold:true}),{align:D.AlignmentType.LEFT,after:0}));
   if(o.signrole) k.push(P(R(o.signrole,{color:'666666'}),{align:D.AlignmentType.LEFT,after:60}));
-  k.push(P(R('التوقيع: ........................',{color:'888888'}),{align:D.AlignmentType.LEFT,after:0}));
+  if(!sgd) k.push(P(R('التوقيع: ........................',{color:'888888'}),{align:D.AlignmentType.LEFT,after:0}));
   k.push(P(R(OFFICE+' — '+(o.ref||''),{size:18,color:'777777'}),{align:D.AlignmentType.CENTER,border:{top:{color:'DDDDDD',size:6,style:D.BorderStyle.SINGLE,space:6}}}));
   return new D.Document({styles:{default:{document:{run:{font:FONT}}}},sections:[{properties:{page:{margin:{top:900,bottom:900,left:1000,right:1000}}},children:k}]});
 }
@@ -909,6 +1318,7 @@ function afterLoad(){
   if(!STATE.settings) STATE.settings={outpre:'ص',inpre:'و',outseq:0,inseq:0};
   if(!STATE.cats||!STATE.cats.length) STATE.cats=['خطاب رسمي','طلب','رد','تعميم','إشعار','متنوع'];
   g('brandLogo').src=LOGO;
+  sigsLoad();
   fillCats();
   resetCompose();
   renderDash();
