@@ -212,6 +212,7 @@ const db = firebase.firestore();
     <div class="ni" onclick="go('employees',this)"><i class="ti ti-users"></i><span class="ni-text"> الموظفون</span></div>
     <div class="ni" onclick="go('empProfile',this)"><i class="ti ti-id-badge-2"></i><span class="ni-text"> ملفات الموظفين</span></div>
     <div class="ni" onclick="go('payroll',this)"><i class="ti ti-report-money"></i><span class="ni-text"> كشف الرواتب</span></div>
+    <div class="ni" onclick="go('loans',this)"><i class="ti ti-wallet"></i><span class="ni-text"> السلف والخصومات</span></div>
     <div class="ns">الإدارة</div>
     <div class="ni" onclick="go('attendance',this)"><i class="ti ti-calendar-check"></i><span class="ni-text"> الحضور والغياب</span></div>
     <div class="ni" onclick="go('leaves',this)"><i class="ti ti-beach"></i><span class="ni-text"> الإجازات السنوية</span></div>
@@ -326,7 +327,7 @@ const db = firebase.firestore();
         </div>
       </div>
       <div class="tc"><table>
-        <thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>أيام الحضور ✎</th><th>أجر اليوم</th><th>خصم الغياب</th><th>س. إضافي ✎</th><th>أجر إضافي</th><th>خصومات أخرى ✎</th><th>الإجمالي</th><th>الصافي</th><th>حالة</th><th>قسيمة+واتساب</th></tr></thead>
+        <thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>أيام الحضور ✎</th><th>أجر اليوم</th><th>خصم الغياب</th><th>س. إضافي ✎</th><th>أجر إضافي</th><th>خصومات أخرى ✎</th><th>قسط سلفة/خصم</th><th>الإجمالي</th><th>الصافي</th><th>حالة</th><th>قسيمة+واتساب</th></tr></thead>
         <tbody id="pb"></tbody>
       </table></div>
       <div style="background:#fff;border:1px solid #EAE5D5;border-radius:9px;padding:12px 16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
@@ -334,6 +335,35 @@ const db = firebase.firestore();
         <div><span style="font-size:11px;color:#8A7A50">الخصومات: </span><b style="color:var(--err)" id="pd2">—</b></div>
         <div><span style="font-size:11px;color:#8A7A50">صافي الرواتب: </span><b style="font-size:14px;color:var(--gd)" id="pn2">—</b></div>
       </div>
+    </div>
+
+    <!-- LOANS & SCHEDULED DEDUCTIONS -->
+    <div class="pg" id="pg-loans">
+      <div class="hint"><i class="ti ti-info-circle" style="font-size:14px;color:var(--gdm)"></i> سجّل السلفة أو الخصم مرة واحدة، والبرنامج يطبّق القسط تلقائيًا في كشف الرواتب كل شهر ويتوقف لوحده عند اكتمال السداد.</div>
+      <div class="sh"><div class="st">السلف والخصومات المجدولة</div></div>
+      <div class="rs">
+        <div class="rsc"><div class="rsv" id="ln-cnt">0</div><div class="rsl">سلف/خصومات نشطة</div></div>
+        <div class="rsc"><div class="rsv" style="color:var(--gd)" id="ln-mon">0</div><div class="rsl">أقساط الشهر المحدد (ر.س)</div></div>
+        <div class="rsc"><div class="rsv" style="color:var(--err)" id="ln-rem">0</div><div class="rsl">إجمالي المتبقي (ر.س)</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid #EAE5D5;border-radius:9px;padding:14px 16px;margin-bottom:14px">
+        <div style="font-weight:600;color:var(--gd);margin-bottom:10px"><i class="ti ti-plus"></i> إضافة سلفة / خصم</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end">
+          <div><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">الموظف</label><select class="fs" id="ln-emp"></select></div>
+          <div><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">النوع</label><select class="fs" id="ln-kind" onchange="loanPreview()"><option value="loan">سلفة (أقساط)</option><option value="recurring">خصم متكرر لفترة</option><option value="once">خصم لمرة واحدة</option></select></div>
+          <div><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">المبلغ الإجمالي</label><input class="fs" id="ln-total" type="number" min="0" oninput="loanPreview()" style="width:120px"></div>
+          <div id="ln-monthly-wrap"><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">القسط الشهري</label><input class="fs" id="ln-monthly" type="number" min="0" oninput="loanPreview()" style="width:120px"></div>
+          <div><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">شهر البداية</label><select class="fs" id="ln-sm"></select></div>
+          <div><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">السنة</label><select class="fs" id="ln-sy"></select></div>
+          <div style="flex:1;min-width:140px"><label style="font-size:10px;color:#8A7A50;display:block;margin-bottom:3px">ملاحظة</label><input class="fs" id="ln-note" placeholder="اختياري" style="width:100%"></div>
+          <button class="btn bg sm" onclick="addLoan()"><i class="ti ti-plus"></i> إضافة</button>
+        </div>
+        <div id="ln-preview" style="font-size:11px;color:var(--gdm);margin-top:9px"></div>
+      </div>
+      <div class="tc"><table>
+        <thead><tr><th>الموظف</th><th>النوع</th><th>الإجمالي</th><th>القسط</th><th>البداية</th><th>الأقساط</th><th>المدفوع</th><th>المتبقي</th><th>الانتهاء</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody id="ln-body"></tbody>
+      </table></div>
     </div>
 
     <!-- ATTENDANCE -->
@@ -870,8 +900,11 @@ let lvReqs=[
 
 let disc=[{eid:9,amt:500,dt:'2025-01-01',desc:'خصم من الراتب الأساسي',app:true}];
 
+/* السلف والخصومات المجدولة: {id,eid,kind:'loan'|'recurring'|'once',total,monthly,start:'YYYY-MM',note,status:'active'|'paused'} */
+let loans=[];
+
 const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-const ttls={dashboard:'لوحة التحكم',employees:'قائمة الموظفين',empProfile:'ملفات الموظفين',payroll:'كشف الرواتب الشهري',attendance:'الحضور والغياب',leaves:'الإجازات السنوية',eos:'مكافأة نهاية الخدمة',disciplinary:'الجزاءات والخصومات',reports:'التقارير التفصيلية',addEmp:'إضافة موظف جديد'};
+const ttls={dashboard:'لوحة التحكم',employees:'قائمة الموظفين',empProfile:'ملفات الموظفين',payroll:'كشف الرواتب الشهري',attendance:'الحضور والغياب',leaves:'الإجازات السنوية',eos:'مكافأة نهاية الخدمة',disciplinary:'الجزاءات والخصومات',reports:'التقارير التفصيلية',addEmp:'إضافة موظف جديد',loans:'السلف والخصومات المجدولة'};
 const fmt=n=>Number(n).toLocaleString('ar-SA');
 const fmtD=n=>Number(n).toFixed(2).toLocaleString('ar-SA');
 const av2=n=>n[0]+(n.split(' ')[1]?.[0]||'');
@@ -900,6 +933,7 @@ function go(id,el){
   if(id==='eos')initEOS();
   if(id==='reports')renderRep();
   if(id==='disciplinary')renderDisc();
+  if(id==='loans')renderLoans();
   if(id==='dashboard')upDash();
 }
 
@@ -1013,6 +1047,7 @@ function renderPayroll(){
     <td class="pot-${e.id}"></td>
     <td class="pp-${e.id}" style="color:var(--ok)"></td>
     <td class="ped-${e.id}"></td>
+    <td class="pln-${e.id}" style="color:var(--err)"></td>
     <td class="pgr-${e.id}" style="font-weight:600"></td>
     <td class="pnt-${e.id}" style="font-weight:700;color:var(--gd)"></td>
     <td><span class="bge" id="pst-${e.id}"></span></td>
@@ -1049,7 +1084,8 @@ function rprow(e){
   const absDed=absenceDed(e);
   const op=otPay(e);
   const g=gross(e);
-  const n=net(e);
+  const ln=loanDedFor(e.id,selY(),selM());
+  const n=net(e)-ln;
   const dr=dailyRate(e);
   const hasIssue=absent>0||(e.ded||0)>0;
 
@@ -1073,18 +1109,24 @@ function rprow(e){
   const pn=document.querySelector(`.pnt-${e.id}`);
   if(pn) pn.textContent=fmt(n)+' ر.س';
 
+  const pln=document.querySelector(`.pln-${e.id}`);
+  if(pln) pln.textContent=ln?`-${fmt(ln)} ر.س`:'-';
+
   const ps=document.getElementById(`pst-${e.id}`);
   if(ps){
     if(absent>0&&(e.ded||0)>0){ps.className='bge bgd';ps.textContent='غياب+خصم';}
     else if(absent>0){ps.className='bge bgw';ps.textContent=`غياب ${absent}ي`;}
     else if((e.ded||0)>0){ps.className='bge bgd';ps.textContent='خصم آخر';}
+    else if(ln>0){ps.className='bge bgd';ps.textContent='قسط سلفة';}
     else{ps.className='bge bgs';ps.textContent='مكتمل';}
   }
 }
 function upPay(){
+  const _y=selY(),_m=selM();
+  const _ln=emps.reduce((s,e)=>s+loanDedFor(e.id,_y,_m),0);
   const g=emps.reduce((s,e)=>s+gross(e),0);
-  const d=emps.reduce((s,e)=>s+totalDed(e),0);
-  const n=emps.reduce((s,e)=>s+net(e),0);
+  const d=emps.reduce((s,e)=>s+totalDed(e),0)+_ln;
+  const n=emps.reduce((s,e)=>s+net(e),0)-_ln;
   document.getElementById('pg2').textContent=fmt(g)+' ر.س';
   document.getElementById('pd2').textContent=fmt(d)+' ر.س';
   document.getElementById('pn2').textContent=fmt(n)+' ر.س';
@@ -1818,6 +1860,81 @@ function addEmp(){
 }
 function clf(){['fn','fcode','fdr','fhrs','fhr','fsal','fph','fhire'].forEach(id=>document.getElementById(id).value='');document.getElementById('fdays').value=30;}
 
+
+/* ════════════════════════ السلف والخصومات المجدولة ════════════════════════ */
+const KIND_LBL={loan:'سلفة',recurring:'خصم متكرر',once:'مرة واحدة'};
+function selM(){var el=document.getElementById('pm');var v=el?+el.value:NaN;return isNaN(v)?new Date().getMonth():v;}
+function selY(){var el=document.getElementById('py');return (el&&+el.value)||CY;}
+function _mser(y,m0){return y*12+m0;}
+function loanCount(l){return l.kind==='once'?1:Math.max(1,Math.ceil((+l.total||0)/((+l.monthly||0)||1)));}
+function loanStartSer(l){var p=(l.start||'').split('-').map(Number);return _mser(p[0]||CY,(p[1]||1)-1);}
+function loanInstallment(l,y,m0){
+  if(!l||l.status==='paused')return 0;
+  var off=_mser(y,m0)-loanStartSer(l), n=loanCount(l);
+  if(off<0||off>=n)return 0;
+  if(l.kind==='once')return +l.total||0;
+  if(off===n-1)return Math.max(0,(+l.total||0)-(+l.monthly||0)*(n-1));
+  return +l.monthly||0;
+}
+function loanPaidThrough(l,y,m0){var s=0,n=loanCount(l),ss=loanStartSer(l),es=_mser(y,m0);for(var k=0;k<n;k++){if(ss+k<=es)s+=loanInstallment(l,Math.floor((ss+k)/12),(ss+k)%12);}return s;}
+function loanEndLabel(l){var t=loanStartSer(l)+loanCount(l)-1;return MONTHS[t%12]+' '+Math.floor(t/12);}
+function loanStartLabel(l){var t=loanStartSer(l);return MONTHS[t%12]+' '+Math.floor(t/12);}
+function loanDedFor(eid,y,m0){return loans.filter(function(l){return l.eid===eid;}).reduce(function(s,l){return s+loanInstallment(l,y,m0);},0);}
+function fillLoanForm(){
+  var es=document.getElementById('ln-emp'); if(es)es.innerHTML=emps.map(function(e){return '<option value="'+e.id+'">'+e.name+' — '+e.code+'</option>';}).join('');
+  var sm=document.getElementById('ln-sm'); if(sm)sm.innerHTML=MONTHS.map(function(m,i){return '<option value="'+i+'"'+(i===selM()?' selected':'')+'>'+m+'</option>';}).join('');
+  var sy=document.getElementById('ln-sy'); if(sy){var o='';for(var y=CY-1;y<=CY+2;y++)o+='<option value="'+y+'"'+(y===CY?' selected':'')+'>'+y+'</option>';sy.innerHTML=o;}
+}
+function loanPreview(){
+  var k=(document.getElementById('ln-kind')||{}).value;
+  var total=+(document.getElementById('ln-total')||{}).value||0;
+  var mw=document.getElementById('ln-monthly-wrap'); if(mw)mw.style.display=(k==='once')?'none':'';
+  var pv=document.getElementById('ln-preview'); if(!pv)return;
+  if(!total){pv.textContent='';return;}
+  if(k==='once'){pv.textContent='خصم لمرة واحدة بمبلغ '+fmt(total)+' ر.س في الشهر المحدد فقط.';return;}
+  var mon=+(document.getElementById('ln-monthly')||{}).value||0;
+  if(!mon){pv.textContent='أدخل القسط الشهري ليحسب البرنامج عدد الأقساط.';return;}
+  var n=Math.ceil(total/mon), last=total-mon*(n-1);
+  pv.textContent='عدد الأقساط: '+n+' قسط — آخر قسط: '+fmt(last)+' ر.س. يبدأ من الشهر المحدد ويتوقف تلقائيًا عند السداد.';
+}
+function addLoan(){
+  var eid=+(document.getElementById('ln-emp').value);
+  var kind=document.getElementById('ln-kind').value;
+  var total=+document.getElementById('ln-total').value||0;
+  var monthly=kind==='once'?total:(+document.getElementById('ln-monthly').value||0);
+  var sm=+document.getElementById('ln-sm').value, sy=+document.getElementById('ln-sy').value;
+  var note=document.getElementById('ln-note').value.trim();
+  if(!eid){tk('اختر الموظف','var(--err)');return;}
+  if(total<=0){tk('أدخل المبلغ الإجمالي','var(--err)');return;}
+  if(kind!=='once'&&monthly<=0){tk('أدخل القسط الشهري','var(--err)');return;}
+  if(kind!=='once'&&monthly>total)monthly=total;
+  var start=sy+'-'+String(sm+1).padStart(2,'0');
+  loans.push({id:Date.now(),eid:eid,kind:kind,total:total,monthly:monthly,start:start,note:note,status:'active'});
+  document.getElementById('ln-total').value='';document.getElementById('ln-monthly').value='';document.getElementById('ln-note').value='';
+  saveToLocal();renderLoans();
+  tk('✅ تمت إضافة '+KIND_LBL[kind]+' لـ'+((bid(eid)||{}).name||''));
+}
+function delLoan(id){var l=loans.find(function(x){return x.id===id;});if(!l)return;if(!confirm('حذف هذا القيد؟ سيتوقف الخصم في كشوف الرواتب القادمة.'))return;loans=loans.filter(function(x){return x.id!==id;});saveToLocal();renderLoans();if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();}
+function toggleLoan(id){var l=loans.find(function(x){return x.id===id;});if(!l)return;l.status=(l.status==='paused')?'active':'paused';saveToLocal();renderLoans();if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();}
+function renderLoans(){
+  fillLoanForm();loanPreview();
+  var y=selY(),m=selM();
+  var body=document.getElementById('ln-body');
+  if(!loans.length){body.innerHTML='<tr><td colspan="11" style="text-align:center;color:#8A7A50;padding:18px">لا توجد سلف أو خصومات مسجّلة بعد — أضِف واحدة من الأعلى.</td></tr>';}
+  else body.innerHTML=loans.map(function(l){
+    var e=bid(l.eid)||{name:'-',code:'-'};
+    var n=loanCount(l), paid=loanPaidThrough(l,y,m), rem=Math.max(0,(+l.total||0)-paid), inst=loanInstallment(l,y,m);
+    var done=rem<=0;
+    var stt=(l.status==='paused')?'<span class="bge bgw">موقوف</span>':(done?'<span class="bge bgs">مكتمل</span>':(inst>0?'<span class="bge bgd">قسط الشهر '+fmt(inst)+'</span>':'<span class="bge bgs">نشط</span>'));
+    return '<tr><td>'+e.name+'<div style="font-size:10px;color:#8A7A50">'+e.code+'</div></td><td>'+KIND_LBL[l.kind]+'</td><td>'+fmt(l.total)+'</td><td>'+(l.kind==='once'?'-':fmt(l.monthly))+'</td><td style="font-size:11px">'+loanStartLabel(l)+'</td><td>'+n+'</td><td style="color:var(--ok)">'+fmt(paid)+'</td><td style="color:var(--err);font-weight:600">'+fmt(rem)+'</td><td style="font-size:11px">'+loanEndLabel(l)+'</td><td>'+stt+(l.note?'<div style="font-size:9px;color:#8A7A50">'+l.note+'</div>':'')+'</td><td style="display:flex;gap:3px"><button class="btn bo sm" onclick="toggleLoan('+l.id+')" title="إيقاف/تفعيل"><i class="ti ti-player-pause"></i></button><button class="btn bdk sm" onclick="delLoan('+l.id+')" title="حذف"><i class="ti ti-trash"></i></button></td></tr>';
+  }).join('');
+  var active=loans.filter(function(l){return l.status!=='paused'&&loanPaidThrough(l,y,m)<(+l.total||0);}).length;
+  var monSum=loans.reduce(function(s,l){return s+loanInstallment(l,y,m);},0);
+  var remSum=loans.reduce(function(s,l){return s+Math.max(0,(+l.total||0)-loanPaidThrough(l,y,m));},0);
+  var c1=document.getElementById('ln-cnt'),c2=document.getElementById('ln-mon'),c3=document.getElementById('ln-rem');
+  if(c1)c1.textContent=active; if(c2)c2.textContent=fmt(monSum); if(c3)c3.textContent=fmt(remSum);
+}
+
 /* ════════════════════════════ DATA PERSISTENCE ════════════════════════════ */
 const STORAGE_KEY='saad_awadah_hr_v2';
 
@@ -1827,7 +1944,7 @@ const CLOUD_DOC = db.collection('saad_apps').doc('payroll_data');
 
 async function saveToCloud() {
   try {
-    const payload = {emps, att, lvReqs, disc, profiles, savedAt: new Date().toISOString()};
+    const payload = {emps, att, lvReqs, disc, profiles, loans, savedAt: new Date().toISOString()};
     await CLOUD_DOC.set(payload);
     const st = document.getElementById('save-status');
     if (st) { st.textContent = '☁️ محفوظ على السحابة: ' + new Date().toLocaleTimeString('ar-SA'); st.style.color = 'rgba(80,200,120,0.9)'; }
@@ -1841,7 +1958,7 @@ async function loadFromCloud() {
       const data = snap.data();
       if (data.emps && data.emps.length) {
         emps = data.emps; att = data.att || att; lvReqs = data.lvReqs || lvReqs;
-        disc = data.disc || disc; if (data.profiles) profiles = data.profiles;
+        disc = data.disc || disc; if (data.profiles) profiles = data.profiles; if (data.loans) loans = data.loans;
         const st = document.getElementById('save-status');
         if (st) { st.textContent = '☁️ محمّل من السحابة: ' + new Date(data.savedAt).toLocaleDateString('ar-SA'); st.style.color = 'rgba(80,200,120,0.9)'; }
         return true;
@@ -1855,7 +1972,7 @@ async function loadFromCloud() {
 function saveToLocal(){
   saveToCloud();
   try{
-    const payload={emps,att,lvReqs,disc,profiles,savedAt:new Date().toISOString()};
+    const payload={emps,att,lvReqs,disc,profiles,loans,savedAt:new Date().toISOString()};
     localStorage.setItem(STORAGE_KEY,JSON.stringify(payload));
     const st=document.getElementById('save-status');
     if(st){st.textContent='✅ محفوظ: '+new Date().toLocaleTimeString('ar-SA');st.style.color='rgba(80,200,120,0.9)';}
@@ -1872,7 +1989,7 @@ function loadFromLocal(){
     const data=JSON.parse(raw);
     if(data.emps&&data.emps.length){
       emps=data.emps;att=data.att||att;lvReqs=data.lvReqs||lvReqs;disc=data.disc||disc;
-      if(data.profiles) profiles=data.profiles;
+      if(data.profiles) profiles=data.profiles; if(data.loans) loans=data.loans;
       const st=document.getElementById('save-status');
       const d=new Date(data.savedAt);
       if(st){st.textContent='✅ محمّل: '+d.toLocaleDateString('ar-SA');st.style.color='rgba(80,200,120,0.9)';}
