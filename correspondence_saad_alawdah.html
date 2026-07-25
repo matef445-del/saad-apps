@@ -1319,7 +1319,7 @@ function initFB(){
 function afterLoad(){
   if(!STATE.settings) STATE.settings={outpre:'ص',inpre:'و',outseq:0,inseq:0};
   if(!STATE.cats||!STATE.cats.length) STATE.cats=['خطاب رسمي','طلب','رد','تعميم','إشعار','متنوع'];
-  g('brandLogo').src='logo_green.png'; /* واجهة النظام: الشعار المعدني الموحّد — شعار الخطابات (LOGO) يبقى كما هو */
+  g('brandLogo').src='logo_green.png?v=2'; /* واجهة النظام: الشعار المعدني الموحّد — شعار الخطابات (LOGO) يبقى كما هو */
   sigsLoad();
   fillCats();
   resetCompose();
