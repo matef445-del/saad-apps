@@ -126,7 +126,7 @@ th{position:relative}
 </div>
 <nav>
   <div class="logo" onclick="g('logo-upload').click()" title="انقر لتغيير الشعار">
-    <img id="logo-img" src="logo_emblem.png" alt="شعار سعد آل عوضة" style="display:block">
+    <img id="logo-img" src="logo_full.png" alt="شعار سعد آل عوضة" style="display:block">
     <span id="logo-icon" style="display:none">&#127968;</span>
     <span>سعد <span style="color:#c9a84c">آل عوضة</span></span>
     <input type="file" id="logo-upload" class="logo-upload" accept="image/*" onchange="changeLogo(this)">
@@ -735,7 +735,7 @@ var LOGO_REPORT='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAEsCAYAAAB5f
 var DEFAULT_LOGO=LOGO_HEADER;
 function loadLogo(){
   try{
-    var url=localStorage.getItem('LOGO')||'logo_emblem.png';
+    var url=localStorage.getItem('LOGO')||'logo_full.png';
     g('logo-img').src=url;
     g('logo-img').style.display='block';
     g('logo-icon').style.display='none';
