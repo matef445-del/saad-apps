@@ -118,6 +118,9 @@ th{position:relative}
 @media print{.no-print{display:none!important}}
 @media(max-width:600px){nav{gap:1px;padding:0 6px}.nb{padding:5px 7px;font-size:10px}.logo{font-size:11px;margin-left:6px}.pg{padding:10px}.sgrid{grid-template-columns:1fr 1fr}}
 </style>
+<style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
 <div id="cloud-sync-banner" style="background:linear-gradient(90deg,#0a2010,#163a22);border-bottom:1px solid rgba(201,168,76,0.4);padding:6px 20px;display:flex;align-items:center;gap:10px;font-family:'Tajawal',sans-serif;font-size:12px;color:rgba(201,168,76,0.9);direction:rtl;">

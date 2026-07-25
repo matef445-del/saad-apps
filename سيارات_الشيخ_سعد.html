@@ -91,7 +91,10 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 td.cell-bad{background:#3a1616;color:#f2b0b0;font-weight:600}
 td.cell-soon{background:#3a2e10;color:#eccb5f;font-weight:600}
 .renewbtn{background:#1a3325;color:#d8b441;border:1px solid #b8921a;border-radius:7px;font-size:11px;padding:2px 9px;cursor:pointer;margin-right:6px;font-family:inherit}.renewbtn:hover{background:#224230}
-</style></head><body><div class="wrap">
+</style><style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
+</head><body><div class="wrap">
 <header>
  <div class="brand">
   <div class="crest" style="background:#fff;border:1px solid var(--gold);width:auto;height:50px;padding:3px 8px;display:flex;align-items:center"><img src="logo_green.png?v=2" alt="شعار المكتب الإداري" style="height:100%;object-fit:contain"></div>

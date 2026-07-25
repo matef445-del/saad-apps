@@ -65,6 +65,9 @@ select option{background:#11331c;color:#f3ead0}
 .propcard .ph h3{font-size:16px;color:var(--cream)}.chip{background:rgba(255,255,255,.05);border:1px solid var(--line);padding:3px 10px;border-radius:20px;font-size:11px;color:var(--muted)}
 .subtabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 </style>
+<style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
 <div id="splash"><img src="logo_green.png?v=2" alt="شعار"><div class="t">إدارة الإيجارات</div><div style="color:#9db3a3;font-size:12px;margin-top:5px">سعد آل عوضة · المكتب الإداري</div></div>

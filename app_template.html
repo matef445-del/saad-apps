@@ -70,6 +70,9 @@ input,select{font-family:inherit;background:#08160d;border:1px solid var(--line)
 @media(max-width:780px){.app{grid-template-columns:1fr}.side{position:static}.stat-row{grid-template-columns:1fr}}
 @media print{body *{visibility:hidden}}
 </style>
+<style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
 

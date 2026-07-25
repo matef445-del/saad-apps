@@ -152,6 +152,9 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
 @media (max-width:640px){ header h1{font-size:15px}.kpi .val{font-size:22px}main{padding:16px}
   .bar-row .nm,.bar-row .amt{width:90px} }
 </style>
+<style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
 <header>

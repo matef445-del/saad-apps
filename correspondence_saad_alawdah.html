@@ -131,6 +131,9 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
 }
 #printzone{display:none}
 </style>
+<style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
 <div class="wrap">

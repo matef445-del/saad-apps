@@ -154,6 +154,9 @@ tr:hover td{background:rgba(184,146,26,.07)}
 #printhead{display:none;text-align:center;margin-bottom:16px}
 #printhead img{width:120px}#printhead .pt{font-weight:800;font-size:16px;margin-top:6px;color:#1a3a1a}
 </style>
+<style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
 
