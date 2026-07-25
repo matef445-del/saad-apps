@@ -213,6 +213,7 @@ const db = firebase.firestore();
     <div class="ni" onclick="go('empProfile',this)"><i class="ti ti-id-badge-2"></i><span class="ni-text"> ملفات الموظفين</span></div>
     <div class="ni" onclick="go('payroll',this)"><i class="ti ti-report-money"></i><span class="ni-text"> كشف الرواتب</span></div>
     <div class="ni" onclick="go('loans',this)"><i class="ti ti-wallet"></i><span class="ni-text"> السلف والخصومات</span></div>
+    <div class="ni" onclick="go('archive',this)"><i class="ti ti-archive"></i><span class="ni-text"> أرشيف الكشوف</span></div>
     <div class="ns">الإدارة</div>
     <div class="ni" onclick="go('attendance',this)"><i class="ti ti-calendar-check"></i><span class="ni-text"> الحضور والغياب</span></div>
     <div class="ni" onclick="go('leaves',this)"><i class="ti ti-beach"></i><span class="ni-text"> الإجازات السنوية</span></div>
@@ -327,7 +328,7 @@ const db = firebase.firestore();
         </div>
       </div>
       <div class="tc"><table>
-        <thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>أيام الحضور ✎</th><th>أجر اليوم</th><th>خصم الغياب</th><th>س. إضافي ✎</th><th>أجر إضافي</th><th>خصومات أخرى ✎</th><th>قسط سلفة/خصم</th><th>الإجمالي</th><th>الصافي</th><th>حالة</th><th>قسيمة+واتساب</th></tr></thead>
+        <thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>قسط سلفة/خصم</th><th>خصومات أخرى ✎</th><th>السبب</th><th>الصافي</th><th>الحالة</th><th>قسيمة+واتساب</th></tr></thead>
         <tbody id="pb"></tbody>
       </table></div>
       <div style="background:#fff;border:1px solid #EAE5D5;border-radius:9px;padding:12px 16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
@@ -364,6 +365,14 @@ const db = firebase.firestore();
         <thead><tr><th>الموظف</th><th>النوع</th><th>الإجمالي</th><th>القسط</th><th>البداية</th><th>الأقساط</th><th>المدفوع</th><th>المتبقي</th><th>الانتهاء</th><th>الحالة</th><th>إجراءات</th></tr></thead>
         <tbody id="ln-body"></tbody>
       </table></div>
+    </div>
+
+    <!-- PAYROLL ARCHIVE -->
+    <div class="pg" id="pg-archive">
+      <div class="hint"><i class="ti ti-info-circle" style="font-size:14px;color:var(--gdm)"></i> عند الضغط على «صرف الرواتب» في كشف الرواتب، يُحفظ الكشف كنسخة مجمّدة هنا — لا تتغيّر لو عدّلت بيانات الأشهر التالية.</div>
+      <div class="sh"><div class="st">أرشيف كشوف الرواتب</div></div>
+      <div id="arch-list"></div>
+      <div id="arch-detail" style="margin-top:14px"></div>
     </div>
 
     <!-- ATTENDANCE -->
@@ -902,9 +911,10 @@ let disc=[{eid:9,amt:500,dt:'2025-01-01',desc:'خصم من الراتب الأس
 
 /* السلف والخصومات المجدولة: {id,eid,kind:'loan'|'recurring'|'once',total,monthly,start:'YYYY-MM',note,status:'active'|'paused'} */
 let loans=[];
+let payrollArchive=[]; /* كشوف مؤرشفة مجمّدة لكل شهر */
 
 const MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-const ttls={dashboard:'لوحة التحكم',employees:'قائمة الموظفين',empProfile:'ملفات الموظفين',payroll:'كشف الرواتب الشهري',attendance:'الحضور والغياب',leaves:'الإجازات السنوية',eos:'مكافأة نهاية الخدمة',disciplinary:'الجزاءات والخصومات',reports:'التقارير التفصيلية',addEmp:'إضافة موظف جديد',loans:'السلف والخصومات المجدولة'};
+const ttls={dashboard:'لوحة التحكم',employees:'قائمة الموظفين',empProfile:'ملفات الموظفين',payroll:'كشف الرواتب الشهري',attendance:'الحضور والغياب',leaves:'الإجازات السنوية',eos:'مكافأة نهاية الخدمة',disciplinary:'الجزاءات والخصومات',reports:'التقارير التفصيلية',addEmp:'إضافة موظف جديد',loans:'السلف والخصومات المجدولة',archive:'أرشيف كشوف الرواتب'};
 const fmt=n=>Number(n).toLocaleString('ar-SA');
 const fmtD=n=>Number(n).toFixed(2).toLocaleString('ar-SA');
 const av2=n=>n[0]+(n.split(' ')[1]?.[0]||'');
@@ -934,6 +944,7 @@ function go(id,el){
   if(id==='reports')renderRep();
   if(id==='disciplinary')renderDisc();
   if(id==='loans')renderLoans();
+  if(id==='archive')renderArchive();
   if(id==='dashboard')upDash();
 }
 
@@ -1041,14 +1052,9 @@ function renderPayroll(){
   document.getElementById('pb').innerHTML=emps.map(e=>`<tr id="pr-${e.id}">
     <td><div style="display:flex;align-items:center"><span class="ea">${av2(e.name)}</span><div><div>${e.name}</div><div style="font-size:10px;color:#8A7A50">${e.code}</div></div></div></td>
     <td>${fmt(e.sal)}</td>
-    <td class="pwd-${e.id}"></td>
-    <td class="pdr-${e.id}" style="font-size:11px;color:#8A7A50"></td>
-    <td class="pabd-${e.id}" style="color:var(--err);font-weight:600"></td>
-    <td class="pot-${e.id}"></td>
-    <td class="pp-${e.id}" style="color:var(--ok)"></td>
-    <td class="ped-${e.id}"></td>
     <td class="pln-${e.id}" style="color:var(--err)"></td>
-    <td class="pgr-${e.id}" style="font-weight:600"></td>
+    <td class="ped-${e.id}"></td>
+    <td class="prs-${e.id}"></td>
     <td class="pnt-${e.id}" style="font-weight:700;color:var(--gd)"></td>
     <td><span class="bge" id="pst-${e.id}"></span></td>
     <td style="display:flex;gap:3px">
@@ -1060,6 +1066,7 @@ function renderPayroll(){
   emps.forEach(e=>sprow(e));upPay();
 }
 
+function setDedReason(id,v){const e=bid(id);if(e){e.dedReason=v;saveToLocal();if(document.getElementById('pg-payroll').classList.contains('active'))rprow(e);}}
 function sprow(e){
   // أيام الحضور الفعلية — قابلة للتعديل
   const wdTd=document.querySelector(`.pwd-${e.id}`);
@@ -1075,6 +1082,9 @@ function sprow(e){
   // خصومات أخرى
   const dTd=document.querySelector(`.ped-${e.id}`);
   if(dTd) attEd(dTd,(e.ded||0),'number',(v)=>{e.ded=+v;rprow(e);upPay();upDash();saveToLocal();tk(`تم تحديث خصم ${e.name}`);});
+  const rsTd=document.querySelector(`.prs-${e.id}`);
+  if(rsTd){const c=e.dedReason||'';const O=(v,t)=>`<option value="${v}" ${c===v?'selected':''}>${t}</option>`;
+    rsTd.innerHTML=`<select class="fs" style="font-size:11px;padding:3px 6px" onchange="setDedReason(${e.id},this.value)">${O('','—')}${O('إجازة','إجازة')}${O('عجز','عجز')}${O('تأديبي','تأديبي')}${O('أخرى','أخرى')}</select>`;}
   rprow(e);
 }
 
@@ -1131,7 +1141,45 @@ function upPay(){
   document.getElementById('pd2').textContent=fmt(d)+' ر.س';
   document.getElementById('pn2').textContent=fmt(n)+' ر.س';
 }
-function runPayroll(){tk('✅ تم صرف جميع الرواتب بنجاح لشهر '+document.getElementById('pm').value);}
+function runPayroll(){
+  const y=selY(),m=selM(),period=MONTHS[m]+' '+y;
+  const ex=payrollArchive.find(r=>r.year===y&&r.month===m);
+  if(ex){ if(!confirm('يوجد كشف محفوظ لشهر '+period+'. استبداله بالحالي؟'))return; payrollArchive=payrollArchive.filter(r=>!(r.year===y&&r.month===m)); }
+  const rows=emps.map(e=>{const ln=loanDedFor(e.id,y,m);const ded=(e.ded||0);const n=net(e)-ln;
+    return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:ln,ded:ded,dedReason:e.dedReason||'',net:n};});
+  const T={sal:rows.reduce((s,r)=>s+r.sal,0),loan:rows.reduce((s,r)=>s+r.loanInst,0),ded:rows.reduce((s,r)=>s+r.ded,0),net:rows.reduce((s,r)=>s+r.net,0)};
+  payrollArchive.push({id:Date.now(),year:y,month:m,period:period,paidAt:new Date().toISOString(),rows:rows,totals:T});
+  saveToLocal();
+  tk('✅ تم صرف رواتب '+period+' وحفظها في الأرشيف ('+rows.length+' موظف · صافي '+fmt(T.net)+' ر.س)');
+}
+function archRowsHTML(r){return r.rows.map(x=>`<tr><td>${x.name}<div style="font-size:10px;color:#8A7A50">${x.code}</div></td><td>${fmt(x.sal)}</td><td style="color:var(--err)">${x.loanInst?'-'+fmt(x.loanInst):'-'}</td><td style="color:var(--err)">${x.ded?'-'+fmt(x.ded):'-'}</td><td style="font-size:11px">${x.dedReason||'-'}</td><td style="font-weight:700;color:var(--gd)">${fmt(x.net)} ر.س</td></tr>`).join('');}
+function archTableHTML(r){return `<table style="width:100%;border-collapse:collapse" class="arch-t"><thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>قسط سلفة/خصم</th><th>خصومات أخرى</th><th>السبب</th><th>الصافي</th></tr></thead><tbody>${archRowsHTML(r)}</tbody><tfoot><tr style="font-weight:700"><td>الإجمالي (${r.rows.length})</td><td>${fmt(r.totals.sal)}</td><td style="color:var(--err)">-${fmt(r.totals.loan)}</td><td style="color:var(--err)">-${fmt(r.totals.ded)}</td><td>—</td><td style="color:var(--gd)">${fmt(r.totals.net)} ر.س</td></tr></tfoot></table>`;}
+function renderArchive(){
+  const L=document.getElementById('arch-list'); if(!L)return;
+  if(!payrollArchive.length){L.innerHTML='<div style="text-align:center;color:#8A7A50;padding:24px;background:#fff;border:1px solid #EAE5D5;border-radius:9px">لا توجد كشوف مؤرشفة بعد — اذهب لكشف الرواتب واضغط «صرف الرواتب» لحفظ أول شهر.</div>';document.getElementById('arch-detail').innerHTML='';return;}
+  const sorted=payrollArchive.slice().sort((a,b)=>(b.year-a.year)||(b.month-a.month));
+  L.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">'+sorted.map(r=>`<div style="background:#fff;border:1px solid #EAE5D5;border-radius:9px;padding:12px 14px">
+    <div style="font-weight:700;color:var(--gd);font-size:15px">${r.period}</div>
+    <div style="font-size:11px;color:#8A7A50;margin:4px 0">صُرف: ${new Date(r.paidAt).toLocaleDateString('ar-SA')} · ${r.rows.length} موظف</div>
+    <div style="font-size:12px">صافي: <b style="color:var(--gd)">${fmt(r.totals.net)} ر.س</b></div>
+    <div style="display:flex;gap:5px;margin-top:9px">
+      <button class="btn bo sm" onclick="viewArchive(${r.id})"><i class="ti ti-eye"></i> عرض</button>
+      <button class="btn bg sm" onclick="printArchive(${r.id})"><i class="ti ti-printer"></i> طباعة</button>
+      <button class="btn bdk sm" onclick="delArchive(${r.id})"><i class="ti ti-trash"></i></button>
+    </div></div>`).join('')+'</div>';
+}
+function viewArchive(id){const r=payrollArchive.find(x=>x.id===id);if(!r)return;
+  document.getElementById('arch-detail').innerHTML=`<div style="background:#fff;border:1px solid #EAE5D5;border-radius:9px;padding:14px 16px"><div style="font-weight:700;color:var(--gd);margin-bottom:10px">كشف ${r.period} — نسخة مجمّدة</div><div class="tc">${archTableHTML(r)}</div></div>`;
+  document.getElementById('arch-detail').scrollIntoView({behavior:'smooth'});
+}
+function printArchive(id){const r=payrollArchive.find(x=>x.id===id);if(!r)return;
+  const w=window.open('','_blank');
+  w.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>كشف رواتب ${r.period}</title>
+  <style>body{font-family:Tahoma,Arial;padding:20px;color:#1a1a1a}h2{color:#0D2818}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:right;font-size:13px}th{background:#0D2818;color:#fff}tfoot td{font-weight:700;background:#f2efe6}</style></head>
+  <body><h2>كشف رواتب — ${r.period}</h2><div style="font-size:12px;color:#666">المكتب الإداري للشيخ سعد آل عوضه · صُرف: ${new Date(r.paidAt).toLocaleDateString('ar-SA')}</div>${archTableHTML(r)}</body></html>`);
+  w.document.close();setTimeout(()=>{w.print();},350);
+}
+function delArchive(id){const r=payrollArchive.find(x=>x.id===id);if(!r)return;if(!confirm('حذف كشف '+r.period+' من الأرشيف؟'))return;payrollArchive=payrollArchive.filter(x=>x.id!==id);saveToLocal();renderArchive();}
 
 /* ════════════════════════════ SLIP ════════════════════════════ */
 function showSlip(id){
@@ -1142,14 +1190,16 @@ function showSlip(id){
   const abD=absenceDed(e);
   const op=otPay(e);
   const g=gross(e);
-  const n=net(e);
+  const ln=loanDedFor(e.id,selY(),selM());
+  const n=net(e)-ln;
   const dr=Math.round(dailyRate(e));
   const wdStyle=ab>0?"color:var(--err);font-weight:600":"color:var(--ok);font-weight:600";
   const abRow=ab>0?`
     <div class="slr"><span style="color:#8A7A50">أيام الغياب</span><span style="color:var(--err);font-weight:600">${ab} يوم</span></div>
     <div class="slr"><span style="color:#8A7A50">خصم الغياب (${ab} x ${fmt(dr)})</span><span style="color:var(--err)">-${fmt(abD)} ر.س</span></div>`:'';
   const otRow=op?`<div class="slr"><span style="color:#8A7A50">أجر إضافي</span><span style="color:var(--ok)">+${fmt(op)} ر.س</span></div>`:'';
-  const dedRow=(e.ded||0)?`<div class="slr"><span style="color:#8A7A50">خصومات أخرى</span><span style="color:var(--err)">-${fmt(e.ded)} ر.س</span></div>`:'';
+  const dedRow=(e.ded||0)?`<div class="slr"><span style="color:#8A7A50">خصومات أخرى${e.dedReason?' ('+e.dedReason+')':''}</span><span style="color:var(--err)">-${fmt(e.ded)} ر.س</span></div>`:'';
+  const loanRow=ln?`<div class="slr"><span style="color:#8A7A50">قسط سلفة/خصم</span><span style="color:var(--err)">-${fmt(ln)} ر.س</span></div>`:'';
   document.getElementById('slb').innerHTML=`
     <div class="slh"><img class="logo-3d-img" alt="شعار" style="width:80px;height:50px;object-fit:cover;border-radius:10px;border:2px solid var(--gold);flex-shrink:0;box-shadow:0 4px 15px rgba(201,168,76,0.4);">
     <div><div class="slorg">المكتب الإداري للشيخ سعد علي آل عوضه</div>
@@ -1159,15 +1209,11 @@ function showSlip(id){
     <div class="slr"><span style="color:#8A7A50">المسمى</span><span>${e.job}</span></div>
     <hr style="border:none;border-top:1px solid #EAE5D5;margin:6px 0">
     <div class="slr"><span style="color:#8A7A50">الراتب الأساسي (30 يوم)</span><b>${fmt(e.sal)} ر.س</b></div>
-    <div class="slr"><span style="color:#8A7A50">أجر اليوم الواحد</span><span>${fmt(dr)} ر.س</span></div>
-    <div class="slr"><span style="color:#8A7A50">أيام الحضور الفعلية</span><span style="${wdStyle}">${e.workDays||BASE_DAYS} / ${BASE_DAYS} يوم</span></div>
-    ${abRow}
-    <div class="slr"><span style="color:#8A7A50">ساعات إضافية</span><span>${e.ot||0} ساعة</span></div>
-    ${otRow}
     ${dedRow}
+    ${loanRow}
     <hr style="border:none;border-top:2px solid rgba(201,168,76,0.3);margin:6px 0">
     <div class="slr"><span style="color:#8A7A50">الإجمالي قبل الخصم</span><b>${fmt(g)} ر.س</b></div>
-    <div class="slr"><span style="color:#8A7A50">إجمالي الخصومات</span><span style="color:var(--err)">${(ab||e.ded)?'-'+fmt(abD+(e.ded||0))+' ر.س':'لا يوجد'}</span></div>
+    <div class="slr"><span style="color:#8A7A50">إجمالي الخصومات</span><span style="color:var(--err)">${(ab||e.ded||ln)?'-'+fmt(abD+(e.ded||0)+ln)+' ر.س':'لا يوجد'}</span></div>
     <div class="slt"><span>صافي الراتب المستحق</span><span>${fmt(n)} ريال سعودي</span></div>
     <div style="text-align:center;margin-top:11px;font-size:10px;color:#8A7A50;font-family:'Amiri',serif">المكتب الإداري للشيخ سعد علي آل عوضه</div>`;
   document.getElementById('msm').classList.add('open');
@@ -1944,7 +1990,7 @@ const CLOUD_DOC = db.collection('saad_apps').doc('payroll_data');
 
 async function saveToCloud() {
   try {
-    const payload = {emps, att, lvReqs, disc, profiles, loans, savedAt: new Date().toISOString()};
+    const payload = {emps, att, lvReqs, disc, profiles, loans, payrollArchive, savedAt: new Date().toISOString()};
     await CLOUD_DOC.set(payload);
     const st = document.getElementById('save-status');
     if (st) { st.textContent = '☁️ محفوظ على السحابة: ' + new Date().toLocaleTimeString('ar-SA'); st.style.color = 'rgba(80,200,120,0.9)'; }
@@ -1958,7 +2004,7 @@ async function loadFromCloud() {
       const data = snap.data();
       if (data.emps && data.emps.length) {
         emps = data.emps; att = data.att || att; lvReqs = data.lvReqs || lvReqs;
-        disc = data.disc || disc; if (data.profiles) profiles = data.profiles; if (data.loans) loans = data.loans;
+        disc = data.disc || disc; if (data.profiles) profiles = data.profiles; if (data.loans) loans = data.loans; if (data.payrollArchive) payrollArchive = data.payrollArchive;
         const st = document.getElementById('save-status');
         if (st) { st.textContent = '☁️ محمّل من السحابة: ' + new Date(data.savedAt).toLocaleDateString('ar-SA'); st.style.color = 'rgba(80,200,120,0.9)'; }
         return true;
@@ -1972,7 +2018,7 @@ async function loadFromCloud() {
 function saveToLocal(){
   saveToCloud();
   try{
-    const payload={emps,att,lvReqs,disc,profiles,loans,savedAt:new Date().toISOString()};
+    const payload={emps,att,lvReqs,disc,profiles,loans,payrollArchive,savedAt:new Date().toISOString()};
     localStorage.setItem(STORAGE_KEY,JSON.stringify(payload));
     const st=document.getElementById('save-status');
     if(st){st.textContent='✅ محفوظ: '+new Date().toLocaleTimeString('ar-SA');st.style.color='rgba(80,200,120,0.9)';}
@@ -1989,7 +2035,7 @@ function loadFromLocal(){
     const data=JSON.parse(raw);
     if(data.emps&&data.emps.length){
       emps=data.emps;att=data.att||att;lvReqs=data.lvReqs||lvReqs;disc=data.disc||disc;
-      if(data.profiles) profiles=data.profiles; if(data.loans) loans=data.loans;
+      if(data.profiles) profiles=data.profiles; if(data.loans) loans=data.loans; if(data.payrollArchive) payrollArchive=data.payrollArchive;
       const st=document.getElementById('save-status');
       const d=new Date(data.savedAt);
       if(st){st.textContent='✅ محمّل: '+d.toLocaleDateString('ar-SA');st.style.color='rgba(80,200,120,0.9)';}
@@ -2166,7 +2212,8 @@ function buildSlipHTML(e){
   const abD=absenceDed(e);
   const op=otPay(e);
   const g=gross(e);
-  const n=net(e);
+  const ln=loanDedFor(e.id,selY(),selM());
+  const n=net(e)-ln;
   const dr=Math.round(dailyRate(e));
   const period=getSelPeriod('pm','py');
   const periodEN=getPeriodEN();
@@ -2195,6 +2242,9 @@ function buildSlipHTML(e){
       </td>
     </tr>`;
   }).join('');
+  let extraRows='';
+  if((e.ded||0)>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">خصم آخر${e.dedReason?' — '+e.dedReason:''}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Other Deduction</div></td><td><div style="font-size:11.5px;color:#444">${e.dedReason||'خصم'}</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(e.ded)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
+  if(ln>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">قسط سلفة/خصم</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Loan / Scheduled Installment</div></td><td><div style="font-size:11.5px;color:#444">قسط الشهر</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(ln)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
 
   return`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -2296,7 +2346,7 @@ function buildSlipHTML(e){
     </div>
 
     <!-- Section 2: Deductions (only if any) -->
-    ${(ab>0||empDisc.length>0)?`
+    ${(ab>0||empDisc.length>0||ln>0||(e.ded||0)>0)?`
     <div class="section">
       <div class="sec-title">
         <div><div class="sec-title-ar">الخصومات والاستقطاعات</div><div class="sec-title-en">DEDUCTIONS & WITHHELD AMOUNTS</div></div>
@@ -2305,7 +2355,7 @@ function buildSlipHTML(e){
         <div class="alert-ar">⚠️ خصم غياب: ${ab} يوم × ${fmt(dr)} ر.س/يوم (${fmt(e.sal)} ر.س ÷ 30) = <b>${fmt(abD)} ر.س</b></div>
         <div class="alert-en">Absence Deduction: ${ab} absent day(s) × ${fmt(dr)} SAR/day (Basic: ${fmt(e.sal)} SAR ÷ 30 days) = <b>${fmt(abD)} SAR</b></div>
       </div>`:''}
-      ${empDisc.length>0?`
+      ${(empDisc.length>0||ln>0||(e.ded||0)>0)?`
       <table class="ded-table">
         <thead>
           <tr>
@@ -2314,7 +2364,7 @@ function buildSlipHTML(e){
             <th style="text-align:center">المبلغ / Amount</th>
           </tr>
         </thead>
-        <tbody>${discDetailsBilingual}</tbody>
+        <tbody>${discDetailsBilingual}${extraRows}</tbody>
       </table>`:''}
     </div>`:''}
 
@@ -2324,7 +2374,7 @@ function buildSlipHTML(e){
         <div><div class="sec-title-ar">الملخص المالي</div><div class="sec-title-en">FINANCIAL SUMMARY</div></div>
       </div>
       <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الراتب قبل الخصم</span><span class="row-en">Gross Salary (before deductions)</span></div><div class="row-val">${fmt(g)} ر.س</div></div>
-      <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الخصومات</span><span class="row-en">Total Deductions</span></div><div class="row-val neg">-${fmt(totalDed(e))} ر.س</div></div>
+      <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الخصومات</span><span class="row-en">Total Deductions</span></div><div class="row-val neg">-${fmt(totalDed(e)+ln)} ر.س</div></div>
     </div>
 
     <!-- Net Total -->
@@ -2386,7 +2436,8 @@ function buildWAMsg(e){
   const absDed=absenceDed(e);
   const op=otPay(e);
   const g=gross(e);
-  const n=net(e);
+  const ln=loanDedFor(e.id,selY(),selM());
+  const n=net(e)-ln;
   const empDisc=disc.filter(d=>d.eid===e.id);
 
   // Build deduction lines
@@ -2396,6 +2447,8 @@ function buildWAMsg(e){
     const lbl=DISC_TYPE_EN[d.type]||'Deduction';
     dedLines+=`\n   • ${lbl} - ${d.desc}: -${fmt(d.amt)} SAR`;
   });
+  if((e.ded||0)>0) dedLines+=`\n   • Other / خصم${e.dedReason?' ('+e.dedReason+')':''}: -${fmt(e.ded)} SAR`;
+  if(ln>0) dedLines+=`\n   • Loan/Installment / قسط سلفة: -${fmt(ln)} SAR`;
 
   return `🏢 *Saad Ali Al-Awadah Administrative Office*
 ━━━━━━━━━━━━━━━━━━━
