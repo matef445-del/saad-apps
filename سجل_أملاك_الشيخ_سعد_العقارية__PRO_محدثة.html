@@ -14,7 +14,7 @@
 
 <style>
 :root{
-  --green:#0a2010; --green2:#103019; --panel:#11331c; --panel2:#0e2a16;
+  --green:#06240c; --green2:#06240c; --panel:#11331c; --panel2:#0e2a16;
   --line:#1d4a2c; --gold:#b8921a; --gold2:#d8b441; --cream:#f3ead0;
   --muted:#9db3a3; --ok:#3fae6a; --warn:#d8b441; --danger:#c0532f;
 }
@@ -211,7 +211,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
   html,body{background:#fff!important;color:#000!important}
   .filters,.pcard-foot,#syncbar,#toast,.modal-bg,#authLogoutBtn,.no-print{display:none!important}
   #printhead{display:flex!important;align-items:center;gap:14px;border-bottom:2px solid #b8921a!important;padding-bottom:12px;margin-bottom:16px}
-  #printhead img{background:#0a2010!important;padding:12px;border-radius:14px;height:64px}
+  #printhead img{background:#06240c!important;padding:12px;border-radius:14px;height:64px}
   #printhead h1{color:#000!important;font-size:18px}
   .pcard,.scard{border:1px solid #888!important;background:#fff!important;break-inside:avoid}
   .ptable{border-collapse:collapse!important}
@@ -247,7 +247,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 .table-actions{display:flex;gap:10px;margin-bottom:12px}
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
 .ptable{width:100%;border-collapse:collapse;font-size:13px;color:var(--cream);min-width:1100px}
-.ptable th{background:#0d2818;color:var(--gold2);padding:12px 10px;text-align:center;
+.ptable th{background:#06240c;color:var(--gold2);padding:12px 10px;text-align:center;
   font-weight:700;border-bottom:2px solid var(--gold);white-space:nowrap;position:sticky;top:0}
 .ptable td{padding:10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
 .ptable tbody tr:hover{background:rgba(184,146,26,.08)}
@@ -256,7 +256,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 .ptable td.money{font-weight:700;color:var(--cream)}
 .ptable td.pos{color:#7fd18a}
 .ptable td.neg{color:#e8a087}
-.ptable tfoot td{background:#0d2818;color:var(--gold2);font-weight:800;
+.ptable tfoot td{background:#06240c;color:var(--gold2);font-weight:800;
   padding:13px 10px;border-top:2px solid var(--gold)}
 .ptable .tlink{color:var(--gold2);text-decoration:none;font-weight:700;margin:0 2px}
 .ptable .tlink:hover{text-decoration:underline}
@@ -268,9 +268,9 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
   #tableView{position:absolute;top:0;right:0;left:0;width:100%}
   .table-actions{display:none!important}
   .ptable{color:#000!important;min-width:0}
-  .ptable th{background:#0a2010!important;color:#d8b441!important}
+  .ptable th{background:#06240c!important;color:#d8b441!important}
   .ptable td{color:#000!important}
-  .ptable tfoot td{background:#0a2010!important;color:#d8b441!important}
+  .ptable tfoot td{background:#06240c!important;color:#d8b441!important}
 }
 
 /* ===== تمييز العقارات الجديدة + شريط ملخص التقرير ===== */
@@ -283,7 +283,7 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 .ptable td.merged{color:var(--gold2);font-weight:800}
 .ptable .newdot{font-size:11px}
 .rep-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:2px 0 14px}
-.rep-c{background:linear-gradient(180deg,#0d2818,#0b2114);border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:center}
+.rep-c{background:linear-gradient(180deg,#06240c,#0b2114);border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:center}
 .rep-c .rep-l{color:var(--muted);font-size:12px;margin-bottom:6px}
 .rep-c .rep-v{color:var(--cream);font-size:17px;font-weight:800}
 .rep-c .rep-v.pos{color:#7fd18a}.rep-c .rep-v.neg{color:#e8a087}
@@ -291,11 +291,11 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 @media (max-width:760px){.rep-strip{grid-template-columns:repeat(2,1fr)}}
 @media print{
   .rep-strip{display:grid!important;grid-template-columns:repeat(5,1fr)!important}
-  .rep-c{border:1px solid #0a2010!important;background:#fff!important}
-  .rep-c *{color:#0a2010!important}
+  .rep-c{border:1px solid #06240c!important;background:#fff!important}
+  .rep-c *{color:#06240c!important}
   .rep-note{color:#000!important}
   .ptable tr.mk{background:#f6efd6!important}
-  .ptable td.merged{color:#0a2010!important}
+  .ptable td.merged{color:#06240c!important}
 }
 </style>
 <style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
@@ -304,7 +304,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 </head>
 <body>
 <script>
-const LOGO="logo_green.png?v=3";
+const LOGO="logo_green.png?v=4";
 </script>
 <div class="wrap">
 
@@ -316,7 +316,7 @@ const LOGO="logo_green.png?v=3";
 
   <!-- الترويسة -->
   <header class="no-print">
-    <img id="brandlogo" alt="شعار المكتب" src="logo_green.png?v=3">
+    <img id="brandlogo" alt="شعار المكتب" src="logo_green.png?v=4">
     <div class="htext">
       <h1>سجل أملاك الشيخ سعد علي آل عوضه العقارية</h1>
       <div class="sub">المكتب الإداري للشيخ سعد علي آل عوضه</div>
@@ -2123,14 +2123,14 @@ window.__APP_BOOT__=function(){
 };
 </script>
 <!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
-<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
     <img id="authLogo" alt="" style="height:88px;margin-bottom:8px;display:none">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:18px;font-weight:800">سجل أملاك الشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
-    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
+    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>

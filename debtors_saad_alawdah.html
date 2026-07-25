@@ -15,7 +15,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{
-  --green:#0a2010; --panel:#11331c; --line:#1d4a2c; --gold:#b8921a; --gold2:#d8b441;
+  --green:#06240c; --panel:#11331c; --line:#1d4a2c; --gold:#b8921a; --gold2:#d8b441;
   --cream:#f3ead0; --muted:#9db3a3;
   --due:#d8b441; --legal:#e07a7a; --hold:#e0a95a; --paid:#5fbf7f; --closed:#8fa79a;
 }
@@ -23,7 +23,7 @@
 html,body{margin:0;padding:0}
 body{
   font-family:'Cairo',sans-serif; color:var(--cream);
-  background:radial-gradient(1200px 700px at 50% -10%, #103019 0%, #0a2010 60%, #071810 100%);
+  background:radial-gradient(1200px 700px at 50% -10%, #06240c 0%, #06240c 60%, #071810 100%);
   background-attachment:fixed; min-height:100vh; direction:rtl;
 }
 button{font-family:'Cairo',sans-serif; cursor:pointer}
@@ -32,7 +32,7 @@ input,select,textarea{font-family:'Cairo',sans-serif}
 
 /* ===== Login ===== */
 #login{position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
-  background:radial-gradient(900px 600px at 50% 0%, #123a22, #0a2010 70%);}
+  background:radial-gradient(900px 600px at 50% 0%, #123a22, #06240c 70%);}
 .login-card{width:min(400px,92vw); background:linear-gradient(180deg,#11331c,#0d2716);
   border:1px solid var(--line); border-radius:18px; padding:34px 28px; text-align:center;
   box-shadow:0 24px 60px rgba(0,0,0,.5)}
@@ -181,12 +181,12 @@ tfoot td{padding:12px; font-weight:800; color:var(--gold2); border-top:2px solid
   .noprint{display:none!important}
   #app{max-width:100%; padding:0}
   #printhead{display:block!important; text-align:center; margin-bottom:14px}
-  #printhead img{background:#0a2010; padding:12px; border-radius:14px; width:120px}
-  #printhead h2{margin:8px 0 2px; color:#0a2010}
+  #printhead img{background:#06240c; padding:12px; border-radius:14px; width:120px}
+  #printhead h2{margin:8px 0 2px; color:#06240c}
   #printhead div{color:#555; font-size:12px}
   .panel,.debtor,.card{background:#fff!important; border:1px solid #ccc!important; color:#000!important}
-  thead th{background:#0a2010!important; color:#f3ead0!important; -webkit-print-color-adjust:exact}
-  tfoot td{background:#0a2010!important; color:#d8b441!important}
+  thead th{background:#06240c!important; color:#f3ead0!important; -webkit-print-color-adjust:exact}
+  tfoot td{background:#06240c!important; color:#d8b441!important}
   td.rem{color:#8a6d10!important}
   .tblwrap{border:1px solid #ccc}
   tbody td{color:#000!important; border-bottom:1px solid #ddd}
@@ -201,7 +201,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <!-- ===== LOGIN ===== -->
 <div id="login">
   <div class="login-card">
-    <img src="logo_green.png?v=3" alt="شعار المكتب">
+    <img src="logo_green.png?v=4" alt="شعار المكتب">
     <h2>متابعة السلف والمديونيات</h2>
     <p>المكتب الإداري للشيخ سعد علي آل عوضة</p>
     <div class="fld"><label>البريد الإلكتروني</label><input id="lemail" type="email" autocomplete="username"></div>
@@ -214,13 +214,13 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <!-- ===== APP ===== -->
 <div id="app" class="hidden">
   <div id="printhead">
-    <img src="logo_green.png?v=3" alt="شعار">
+    <img src="logo_green.png?v=4" alt="شعار">
     <h2>بيان السلف والمديونيات — المكتب الإداري للشيخ سعد آل عوضة</h2>
     <div id="printsub"></div>
   </div>
 
   <header class="top noprint">
-    <img src="logo_green.png?v=3" alt="شعار">
+    <img src="logo_green.png?v=4" alt="شعار">
     <div class="ttl">
       <h1>متابعة السلف والمديونيات</h1>
       <span>المكتب الإداري للشيخ سعد علي آل عوضة</span>
@@ -714,9 +714,9 @@ function printStatement(id){
   const logo=document.querySelector('#printhead img').src;
   const w=window.open('','_blank');
   w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>بيان ${d.name}</title>
-  <style>body{font-family:Cairo,Arial;padding:24px}img{width:110px;background:#0a2010;padding:10px;border-radius:12px}
-  h2{color:#0a2010;margin:10px 0 2px}.sub{color:#666;font-size:12px;margin-bottom:16px}
-  table{width:100%;border-collapse:collapse;font-size:13px}th{background:#0a2010;color:#f3ead0;padding:9px}
+  <style>body{font-family:Cairo,Arial;padding:24px}img{width:110px;background:#06240c;padding:10px;border-radius:12px}
+  h2{color:#06240c;margin:10px 0 2px}.sub{color:#666;font-size:12px;margin-bottom:16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}th{background:#06240c;color:#f3ead0;padding:9px}
   td{padding:8px;border-bottom:1px solid #ddd;text-align:center}tfoot td{font-weight:bold;background:#f0ead6}</style></head>
   <body style="text-align:center"><img src="${logo}"><h2>بيان حساب مدين — ${d.name}</h2>
   <div class="sub">المكتب الإداري للشيخ سعد آل عوضة — ${new Date().toLocaleDateString('ar-SA')}</div>
@@ -756,7 +756,7 @@ function buildStatementNode(d){
   const el=document.createElement('div');
   el.style.cssText='position:fixed;left:-99999px;top:0;width:780px;background:#fff;color:#111;font-family:Cairo,Arial;direction:rtl';
   el.innerHTML=`
-   <div style="background:#0a2010;padding:20px;text-align:center">
+   <div style="background:#06240c;padding:20px;text-align:center">
      <img src="${logo}" style="width:118px">
      <div style="color:#d8b441;font-size:21px;font-weight:800;margin-top:6px">بيان مديونية</div>
      <div style="color:#f3ead0;font-size:13px">المكتب الإداري للشيخ سعد علي آل عوضة</div>
@@ -765,21 +765,21 @@ function buildStatementNode(d){
    <div style="padding:22px 26px">
      <div style="display:flex;justify-content:space-between;font-size:13px;color:#555;margin-bottom:14px">
        <span>التاريخ: ${new Date().toLocaleDateString('ar-SA')}</span>
-       <span>الحالة: <b style="color:#0a2010">${d.status}</b></span>
+       <span>الحالة: <b style="color:#06240c">${d.status}</b></span>
      </div>
-     <div style="font-size:19px;font-weight:800;color:#0a2010">${d.name}</div>
+     <div style="font-size:19px;font-weight:800;color:#06240c">${d.name}</div>
      ${d.phone?`<div style="font-size:13px;color:#555;direction:ltr;text-align:right">${d.phone}</div>`:''}
      ${(d.collateral||d.instrument)?`<div style="font-size:13px;color:#555;margin-top:2px">${[d.collateral,d.instrument].filter(Boolean).join(' — ')}</div>`:''}
      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:16px">
-       <thead><tr>${['التاريخ','البيان','مدين','دائن','الرصيد'].map(h=>`<th style="background:#0a2010;color:#f3ead0;padding:10px;border:1px solid #0a2010">${h}</th>`).join('')}</tr></thead>
+       <thead><tr>${['التاريخ','البيان','مدين','دائن','الرصيد'].map(h=>`<th style="background:#06240c;color:#f3ead0;padding:10px;border:1px solid #06240c">${h}</th>`).join('')}</tr></thead>
        <tbody>${rows.map(r=>`<tr>${r.map((c,i)=>`<td style="padding:9px;border:1px solid #ddd;text-align:${i===1?'right':'center'};color:${i===4?'#8a6d10':'#111'};font-weight:${i===4?'700':'400'}">${c}</td>`).join('')}</tr>`).join('')}</tbody>
        <tfoot><tr>
-         <td colspan="4" style="padding:11px;background:#0a2010;color:#f3ead0;font-weight:800;text-align:center;border:1px solid #0a2010">المتبقّي</td>
-         <td style="padding:11px;background:#0a2010;color:#d8b441;font-weight:800;text-align:center;border:1px solid #0a2010">${fmt(remaining(d))} ريال</td>
+         <td colspan="4" style="padding:11px;background:#06240c;color:#f3ead0;font-weight:800;text-align:center;border:1px solid #06240c">المتبقّي</td>
+         <td style="padding:11px;background:#06240c;color:#d8b441;font-weight:800;text-align:center;border:1px solid #06240c">${fmt(remaining(d))} ريال</td>
        </tr></tfoot>
      </table>
      ${(s.includePhrase&&s.phraseText)?`<div style="margin-top:18px;font-size:14px;color:#222;line-height:1.9;background:#f6f2e6;border-right:4px solid #b8921a;padding:12px 14px;border-radius:8px">${s.phraseText}</div>`:''}
-     ${(s.includeContact&&s.officeContact)?`<div style="margin-top:12px;font-size:13px;color:#555">للتواصل والاستفسار: <b style="color:#0a2010">${s.officeContact}</b></div>`:''}
+     ${(s.includeContact&&s.officeContact)?`<div style="margin-top:12px;font-size:13px;color:#555">للتواصل والاستفسار: <b style="color:#06240c">${s.officeContact}</b></div>`:''}
      <div style="margin-top:26px;height:2px;background:linear-gradient(90deg,transparent,#b8921a,transparent)"></div>
      <div style="text-align:center;font-size:12px;color:#888;margin-top:8px">المكتب الإداري للشيخ سعد علي آل عوضة</div>
    </div>`;

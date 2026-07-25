@@ -123,13 +123,13 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 @media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
 <body>
-<div id="cloud-sync-banner" style="background:linear-gradient(90deg,#0a2010,#163a22);border-bottom:1px solid rgba(201,168,76,0.4);padding:6px 20px;display:flex;align-items:center;gap:10px;font-family:'Tajawal',sans-serif;font-size:12px;color:rgba(201,168,76,0.9);direction:rtl;">
+<div id="cloud-sync-banner" style="background:linear-gradient(90deg,#06240c,#163a22);border-bottom:1px solid rgba(201,168,76,0.4);padding:6px 20px;display:flex;align-items:center;gap:10px;font-family:'Tajawal',sans-serif;font-size:12px;color:rgba(201,168,76,0.9);direction:rtl;">
   <span style="font-size:16px;">☁️</span>
   <span>✅ محفوظ في السحابة تلقائياً — مجموعة البيانات: <strong>rentals_db</strong></span>
 </div>
 <nav>
   <div class="logo" onclick="g('logo-upload').click()" title="انقر لتغيير الشعار">
-    <img id="logo-img" src="logo_green.png?v=3" alt="شعار سعد آل عوضة" style="display:block">
+    <img id="logo-img" src="logo_green.png?v=4" alt="شعار سعد آل عوضة" style="display:block">
     <span id="logo-icon" style="display:none">&#127968;</span>
     <span>سعد <span style="color:#c9a84c">آل عوضة</span></span>
     <input type="file" id="logo-upload" class="logo-upload" accept="image/*" onchange="changeLogo(this)">
@@ -733,12 +733,12 @@ function changeLogo(inp){
   };
   rd.readAsDataURL(file);
 }
-var LOGO_HEADER='logo_green.png?v=3';
-var LOGO_REPORT='logo_green.png?v=3';
+var LOGO_HEADER='logo_green.png?v=4';
+var LOGO_REPORT='logo_green.png?v=4';
 var DEFAULT_LOGO=LOGO_HEADER;
 function loadLogo(){
   try{
-    var url=localStorage.getItem('LOGO')||'logo_green.png?v=3';
+    var url=localStorage.getItem('LOGO')||'logo_green.png?v=4';
     g('logo-img').src=url;
     g('logo-img').style.display='block';
     g('logo-icon').style.display='none';
@@ -1690,7 +1690,7 @@ function printPropRpt(){
 }
 
 function bldPrint(title,rows,cols,tot){
-  var logoSrc='logo_green.png?v=3';
+  var logoSrc='logo_green.png?v=4';
   var today=new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'});
   var h='<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>'+title+CL+'title>';
   h+='<style>';
@@ -1698,12 +1698,12 @@ function bldPrint(title,rows,cols,tot){
   h+='body{font-family:Tahoma,Arial,sans-serif;padding:20px;direction:rtl;color:#1a1a1a;font-size:12px}';
   h+='.hdr{display:flex;align-items:center;gap:16px;padding-bottom:14px;border-bottom:3px solid #b8921a;margin-bottom:16px}';
   h+='.hdr img{width:70px;height:70px;object-fit:contain}';
-  h+='.hdr-txt h1{font-size:16px;font-weight:800;color:#0a2010;margin-bottom:2px}';
+  h+='.hdr-txt h1{font-size:16px;font-weight:800;color:#06240c;margin-bottom:2px}';
   h+='.hdr-txt p{font-size:11px;color:#555}';
-  h+='.rpt-title{font-size:14px;font-weight:800;color:#0a2010;margin-bottom:4px;padding:8px 12px;background:#f5f0e8;border-right:4px solid #b8921a;border-radius:4px}';
+  h+='.rpt-title{font-size:14px;font-weight:800;color:#06240c;margin-bottom:4px;padding:8px 12px;background:#f5f0e8;border-right:4px solid #b8921a;border-radius:4px}';
   h+='.rpt-date{font-size:11px;color:#888;margin-bottom:14px;padding-right:14px}';
   h+='table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}';
-  h+='th{background:#0a2010;color:#c9a84c;padding:7px 9px;text-align:right;font-weight:700;font-size:11px}';
+  h+='th{background:#06240c;color:#c9a84c;padding:7px 9px;text-align:right;font-weight:700;font-size:11px}';
   h+='td{padding:6px 9px;border:1px solid #e0e0e0;text-align:right}';
   h+='tr:nth-child(even) td{background:#fafafa}';
   h+='.tot{font-size:12px;font-weight:700;padding:8px 12px;background:#f5f0e8;border:1px solid #ddd;border-radius:4px;margin-top:4px}';
@@ -1950,7 +1950,7 @@ function printRcpt(idx){
   var stLbl={success:'مكتملة',pending:'قيد المعالجة',inprogress:'جارية'};
   var h='<div class="receipt-modal">';
   h+='<div class="receipt-header">';
-  h+='<img src="logo_green.png?v=3" style="width:70px;height:70px;object-fit:contain;margin-bottom:6px" alt="شعار">';
+  h+='<img src="logo_green.png?v=4" style="width:70px;height:70px;object-fit:contain;margin-bottom:6px" alt="شعار">';
   h+='<h2>المكتب الإداري للشيخ سعد علي آل عوضه'+CL+'h2>';
   h+='<div class="sub">سند قبض'+CL+'div>'+CL+'div>';
   h+='<div class="receipt-row"><span style="color:var(--txt2)">رقم السند</span><span style="font-weight:700;font-family:monospace">'+rcptNo+CL+'span>'+CL+'div>';
@@ -2128,14 +2128,14 @@ initFirebase();
 </div>
 <!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
-    <img src="logo_badge.png?v=3" alt="سعد آل عوضة — المكتب الإداري" style="width:210px;max-width:78%;height:auto;margin:0 auto 14px;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))">
+    <img src="logo_badge.png?v=4" alt="سعد آل عوضة — المكتب الإداري" style="width:210px;max-width:78%;height:auto;margin:0 auto 14px;display:block;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:17px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
     <input id="authEmail" type="hidden" value="matef445@gmail.com">
-    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
+    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>

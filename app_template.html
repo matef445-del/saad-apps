@@ -15,14 +15,14 @@
 <style>
 
 :root{
-  --green:#0a2010; --green2:#0f2a16; --panel:#11331c; --line:#1d4a2c;
+  --green:#06240c; --green2:#0f2a16; --panel:#11331c; --line:#1d4a2c;
   --gold:#b8921a; --gold2:#d8b441; --cream:#f3ead0; --muted:#9db3a3;
   --ok:#2e9e5b; --warn:#c9a227; --bad:#c0532f; --info:#3a7bd5;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:'Cairo',system-ui,'Segoe UI',Tahoma,sans-serif;
-  background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,var(--green) 55%) fixed;
+  background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,var(--green) 55%) fixed;
   color:var(--cream);min-height:100vh;direction:rtl;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 60px}
@@ -77,14 +77,14 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <body>
 
 <!-- ====== شاشة الدخول (مصادقة فايربيس) ====== -->
-<div id="authGate" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<div id="authGate" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
     <img id="authLogo" alt="شعار المكتب" style="height:88px;margin-bottom:8px">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
-    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
+    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>
@@ -98,7 +98,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     </div>
     <div style="margin-right:auto;display:flex;gap:10px;align-items:center">
       <span id="saveInd" class="save-ind">—</span>
-      <button id="logoutBtn" title="تسجيل الخروج" style="padding:7px 13px;border:1px solid #1d4a2c;border-radius:9px;background:#0a2010;color:#9db3a3;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer">خروج</button>
+      <button id="logoutBtn" title="تسجيل الخروج" style="padding:7px 13px;border:1px solid #1d4a2c;border-radius:9px;background:#06240c;color:#9db3a3;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer">خروج</button>
       <button class="btn" onclick="shareWhatsApp()">مشاركة واتساب</button>
       <button class="btn solid" onclick="printReport()">طباعة / PDF</button>
     </div>
@@ -149,8 +149,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
    ============================================================ */
 
 /* (1) ----- الشعار الرسمي (يُستخدم في الهيدر وفي نافذة الطباعة) ----- */
-var LOGO = "logo_green.png?v=3";
-document.getElementById('brandLogo').src = 'logo_green.png?v=3';
+var LOGO = "logo_green.png?v=4";
+document.getElementById('brandLogo').src = 'logo_green.png?v=4';
 
 /* (2) ----- إعدادات فايربيس (ثابتة لكل تطبيقات المكتب) ----- */
 var FB_CFG = { 
@@ -256,16 +256,16 @@ function shareWhatsApp(){
 function printReport(){
   var sum=rows.reduce(function(s,r){return s+(Number(r.amount)||0);},0);
   var body=rows.map(function(r,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+(Number(r.amount)||0).toLocaleString('en-US')+'</td></tr>';}).join('');
-  var LOGO_PRINT = "logo_badge.png?v=3"; // مضمّن صراحةً هنا
+  var LOGO_PRINT = "logo_badge.png?v=4"; // مضمّن صراحةً هنا
   var w=window.open('', '_blank');
   var doc='<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8>'+
     '<title>تقرير المكتب الإداري</title>'+
-    "<style>body{font-family:Cairo,Arial;padding:30px;color:#0a2010}"+
+    "<style>body{font-family:Cairo,Arial;padding:30px;color:#06240c}"+
     ".h{text-align:center;border-bottom:3px solid #b8921a;padding-bottom:14px;margin-bottom:18px}"+
-    ".h img{height:90px}.h h2{margin:8px 0 0;color:#0a2010}"+
+    ".h img{height:90px}.h h2{margin:8px 0 0;color:#06240c}"+
     "table{width:100%;border-collapse:collapse;margin-top:10px}"+
-    "th{background:#0a2010;color:#fff;padding:10px}td{padding:9px;border:1px solid #ccc}"+
-    ".tot{margin-top:16px;font-weight:800;font-size:18px;color:#0a2010}</style></head><body>"+
+    "th{background:#06240c;color:#fff;padding:10px}td{padding:9px;border:1px solid #ccc}"+
+    ".tot{margin-top:16px;font-weight:800;font-size:18px;color:#06240c}</style></head><body>"+
     '<div class=h><img src="'+LOGO_PRINT+'"><h2>المكتب الإداري للشيخ سعد علي آل عوضه</h2></div>'+
     '<table><thead><tr><th>#</th><th>الوصف</th><th>المبلغ (ر.س)</th></tr></thead><tbody>'+body+'</tbody></table>'+
     '<div class=tot>الإجمالي: '+sum.toLocaleString('en-US')+' ر.س</div>'+
@@ -281,7 +281,7 @@ function printReport(){
   try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
   var gate = document.getElementById('authGate');
   var booted = false;
-  try{ var lg=document.getElementById('authLogo'); if(lg) lg.src='logo_green.png?v=3'; }catch(e){}
+  try{ var lg=document.getElementById('authLogo'); if(lg) lg.src='logo_green.png?v=4'; }catch(e){}
   function showGate(){ if(gate) gate.style.display='flex'; }
   function hideGate(){ if(gate) gate.style.display='none'; }
   _auth.onAuthStateChanged(function(user){

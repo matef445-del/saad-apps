@@ -12,7 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
 :root{
-  --bg1:#103019; --bg2:#0a2010; --panel:#11331c; --line:#1d4a2c;
+  --bg1:#06240c; --bg2:#06240c; --panel:#11331c; --line:#1d4a2c;
   --gold:#b8921a; --gold2:#d8b441; --cream:#f3ead0; --muted:#9db3a3;
   --green:#3a7d44; --blue:#2f6db3; --red:#cf5050; --gray:#7e9387;
   --radius:16px;
@@ -28,7 +28,7 @@ header.top .t div{color:var(--muted);font-size:13px;margin-top:3px}
 .divider{height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px 0 18px;border-radius:3px}
 nav.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
 nav.tabs button{padding:10px 16px;border:1px solid var(--line);background:#0e2b18;color:var(--muted);border-radius:11px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:.15s}
-nav.tabs button.active{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#0a2010;border-color:var(--gold)}
+nav.tabs button.active{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#06240c;border-color:var(--gold)}
 nav.tabs button:hover:not(.active){color:var(--cream);border-color:var(--gold)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
 .card h2{margin:0 0 14px;font-size:17px;color:var(--gold2);font-weight:800}
@@ -39,11 +39,11 @@ nav.tabs button:hover:not(.active){color:var(--cream);border-color:var(--gold)}
 .g4{grid-template-columns:repeat(4,1fr)}
 @media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}}
 label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600}
-input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:#0a2010;color:var(--cream);font-family:inherit;font-size:14px;text-align:right;outline:none}
+input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid var(--line);background:#06240c;color:var(--cream);font-family:inherit;font-size:14px;text-align:right;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 textarea{resize:vertical;min-height:120px;line-height:1.9}
 .btn{padding:11px 18px;border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
-.btn.gold{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#0a2010}
+.btn.gold{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#06240c}
 .btn.ghost{background:#0e2b18;color:var(--cream);border:1px solid var(--line)}
 .btn.red{background:#3a1414;color:#f0a8a8;border:1px solid #5a2020}
 .btn.sm{padding:7px 12px;font-size:12px}
@@ -67,11 +67,11 @@ tbody tr:hover{background:rgba(184,146,26,.06)}
 .muted{color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;gap:6px;align-items:center;padding:5px 10px;border-radius:18px;background:#0e2b18;border:1px solid var(--line);font-size:12.5px;cursor:pointer;color:var(--muted)}
-.chip.on{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#0a2010;border-color:var(--gold)}
+.chip.on{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#06240c;border-color:var(--gold)}
 .search{position:relative}
 .search input{padding-right:38px}
 .search::before{content:"🔎";position:absolute;right:12px;top:11px;font-size:14px}
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0a2010;border:1px solid var(--gold);color:var(--cream);padding:12px 22px;border-radius:12px;font-weight:700;z-index:99999;opacity:0;transition:.3s;pointer-events:none}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#06240c;border:1px solid var(--gold);color:var(--cream);padding:12px 22px;border-radius:12px;font-weight:700;z-index:99999;opacity:0;transition:.3s;pointer-events:none}
 .toast.show{opacity:1}
 .sync{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-right:auto}
 .dot{width:9px;height:9px;border-radius:50%;background:#7e9387}
@@ -83,7 +83,7 @@ hr.soft{border:none;border-top:1px solid var(--line);margin:14px 0}
 .letter{background:#fff;color:#111;border-radius:12px;padding:34px 40px;max-width:820px;margin:0 auto;box-shadow:0 14px 40px rgba(0,0,0,.4);font-size:15px;line-height:2;display:flex;flex-direction:column;min-height:1140px}
 .letter .lh{text-align:center;border-bottom:2px solid #b8921a;padding-bottom:14px;margin-bottom:22px}
 .letter .lh img{height:104px;background:transparent;padding:0;border:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.18))}
-.letter .lh .o{font-weight:800;color:#0a2010;font-size:16px;margin-top:8px}
+.letter .lh .o{font-weight:800;color:#06240c;font-size:16px;margin-top:8px}
 .letter .lh .o small{display:block;color:#666;font-weight:600;font-size:12px;margin-top:2px}
 .letter .meta{display:flex;justify-content:space-between;color:#333;font-size:13.5px;margin-bottom:18px}
 .letter .to{font-weight:800;margin:8px 0}
@@ -1230,7 +1230,7 @@ function renderDash(){
   g('catBars').innerHTML=keys.length?keys.map(function(k){
     var w=Math.round(counts[k]/max*100);
     return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>'+esc(k)+'</span><span class="muted">'+counts[k]+'</span></div>'
-      +'<div style="height:10px;background:#0a2010;border-radius:6px;overflow:hidden"><div style="height:100%;width:'+w+'%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div></div>';
+      +'<div style="height:10px;background:#06240c;border-radius:6px;overflow:hidden"><div style="height:100%;width:'+w+'%;background:linear-gradient(90deg,var(--gold),var(--gold2))"></div></div></div>';
   }).join(''):'<div class="muted">لا توجد بيانات</div>';
 }
 
@@ -1322,7 +1322,7 @@ function initFB(){
 function afterLoad(){
   if(!STATE.settings) STATE.settings={outpre:'ص',inpre:'و',outseq:0,inseq:0};
   if(!STATE.cats||!STATE.cats.length) STATE.cats=['خطاب رسمي','طلب','رد','تعميم','إشعار','متنوع'];
-  g('brandLogo').src='logo_green.png?v=3'; /* واجهة النظام: الشعار المعدني الموحّد — شعار الخطابات (LOGO) يبقى كما هو */
+  g('brandLogo').src='logo_green.png?v=4'; /* واجهة النظام: الشعار المعدني الموحّد — شعار الخطابات (LOGO) يبقى كما هو */
   sigsLoad();
   fillCats();
   resetCompose();
@@ -1375,14 +1375,14 @@ function fixSignaturesOnce(){
 window.__APP_BOOT__=function(){ setSync(''); initFB(); };
 </script>
 <!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
-<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
     <img id="authLogo" alt="" style="height:96px;margin-bottom:10px;display:none">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">نظام المراسلات الرسمية — تسجيل الدخول للمتابعة</div>
-    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
+    <input id="authEmail" type="email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>

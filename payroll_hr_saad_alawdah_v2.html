@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --gd:#0D2818;--gm:#163A22;--gl:#1A4228;
+  --gd:#06240c;--gm:#163A22;--gl:#1A4228;
   --gold:#C9A84C;--gll:#E2C074;--glb:#F0D080;--gdm:#8A6A20;
   --gp:rgba(201,168,76,0.12);--cr:#FAF7EE;--tod:rgba(201,168,76,0.45);
   --ok:#2E7D4F;--err:#A32D2D;--inf:#185FA5;--wt:#F0EAD6;
@@ -200,7 +200,7 @@ const db = firebase.firestore();
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
 @media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
 </head>
-<body><div data-idbar style="text-align:center;padding:10px 0 6px;background:transparent"><img src="logo_green.png?v=3" alt="سعد آل عوضة — المكتب الإداري" style="height:54px;width:auto;display:inline-block;vertical-align:middle;object-fit:contain"></div>
+<body><div data-idbar style="text-align:center;padding:10px 0 6px;background:transparent"><img src="logo_green.png?v=4" alt="سعد آل عوضة — المكتب الإداري" style="height:54px;width:auto;display:inline-block;vertical-align:middle;object-fit:contain"></div>
 <div class="app">
 <!-- SIDEBAR -->
 <div class="sb">
@@ -879,8 +879,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 
 <script>
 /* ── LOGO DATA (defined once) ── */
-const LOGO_MAIN='logo_green.png?v=3';
-const LOGO_3D='logo_badge.png?v=3';
+const LOGO_MAIN='logo_green.png?v=4';
+const LOGO_3D='logo_badge.png?v=4';
 
 /* ════════════════════════════ DATA ════════════════════════════ */
 let emps=[
@@ -1178,7 +1178,7 @@ function viewArchive(id){const r=payrollArchive.find(x=>x.id===id);if(!r)return;
 function printArchive(id){const r=payrollArchive.find(x=>x.id===id);if(!r)return;
   const w=window.open('','_blank');
   w.document.write(`<!doctype html><html dir="rtl"><head><meta charset="utf-8"><title>كشف رواتب ${r.period}</title>
-  <style>body{font-family:Tahoma,Arial;padding:20px;color:#1a1a1a}h2{color:#0D2818}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:right;font-size:13px}th{background:#0D2818;color:#fff}tfoot td{font-weight:700;background:#f2efe6}</style></head>
+  <style>body{font-family:Tahoma,Arial;padding:20px;color:#1a1a1a}h2{color:#06240c}table{width:100%;border-collapse:collapse;margin-top:12px}th,td{border:1px solid #ccc;padding:7px 9px;text-align:right;font-size:13px}th{background:#06240c;color:#fff}tfoot td{font-weight:700;background:#f2efe6}</style></head>
   <body><h2>كشف رواتب — ${r.period}</h2><div style="font-size:12px;color:#666">المكتب الإداري للشيخ سعد آل عوضه · صُرف: ${new Date(r.paidAt).toLocaleDateString('ar-SA')}</div>${archTableHTML(r)}</body></html>`);
   w.document.close();setTimeout(()=>{w.print();},350);
 }
@@ -1824,7 +1824,7 @@ function printEmpCard(empId){
   const e = bid(id); if(!e) return;
   const p = profiles[id]||{};
   const nat = NATIONALITY_NAMES[p.nationality]||'—';
-  const photo = p.photo ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#0D2818,#163A22);display:flex;align-items:center;justify-content:center;font-size:32px;color:#C9A84C;font-weight:700">${av2(e.name)}</div>`;
+  const photo = p.photo ? `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#06240c,#163A22);display:flex;align-items:center;justify-content:center;font-size:32px;color:#C9A84C;font-weight:700">${av2(e.name)}</div>`;
 
   const cardHTML = `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -1833,7 +1833,7 @@ function printEmpCard(empId){
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Tajawal',sans-serif;background:#2A2A2A;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-  .card{width:380px;background:linear-gradient(145deg,#0D2818,#163A22);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6);border:1px solid rgba(201,168,76,0.3);}
+  .card{width:380px;background:linear-gradient(145deg,#06240c,#163A22);border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6);border:1px solid rgba(201,168,76,0.3);}
   .card-header{padding:20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(201,168,76,0.2);}
   .card-logo{height:36px;opacity:0.9;}
   .card-org{font-family:'Amiri',serif;font-size:12px;color:#C9A84C;line-height:1.5;}
@@ -1881,7 +1881,7 @@ function printEmpCard(empId){
     <div class="card-strip"></div>
   </div>
   <div class="no-print" style="text-align:center;margin-top:16px">
-    <button onclick="window.print()" style="background:#0D2818;color:#C9A84C;border:1px solid #C9A84C;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer">🖨️ طباعة البطاقة</button>
+    <button onclick="window.print()" style="background:#06240c;color:#C9A84C;border:1px solid #C9A84C;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer">🖨️ طباعة البطاقة</button>
     <button onclick="window.close()" style="background:#333;color:#aaa;border:1px solid #555;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;margin-right:8px">إغلاق</button>
   </div>
 </div>
@@ -2260,7 +2260,7 @@ function buildSlipHTML(e){
   body{font-family:'Tajawal',sans-serif;background:#F5F1E8;padding:20px;min-height:100vh;}
   .page{max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.15);}
   /* Header */
-  .hdr{background:#0D2818;padding:22px 28px;display:flex;align-items:center;gap:16px;}
+  .hdr{background:#06240c;padding:22px 28px;display:flex;align-items:center;gap:16px;}
   .hdr-logo{width:90px;height:62px;object-fit:cover;border-radius:8px;border:2px solid #C9A84C;}
   .hdr-info{flex:1;}
   .hdr-ar{font-family:'Amiri',serif;font-size:15px;color:#E2C074;font-weight:700;line-height:1.6;}
@@ -2278,7 +2278,7 @@ function buildSlipHTML(e){
   .body{padding:24px 28px;}
   .section{margin-bottom:20px;}
   .sec-title{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid rgba(13,40,24,0.1);}
-  .sec-title-ar{font-family:'Amiri',serif;font-size:14px;color:#0D2818;font-weight:700;}
+  .sec-title-ar{font-family:'Amiri',serif;font-size:14px;color:#06240c;font-weight:700;}
   .sec-title-en{font-family:'Roboto',sans-serif;font-size:10px;color:#8A7A50;letter-spacing:0.5px;}
   .sec-title::before{content:'';width:4px;height:18px;background:linear-gradient(to bottom,#F0D080,#8A6A20);border-radius:2px;flex-shrink:0;}
   /* Row items */
@@ -2287,12 +2287,12 @@ function buildSlipHTML(e){
   .row-lbl{display:flex;flex-direction:column;gap:1px;}
   .row-ar{font-size:12px;color:#2A2A1A;}
   .row-en{font-family:'Roboto',sans-serif;font-size:9px;color:#8A7A50;letter-spacing:0.3px;}
-  .row-val{font-size:12px;font-weight:600;color:#0D2818;}
+  .row-val{font-size:12px;font-weight:600;color:#06240c;}
   .row-val.neg{color:#A32D2D;}
   .row-val.pos{color:#2E7D4F;}
   /* Deduction table */
   .ded-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;}
-  .ded-table th{background:#0D2818;color:rgba(201,168,76,0.7);padding:7px 10px;text-align:right;font-weight:500;font-size:10px;}
+  .ded-table th{background:#06240c;color:rgba(201,168,76,0.7);padding:7px 10px;text-align:right;font-weight:500;font-size:10px;}
   .ded-table td{padding:7px 10px;border-bottom:1px solid #EAE5D5;}
   .ded-table tr:last-child td{border-bottom:none;}
   /* Absence alert */
@@ -2300,7 +2300,7 @@ function buildSlipHTML(e){
   .alert-ar{font-size:11.5px;color:#A32D2D;font-weight:600;}
   .alert-en{font-family:'Roboto',sans-serif;font-size:10px;color:#C0392B;margin-top:2px;}
   /* Total */
-  .total-box{background:#0D2818;border-radius:10px;padding:16px 20px;margin-top:16px;}
+  .total-box{background:#06240c;border-radius:10px;padding:16px 20px;margin-top:16px;}
   .total-inner{display:flex;justify-content:space-between;align-items:center;}
   .total-lbl-ar{font-family:'Amiri',serif;font-size:15px;color:#C9A84C;}
   .total-lbl-en{font-family:'Roboto',sans-serif;font-size:10px;color:rgba(201,168,76,0.5);margin-top:2px;}
@@ -2398,8 +2398,8 @@ function buildSlipHTML(e){
 
 <!-- Print/Save buttons (hidden when printing) -->
 <div class="no-print" style="max-width:700px;margin:16px auto;display:flex;gap:10px;justify-content:center;">
-  <button onclick="window.print()" style="background:#0D2818;color:#E2C074;border:none;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;"><span>🖨️</span> طباعة / Save as PDF</button>
-  <button onclick="window.close()" style="background:#F5F1E8;color:#0D2818;border:1px solid #C9A84C;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;">إغلاق / Close</button>
+  <button onclick="window.print()" style="background:#06240c;color:#E2C074;border:none;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;"><span>🖨️</span> طباعة / Save as PDF</button>
+  <button onclick="window.close()" style="background:#F5F1E8;color:#06240c;border:1px solid #C9A84C;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;">إغلاق / Close</button>
 </div>
 </body></html>`;
 }
@@ -2517,9 +2517,9 @@ function downloadSlip(empId){
     +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">'
     +'<style>body{font-family:Tajawal,sans-serif;direction:rtl;padding:30px;max-width:520px;margin:0 auto;background:#FAF7EE}'
     +'.slh{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:2px solid #C9A84C;margin-bottom:12px}'
-    +'.slorg{font-family:Amiri,serif;font-size:13px;font-weight:700;color:#0D2818;line-height:1.5}'
+    +'.slorg{font-family:Amiri,serif;font-size:13px;font-weight:700;color:#06240c;line-height:1.5}'
     +'.slr{display:flex;justify-content:space-between;padding:7px 0;font-size:12px;border-bottom:1px dashed #EAE5D5}'
-    +'.slt{background:#0D2818;color:#E2C074;padding:11px 14px;border-radius:8px;display:flex;justify-content:space-between;margin-top:11px;font-weight:700;font-size:13px}'
+    +'.slt{background:#06240c;color:#E2C074;padding:11px 14px;border-radius:8px;display:flex;justify-content:space-between;margin-top:11px;font-weight:700;font-size:13px}'
     +'img{max-width:80px;border-radius:8px}'
     +'</style></head><body>'+slipContent+'</body></html>';
   const blob=new Blob([content],{type:'text/html;charset=utf-8'});
@@ -2551,13 +2551,13 @@ function downloadSlip(empId){
 </script>
 <!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#103019 0%,#0a2010 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
+<div id="authGate" style="position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
     <div style="color:#9db3a3;font-size:13px;margin-bottom:20px">تسجيل الدخول للمتابعة</div>
     <input id="authEmail" type="hidden" value="matef445@gmail.com">
-    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#0a2010;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
-    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#0a2010;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
+    <input id="authPass" type="password" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:right;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
 </div>
