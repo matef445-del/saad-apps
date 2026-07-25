@@ -149,8 +149,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
    ============================================================ */
 
 /* (1) ----- الشعار الرسمي (يُستخدم في الهيدر وفي نافذة الطباعة) ----- */
-var LOGO = "logo_green.png?v=2";
-document.getElementById('brandLogo').src = 'logo_green.png?v=2';
+var LOGO = "logo_green.png?v=3";
+document.getElementById('brandLogo').src = 'logo_green.png?v=3';
 
 /* (2) ----- إعدادات فايربيس (ثابتة لكل تطبيقات المكتب) ----- */
 var FB_CFG = { 
@@ -256,7 +256,7 @@ function shareWhatsApp(){
 function printReport(){
   var sum=rows.reduce(function(s,r){return s+(Number(r.amount)||0);},0);
   var body=rows.map(function(r,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(r.name)+'</td><td>'+(Number(r.amount)||0).toLocaleString('en-US')+'</td></tr>';}).join('');
-  var LOGO_PRINT = "logo_badge.png?v=2"; // مضمّن صراحةً هنا
+  var LOGO_PRINT = "logo_badge.png?v=3"; // مضمّن صراحةً هنا
   var w=window.open('', '_blank');
   var doc='<!doctype html><html lang=ar dir=rtl><head><meta charset=utf-8>'+
     '<title>تقرير المكتب الإداري</title>'+
@@ -281,7 +281,7 @@ function printReport(){
   try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
   var gate = document.getElementById('authGate');
   var booted = false;
-  try{ var lg=document.getElementById('authLogo'); if(lg) lg.src='logo_green.png?v=2'; }catch(e){}
+  try{ var lg=document.getElementById('authLogo'); if(lg) lg.src='logo_green.png?v=3'; }catch(e){}
   function showGate(){ if(gate) gate.style.display='flex'; }
   function hideGate(){ if(gate) gate.style.display='none'; }
   _auth.onAuthStateChanged(function(user){
