@@ -421,27 +421,27 @@ window.__APP_BOOT__=function(){ applyDir(); applyI18n(); buildNav(); setSync('')
 (function(){
   var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
   try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
-  var _auth=null; try{ _auth=firebase.auth(); _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
-  var MGR_PIN='7788'; /* ← رمز الإدارة السري (غيّره من هنا) */
-  var AKEY='SAAD_AUTH_manager';
+  var _auth=firebase.auth(); try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
+  var MGR_EMAIL='manager@saad-apps.local', PW_PREFIX='saadapps'; /* رمز الإدارة يُحوَّل لكلمة مرور Firebase */
   var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn'), booted=false;
-  function boot(){ if(booted)return; booted=true;
-    try{ if(_auth) _auth.signInAnonymously().catch(function(){}); }catch(e){}
-    try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){}
-  }
+  function boot(){ if(booted)return; booted=true; try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){} }
   function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; var p=document.getElementById('authPin'); if(p){ try{p.focus();}catch(e){} } }
-  function unlock(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; boot(); }
+  function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; }
   function tt(k){ try{ return t(k); }catch(e){ return ''; } }
-  function tryPin(){ var v=(document.getElementById('authPin').value||'').trim(), msg=document.getElementById('authMsg');
-    if(v===String(MGR_PIN)){ try{ localStorage.setItem(AKEY,'1'); }catch(e){} if(msg)msg.textContent=''; unlock(); }
-    else { if(msg)msg.textContent=tt('err_pin'); }
+  _auth.onAuthStateChanged(function(user){ if(user){ hideGate(); boot(); } else { showGate(); } });
+  function tryPin(){ var v=(document.getElementById('authPin').value||'').trim(), msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
+    if(!v){ if(msg)msg.textContent=tt('err_pin'); return; }
+    if(msg)msg.textContent=''; if(btn){btn.disabled=true; btn.textContent=tt('logging');}
+    _auth.signInWithEmailAndPassword(MGR_EMAIL, PW_PREFIX+v).catch(function(err){
+      var code=err&&err.code?err.code:'', m=tt('err_pin');
+      if(code==='auth/too-many-requests') m=tt('err_many'); else if(code==='auth/network-request-failed') m=tt('err_net');
+      if(msg)msg.textContent=m;
+    }).finally(function(){ if(btn){btn.disabled=false; btn.textContent=tt('btn_login');} });
   }
   try{ applyDir(); applyI18n(); }catch(e){}
-  var remembered=false; try{ remembered=localStorage.getItem(AKEY)==='1'; }catch(e){}
-  if(remembered) unlock(); else showGate();
   var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',tryPin);
   var ap=document.getElementById('authPin'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') tryPin(); });
-  if(logoutBtn) logoutBtn.addEventListener('click',function(){ try{ localStorage.removeItem(AKEY); }catch(e){} location.reload(); });
+  if(logoutBtn) logoutBtn.addEventListener('click',function(){ try{ _auth.signOut(); }catch(e){} });
 })();
 </script>
 </body>
