@@ -175,9 +175,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
     <img src="logo_badge.png?v=1" alt="" style="height:88px;margin-bottom:8px">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800" data-i18n="office">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
-    <div style="color:#9db3a3;font-size:13px;margin-bottom:20px" data-i18n="login_sub">تسجيل دخول الإدارة للمتابعة</div>
-    <input id="authEmail" type="email" data-i18n-ph="ph_email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:12px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:start;outline:none" value="matef445@gmail.com">
-    <input id="authPass" type="password" data-i18n-ph="ph_pass" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:start;outline:none">
+    <div style="color:#9db3a3;font-size:13px;margin-bottom:20px" data-i18n="pin_sub">أدخل رمز الإدارة السري</div>
+    <input id="authPin" type="password" inputmode="numeric" data-i18n-ph="ph_pin_login" placeholder="الرمز السري" autocomplete="off" style="width:100%;padding:13px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:18px;text-align:center;letter-spacing:6px;outline:none">
     <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer" data-i18n="btn_login">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
@@ -204,7 +203,7 @@ var DICT={
   admin_title:'لوحة الإدارة', nav_dash:'📊 المتابعة', nav_exp:'📁 المصروفات', nav_dep:'💰 العُهد', nav_stmt:'📄 كشف حساب',
   pg_dash:'📊 لوحة المتابعة', pg_exp:'📁 كل المصروفات', pg_dep:'💰 كل العُهد المستلمة', pg_stmt:'📄 كشف حساب',
   btn_add_exp:'＋ مصروف', btn_add_dep:'＋ عهدة', btn_print:'🖨️ طباعة', btn_print_stmt:'🖨️ طباعة الكشف', btn_save:'حفظ', btn_cancel:'إلغاء',
-  btn_login:'دخول', btn_logout:'خروج', login_sub:'تسجيل دخول الإدارة للمتابعة',
+  btn_login:'دخول', btn_logout:'🔒 قفل', login_sub:'تسجيل دخول الإدارة للمتابعة', pin_sub:'أدخل رمز الإدارة السري', ph_pin_login:'الرمز السري', err_pin:'رمز غير صحيح',
   per_person:'👥 حسب الشخص', f_person:'الشخص', f_month:'الشهر', f_period:'الفترة', f_search:'بحث', f_date:'التاريخ', f_amount:'المبلغ (ر.س)', f_amount_recv:'المبلغ المستلم (ر.س)', f_desc:'الوصف', f_vendor:'المورّد (اختياري)', f_cat:'التصنيف', f_note:'ملاحظة (اختياري)', f_att:'المرفق',
   ph_search:'بحث في الوصف / المورّد / التصنيف', ph_email:'البريد الإلكتروني', ph_pass:'كلمة المرور',
   add_expense:'مصروف', edit_expense:'تعديل مصروف', deposit:'عهدة مستلمة', edit_deposit:'تعديل عهدة',
@@ -220,7 +219,7 @@ var DICT={
   admin_title:'Admin Board', nav_dash:'📊 Overview', nav_exp:'📁 Expenses', nav_dep:'💰 Custody', nav_stmt:'📄 Statement',
   pg_dash:'📊 Overview', pg_exp:'📁 All expenses', pg_dep:'💰 All custody received', pg_stmt:'📄 Statement',
   btn_add_exp:'＋ Expense', btn_add_dep:'＋ Custody', btn_print:'🖨️ Print', btn_print_stmt:'🖨️ Print statement', btn_save:'Save', btn_cancel:'Cancel',
-  btn_login:'Log in', btn_logout:'Log out', login_sub:'Admin login to continue',
+  btn_login:'Enter', btn_logout:'🔒 Lock', login_sub:'Admin login to continue', pin_sub:'Enter the admin secret code', ph_pin_login:'Secret code', err_pin:'Wrong code',
   per_person:'👥 By person', f_person:'Person', f_month:'Month', f_period:'Period', f_search:'Search', f_date:'Date', f_amount:'Amount (SAR)', f_amount_recv:'Received amount (SAR)', f_desc:'Description', f_vendor:'Vendor (optional)', f_cat:'Category', f_note:'Note (optional)', f_att:'Attachment',
   ph_search:'Search description / vendor / category', ph_email:'Email', ph_pass:'Password',
   add_expense:'Expense', edit_expense:'Edit expense', deposit:'Custody received', edit_deposit:'Edit custody',
@@ -234,6 +233,8 @@ var DICT={
   statement_of:'Statement', report:'Report', err_login:'Login failed', err_cred:'Wrong email or password', err_email:'Invalid email format', err_many:'Too many attempts, try later', err_net:'Network error', need_pass:'Enter the password', logging:'Logging in…' }
 };
 function t(k){ return (DICT[L]&&DICT[L][k]!=null)?DICT[L][k]:(DICT.ar[k]!=null?DICT.ar[k]:k); }
+var CATMAP={'مشتريات':'Purchases','صيانة':'Maintenance','وقود':'Fuel','نظافة':'Cleaning','ضيافة':'Hospitality','مكتبية':'Office','متنوع':'Misc','أخرى':'Other'};
+function catLabel(c){ return (L==='en'&&CATMAP[c])?CATMAP[c]:c; }
 function applyI18n(){
   document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); });
   document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.setAttribute('placeholder',t(el.getAttribute('data-i18n-ph'))); });
@@ -321,7 +322,7 @@ function renderExp(){
   var tot=0; rows.forEach(function(o){tot+=Number(o.e.amount)||0;});
   g('exp-sum').innerHTML=card(t('c_results'),String(rows.length),t('u_entry'),'var(--gray)','var(--cream)')+card(t('c_results_total'),money(tot),t('u_sar'),'var(--gold)','var(--gold2)');
   var th='<thead><tr><th>'+t('th_date')+'</th><th>'+t('th_person')+'</th><th>'+t('th_desc')+'</th><th>'+t('th_vendor')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_amount')+'</th><th>'+t('th_att')+'</th><th class="no-print"></th></tr></thead>';
-  var tb=rows.map(function(o){var e=o.e; return '<tr><td>'+esc(e.date)+'</td><td><span class="pill tagp">'+esc(srcName(o.src))+'</span></td><td>'+esc(e.desc)+'</td><td>'+esc(e.vendor||'—')+'</td><td>'+esc(e.cat||'—')+'</td><td class="num warnv">'+money(e.amount)+'</td>'+
+  var tb=rows.map(function(o){var e=o.e; return '<tr><td>'+esc(e.date)+'</td><td><span class="pill tagp">'+esc(srcName(o.src))+'</span></td><td>'+esc(e.desc)+'</td><td>'+esc(e.vendor||'—')+'</td><td>'+esc(e.cat?catLabel(e.cat):'—')+'</td><td class="num warnv">'+money(e.amount)+'</td>'+
     '<td>'+((e.att&&e.att.length)?'<button class="btn ghost sm no-print" onclick="openAtt(\''+o.src+'\','+attLit(e.att[0])+')">🖼️ '+t('view')+'</button>':'<span class="hint">—</span>')+'</td>'+
     '<td class="no-print" style="white-space:nowrap"><button class="btn ghost sm" onclick="openExp(\''+o.src+'\',\''+e.id+'\')">✏️</button> <button class="btn red sm" onclick="delExp(\''+o.src+'\',\''+e.id+'\')">🗑️</button></td></tr>';
   }).join('');
@@ -329,7 +330,7 @@ function renderExp(){
 }
 function attLit(a){ return JSON.stringify(a).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 function srcOptions(sel){ return SOURCES.map(function(s){return '<option value="'+s.key+'"'+(s.key===sel?' selected':'')+'>'+esc(srcName(s.key))+'</option>';}).join(''); }
-function catOptions(key,sel){ return '<option value="">—</option>'+catsOf(key).map(function(c){return '<option'+(c===sel?' selected':'')+'>'+esc(c)+'</option>';}).join(''); }
+function catOptions(key,sel){ return '<option value="">—</option>'+catsOf(key).map(function(c){return '<option value="'+esc(c)+'"'+(c===sel?' selected':'')+'>'+esc(catLabel(c))+'</option>';}).join(''); }
 function xSrcChange(){ g('x-cat').innerHTML=catOptions(g('x-src').value,''); }
 function openExp(srcKey,id){
   g('x-src').innerHTML=srcOptions(srcKey||SOURCES[0].key);
@@ -385,7 +386,7 @@ function renderStmtInit(){ g('st-src').innerHTML=srcOptions(SOURCES[0].key); var
   mselInit('st-month', Object.keys(mons).sort().reverse().map(function(m){return {value:m,label:m};}), {allLabel:t('all_periods'),onChange:renderStmt}); renderStmt(); }
 function renderStmt(){ var key=g('st-src').value, fm=mselValues('st-month'), items=[];
   (DATA[key].deposits||[]).forEach(function(d){ if(!fm.length||fm.indexOf(monthOf(d.date))>=0) items.push({date:d.date,type:t('dep_received'),desc:d.note||'',in:Number(d.amount)||0,out:0,created:d.created||0}); });
-  (DATA[key].expenses||[]).forEach(function(e){ if(!fm.length||fm.indexOf(monthOf(e.date))>=0) items.push({date:e.date,type:e.cat||t('default_exp'),desc:e.desc||'',in:0,out:Number(e.amount)||0,created:e.created||0}); });
+  (DATA[key].expenses||[]).forEach(function(e){ if(!fm.length||fm.indexOf(monthOf(e.date))>=0) items.push({date:e.date,type:(e.cat?catLabel(e.cat):t('default_exp')),desc:e.desc||'',in:0,out:Number(e.amount)||0,created:e.created||0}); });
   items.sort(function(a,b){return (a.date||'').localeCompare(b.date||'')||(a.created-b.created);});
   var tIn=0,tOut=0,run=0; var body=items.map(function(it){ tIn+=it.in;tOut+=it.out;run+=it.in-it.out;
     return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.type)+'</td><td>'+esc(it.desc)+'</td><td class="num pos">'+(it.in?money(it.in):'—')+'</td><td class="num warnv">'+(it.out?money(it.out):'—')+'</td><td class="num '+(run<0?'neg':'')+'">'+money(run)+'</td></tr>'; }).join('');
@@ -420,22 +421,27 @@ window.__APP_BOOT__=function(){ applyDir(); applyI18n(); buildNav(); setSync('')
 (function(){
   var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
   try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
-  var _auth=firebase.auth(); try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
+  var _auth=null; try{ _auth=firebase.auth(); _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
+  var MGR_PIN='7788'; /* ← رمز الإدارة السري (غيّره من هنا) */
+  var AKEY='SAAD_AUTH_manager';
   var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn'), booted=false;
-  function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; }
-  function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; }
-  function bootOnce(){ if(!booted){ booted=true; try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){} } }
-  _auth.onAuthStateChanged(function(user){ if(user){ hideGate(); bootOnce(); } else { showGate(); } });
-  function tt(k){ try{ return t(k); }catch(e){ return ''; } }
-  function doLogin(){ var em=(document.getElementById('authEmail').value||'').trim(), pw=document.getElementById('authPass').value||''; var msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
-    if(!pw){ msg.textContent=tt('need_pass'); return; } msg.textContent=''; btn.disabled=true; btn.textContent=tt('logging');
-    _auth.signInWithEmailAndPassword(em,pw).catch(function(err){ var code=err&&err.code?err.code:'', m=tt('err_login');
-      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m=tt('err_cred'); else if(code==='auth/invalid-email') m=tt('err_email'); else if(code==='auth/too-many-requests') m=tt('err_many'); else if(code==='auth/network-request-failed') m=tt('err_net'); msg.textContent=m;
-    }).finally(function(){ btn.disabled=false; btn.textContent=tt('btn_login'); });
+  function boot(){ if(booted)return; booted=true;
+    try{ if(_auth) _auth.signInAnonymously().catch(function(){}); }catch(e){}
+    try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){}
   }
-  var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',doLogin);
-  var ap=document.getElementById('authPass'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
-  if(logoutBtn) logoutBtn.addEventListener('click',function(){ _auth.signOut(); });
+  function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; var p=document.getElementById('authPin'); if(p){ try{p.focus();}catch(e){} } }
+  function unlock(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; boot(); }
+  function tt(k){ try{ return t(k); }catch(e){ return ''; } }
+  function tryPin(){ var v=(document.getElementById('authPin').value||'').trim(), msg=document.getElementById('authMsg');
+    if(v===String(MGR_PIN)){ try{ localStorage.setItem(AKEY,'1'); }catch(e){} if(msg)msg.textContent=''; unlock(); }
+    else { if(msg)msg.textContent=tt('err_pin'); }
+  }
+  try{ applyDir(); applyI18n(); }catch(e){}
+  var remembered=false; try{ remembered=localStorage.getItem(AKEY)==='1'; }catch(e){}
+  if(remembered) unlock(); else showGate();
+  var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',tryPin);
+  var ap=document.getElementById('authPin'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') tryPin(); });
+  if(logoutBtn) logoutBtn.addEventListener('click',function(){ try{ localStorage.removeItem(AKEY); }catch(e){} location.reload(); });
 })();
 </script>
 </body>
