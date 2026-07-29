@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>لوحة الإدارة — العهد — سعد آل عوضة</title>
+<link rel="icon" type="image/png" href="logo_badge.png?v=1">
+<meta name="theme-color" content="#06240c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="إدارة العهد">
+<link rel="apple-touch-icon" href="logo_badge.png?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<style>
+:root{--bg1:#06240c;--bg2:#06240c;--panel:#11331c;--line:#1d4a2c;--gold:#b8921a;--gold2:#d8b441;--cream:#f3ead0;--muted:#9db3a3;--green:#3a7d44;--blue:#2f6db3;--red:#cf5050;--gray:#7e9387;--radius:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Cairo',sans-serif;background:radial-gradient(1100px 600px at 50% -10%,#103019,#06240c 60%);color:var(--cream);min-height:100vh;-webkit-font-smoothing:antialiased}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:rgba(6,36,12,.6);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50;flex-wrap:wrap}
+header img{max-height:48px;max-width:110px;object-fit:contain}
+header .h-t{font-weight:800;font-size:15px;color:var(--cream)}
+header .h-s{font-size:11px;color:var(--muted)}
+.hspacer{margin-inline-start:auto}
+.langbtn{font-family:inherit;font-weight:800;font-size:12.5px;background:rgba(255,255,255,.05);color:var(--gold2);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer}
+.langbtn:hover{border-color:var(--gold)}
+.sync{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.04);padding:6px 12px;border-radius:20px;border:1px solid var(--line)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--gray)}
+.dot.ok{background:#4ade80;box-shadow:0 0 8px #4ade80}.dot.sv{background:var(--gold2);animation:pulse 1s infinite}.dot.off{background:var(--red)}
+@keyframes pulse{50%{opacity:.4}}
+nav{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.nb{white-space:nowrap;background:rgba(255,255,255,.03);color:var(--muted);border:1px solid var(--line);padding:9px 16px;border-radius:12px;font-family:inherit;font-weight:600;font-size:13.5px;cursor:pointer;transition:.2s}
+.nb:hover{color:var(--cream);border-color:var(--gold)}
+.nb.act{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1206;border-color:transparent;font-weight:800}
+main{padding:18px;max-width:1200px;margin:0 auto}
+.pg{display:none}.pg.act{display:block}
+.pgh{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.pgh h1{font-size:20px;color:var(--cream);font-weight:800}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font-family:inherit;font-weight:700;font-size:13.5px;border:1px solid transparent;border-radius:12px;padding:10px 16px;cursor:pointer;transition:.2s}
+.btn.sm{padding:8px 13px;font-size:12.5px}
+.btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1206}
+.btn.ghost{background:rgba(255,255,255,.04);color:var(--cream);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--gold)}
+.btn.red{background:rgba(207,80,80,.15);color:#f0a8a8;border-color:rgba(207,80,80,.4)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-bottom:18px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:var(--accent,var(--gold))}
+.card .lbl{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.card .val{font-size:23px;font-weight:800;color:var(--cv,var(--cream))}
+.card .val .u{font-size:13px;color:var(--muted);font-weight:600}
+.card .sub{font-size:11.5px;color:var(--muted);margin-top:5px}
+.minibar{height:8px;border-radius:6px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:8px}
+.minibar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:18px}
+.sec h2{font-size:16px;color:var(--gold2);margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.divider{height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px 0;opacity:.5}
+.hint{font-size:12px;color:var(--muted);line-height:1.7}
+label.fl{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600}
+select,input,textarea{font-family:inherit;background:rgba(255,255,255,.05);color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;width:100%}
+select:focus,input:focus{outline:none;border-color:var(--gold)}
+select option{background:var(--bg2);color:var(--cream)}
+.row-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.msel{position:relative;display:inline-block}
+.msel-btn{font-family:inherit;background:rgba(255,255,255,.05);color:var(--cream);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:13px;cursor:pointer;min-width:150px;max-width:260px;text-align:start;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.msel-btn .cap{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.msel-btn .arw{color:var(--muted);font-size:10px}
+.msel.open .msel-btn{border-color:var(--gold)}
+.msel-panel{position:absolute;z-index:60;top:calc(100% + 4px);inset-inline-end:0;min-width:200px;max-height:300px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px;display:none;box-shadow:0 10px 28px rgba(0,0,0,.45)}
+.msel.open .msel-panel{display:block}
+.msel-opt{display:flex;align-items:center;gap:9px;padding:8px;border-radius:8px;font-size:13px;color:var(--cream);cursor:pointer;white-space:nowrap}
+.msel-opt:hover{background:rgba(255,255,255,.06)}.msel-opt input{width:16px;height:16px;accent-color:var(--gold)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:start;color:var(--gold2);font-weight:700;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:12.5px}
+.tbl td{padding:10px;border-bottom:1px solid rgba(29,74,44,.5);vertical-align:middle}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}.tbl .num{font-weight:700}
+.tblwrap{overflow-x:auto}.pos{color:#7fdca0}.neg{color:#f0a8a8}.warnv{color:var(--gold2)}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.tagp{background:rgba(47,109,179,.2);color:#bcd4f0}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:900;padding:16px}
+.ov.show{display:flex}
+.ovbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;width:min(94vw,480px);max-height:90vh;overflow:auto}
+.ovbox h3{color:var(--gold2);font-size:17px;margin-bottom:16px}.ovbox .fld{margin-bottom:12px}
+.ovfoot{display:flex;gap:10px;margin-top:18px}
+#toast{position:fixed;bottom:22px;inset-inline-start:50%;transform:translateX(-50%);background:#06240c;border:1px solid var(--gold);color:var(--cream);padding:12px 22px;border-radius:12px;font-size:13.5px;font-weight:600;z-index:99999;opacity:0;transition:.3s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1}
+img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
+#printhead{display:none;text-align:center;margin-bottom:16px}#printhead img{width:120px}#printhead .pt{font-weight:800;font-size:16px;margin-top:6px;color:#1a3a1a}#printhead #phsub{font-size:12px;color:#444;margin-top:3px}
+@media print{*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body{background:#fff!important;color:#111!important}header,nav,.tools,.no-print,#authLogoutBtn,.ov{display:none!important}main{padding:0;max-width:100%}.pg{display:none!important}.pg.printme{display:block!important}#printhead{display:block!important}#printhead img{background:#06240c;padding:12px;border-radius:14px}.sec,.card{border-color:#ccc!important;background:#fff!important}.tbl th{color:#06240c!important}.tbl td,.tbl th{border-color:#ccc!important}img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="logo_badge.png?v=1" alt="logo">
+  <div><div class="h-t" id="hd-ttl">لوحة الإدارة</div><div class="h-s" data-i18n="office">المكتب الإداري للشيخ سعد علي آل عوضه</div></div>
+  <div class="hspacer"></div>
+  <button class="langbtn" id="langbtn" onclick="toggleLang()">EN</button>
+  <div class="sync"><span class="dot" id="sdot"></span><span id="stext" data-i18n="connecting">جارٍ الاتصال…</span></div>
+</header>
+<nav id="nav"></nav>
+<main>
+  <div id="printhead"><img src="logo_green.png?v=4"><div class="pt" data-i18n="office">المكتب الإداري للشيخ سعد علي آل عوضه</div><div id="phsub"></div></div>
+
+  <div class="pg act" id="pg-dash">
+    <div class="pgh"><h1 data-i18n="pg_dash">📊 لوحة المتابعة</h1>
+      <div class="tools"><button class="btn gold sm" onclick="openExp()" data-i18n="btn_add_exp">＋ مصروف</button><button class="btn ghost sm" onclick="openDep()" data-i18n="btn_add_dep">＋ عهدة</button></div>
+    </div>
+    <div class="cards" id="dash-totals"></div>
+    <div class="sec"><h2 data-i18n="per_person">👥 حسب الشخص</h2><div id="dash-people"></div></div>
+  </div>
+
+  <div class="pg" id="pg-exp">
+    <div class="pgh"><h1 data-i18n="pg_exp">📁 كل المصروفات</h1>
+      <div class="tools"><button class="btn gold sm" onclick="openExp()" data-i18n="btn_add_exp">＋ مصروف</button><button class="btn ghost sm" onclick="printPage('exp','pg_exp')" data-i18n="btn_print">🖨️ طباعة</button></div>
+    </div>
+    <div class="sec no-print"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div><label class="fl" data-i18n="f_person">الشخص</label><div class="msel" id="fx-src"></div></div>
+      <div><label class="fl" data-i18n="f_month">الشهر</label><div class="msel" id="fx-month"></div></div>
+      <div style="flex:1;min-width:160px"><label class="fl" data-i18n="f_search">بحث</label><input id="fx-q" data-i18n-ph="ph_search" placeholder="بحث في الوصف / المورّد / التصنيف" oninput="renderExp()"></div>
+    </div></div>
+    <div class="cards" id="exp-sum"></div>
+    <div class="sec"><div class="tblwrap"><table class="tbl" id="exp-tbl"></table></div></div>
+  </div>
+
+  <div class="pg" id="pg-dep">
+    <div class="pgh"><h1 data-i18n="pg_dep">💰 كل العُهد المستلمة</h1>
+      <div class="tools"><button class="btn gold sm" onclick="openDep()" data-i18n="btn_add_dep">＋ عهدة</button><button class="btn ghost sm" onclick="printPage('dep','pg_dep')" data-i18n="btn_print">🖨️ طباعة</button></div>
+    </div>
+    <div class="sec"><div class="tblwrap"><table class="tbl" id="dep-tbl"></table></div></div>
+  </div>
+
+  <div class="pg" id="pg-stmt">
+    <div class="pgh"><h1 data-i18n="pg_stmt">📄 كشف حساب</h1>
+      <div class="tools no-print"><button class="btn ghost sm" onclick="printStmt()" data-i18n="btn_print_stmt">🖨️ طباعة الكشف</button></div>
+    </div>
+    <div class="sec no-print"><div class="row-f">
+      <div><label class="fl" data-i18n="f_person">الشخص</label><select id="st-src" onchange="renderStmt()"></select></div>
+      <div><label class="fl" data-i18n="f_period">الفترة</label><div class="msel" id="st-month"></div></div>
+    </div></div>
+    <div class="cards" id="stmt-sum"></div>
+    <div class="sec"><div class="tblwrap"><table class="tbl" id="stmt-tbl"></table></div></div>
+  </div>
+</main>
+
+<!-- expense overlay -->
+<div class="ov" id="ov-exp"><div class="ovbox">
+  <h3 id="ovx-title" data-i18n="add_expense">مصروف</h3>
+  <input type="hidden" id="x-id"><input type="hidden" id="x-src-old">
+  <div class="fld"><label class="fl" data-i18n="f_person">الشخص</label><select id="x-src" onchange="xSrcChange()"></select></div>
+  <div class="fld"><label class="fl" data-i18n="f_date">التاريخ</label><input type="date" id="x-date"></div>
+  <div class="fld"><label class="fl" data-i18n="f_amount">المبلغ (ر.س)</label><input type="number" id="x-amt" step="0.01" min="0"></div>
+  <div class="fld"><label class="fl" data-i18n="f_desc">الوصف</label><input id="x-desc"></div>
+  <div class="fld"><label class="fl" data-i18n="f_vendor">المورّد (اختياري)</label><input id="x-vendor"></div>
+  <div class="fld"><label class="fl" data-i18n="f_cat">التصنيف</label><select id="x-cat"></select></div>
+  <div class="fld"><label class="fl" data-i18n="f_att">المرفق</label><div id="x-att" class="hint"></div></div>
+  <div class="ovfoot"><button class="btn gold" onclick="saveExp()" data-i18n="btn_save">حفظ</button><button class="btn ghost" onclick="closeOv('ov-exp')" data-i18n="btn_cancel">إلغاء</button></div>
+</div></div>
+
+<!-- deposit overlay -->
+<div class="ov" id="ov-dep"><div class="ovbox">
+  <h3 id="ovd-title" data-i18n="deposit">عهدة مستلمة</h3>
+  <input type="hidden" id="d-id"><input type="hidden" id="d-src-old">
+  <div class="fld"><label class="fl" data-i18n="f_person">الشخص</label><select id="d-src"></select></div>
+  <div class="fld"><label class="fl" data-i18n="f_date">التاريخ</label><input type="date" id="d-date"></div>
+  <div class="fld"><label class="fl" data-i18n="f_amount_recv">المبلغ المستلم (ر.س)</label><input type="number" id="d-amt" step="0.01" min="0"></div>
+  <div class="fld"><label class="fl" data-i18n="f_note">ملاحظة (اختياري)</label><input id="d-note"></div>
+  <div class="ovfoot"><button class="btn gold" onclick="saveDep()" data-i18n="btn_save">حفظ</button><button class="btn ghost" onclick="closeOv('ov-dep')" data-i18n="btn_cancel">إلغاء</button></div>
+</div></div>
+
+<div id="toast"></div>
+
+<div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);font-family:'Cairo',system-ui,sans-serif">
+  <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
+    <img src="logo_badge.png?v=1" alt="" style="height:88px;margin-bottom:8px">
+    <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800" data-i18n="office">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
+    <div style="color:#9db3a3;font-size:13px;margin-bottom:20px" data-i18n="login_sub">تسجيل دخول الإدارة للمتابعة</div>
+    <input id="authEmail" type="email" data-i18n-ph="ph_email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:12px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:start;outline:none" value="matef445@gmail.com">
+    <input id="authPass" type="password" data-i18n-ph="ph_pass" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:start;outline:none">
+    <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer" data-i18n="btn_login">دخول</button>
+    <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
+  </div>
+</div>
+<button id="authLogoutBtn" data-i18n="btn_logout" style="display:none;position:fixed;top:10px;inset-inline-start:10px;z-index:99998;padding:6px 12px;border:1px solid #1d4a2c;border-radius:9px;background:rgba(6,36,12,.85);color:#9db3a3;font-family:'Cairo',system-ui,sans-serif;font-weight:700;font-size:12px;cursor:pointer">خروج</button>
+
+<script>
+var FB={projectId:"my-apps-4544f",apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
+/* مصادر الأشخاص — أضِف صفًا هنا لأي شخص جديد */
+var SOURCES=[
+  {key:'ismail', col:'custody_ismail_db', attcol:'custody_ismail_att_db', name:{ar:'إسماعيل',en:'Ismail'}},
+  {key:'abdulrahman', col:'custody_abdulrahman_db', attcol:'custody_abdulrahman_att_db', name:{ar:'عبدالرحمن',en:'Abdulrahman'}}
+];
+var DATA={}, READY={}, db=null, fbReady=false, CURPAGE='dash';
+SOURCES.forEach(function(s){ DATA[s.key]=emptyData(); READY[s.key]=false; });
+function emptyData(){ return {holders:[],cats:[],deposits:[],expenses:[],settings:{}}; }
+function srcOf(key){ return SOURCES.filter(function(s){return s.key===key;})[0]; }
+function srcName(key){ var s=srcOf(key); return s?(s.name[L]||s.name.ar):key; }
+
+/* i18n */
+var L=(function(){try{return localStorage.getItem('SAAD_LANG')||'ar';}catch(e){return 'ar';}})();
+var DICT={
+ ar:{ office:'المكتب الإداري للشيخ سعد علي آل عوضه', connecting:'جارٍ الاتصال…', live_on:'🟢 مباشر — يتحدّث لحظة الحفظ', live_off:'غير متصل',
+  admin_title:'لوحة الإدارة', nav_dash:'📊 المتابعة', nav_exp:'📁 المصروفات', nav_dep:'💰 العُهد', nav_stmt:'📄 كشف حساب',
+  pg_dash:'📊 لوحة المتابعة', pg_exp:'📁 كل المصروفات', pg_dep:'💰 كل العُهد المستلمة', pg_stmt:'📄 كشف حساب',
+  btn_add_exp:'＋ مصروف', btn_add_dep:'＋ عهدة', btn_print:'🖨️ طباعة', btn_print_stmt:'🖨️ طباعة الكشف', btn_save:'حفظ', btn_cancel:'إلغاء',
+  btn_login:'دخول', btn_logout:'خروج', login_sub:'تسجيل دخول الإدارة للمتابعة',
+  per_person:'👥 حسب الشخص', f_person:'الشخص', f_month:'الشهر', f_period:'الفترة', f_search:'بحث', f_date:'التاريخ', f_amount:'المبلغ (ر.س)', f_amount_recv:'المبلغ المستلم (ر.س)', f_desc:'الوصف', f_vendor:'المورّد (اختياري)', f_cat:'التصنيف', f_note:'ملاحظة (اختياري)', f_att:'المرفق',
+  ph_search:'بحث في الوصف / المورّد / التصنيف', ph_email:'البريد الإلكتروني', ph_pass:'كلمة المرور',
+  add_expense:'مصروف', edit_expense:'تعديل مصروف', deposit:'عهدة مستلمة', edit_deposit:'تعديل عهدة',
+  c_recv:'إجمالي العُهد المستلمة', c_spent:'إجمالي المصروف', c_remaining:'إجمالي المتبقّي', c_count:'عدد المصروفات', c_results:'عدد النتائج', c_results_total:'إجمالي النتائج',
+  u_sar:'ر.س', u_entry:'قيد', u_remaining:'ر.س متبقّي', recv:'مستلم', spent:'مصروف', remaining:'المتبقّي',
+  th_date:'التاريخ', th_person:'الشخص', th_desc:'الوصف', th_vendor:'المورّد', th_cat:'التصنيف', th_amount:'المبلغ', th_att:'المرفق', th_note:'ملاحظة', th_recv:'المبلغ المستلم', th_type:'البيان', th_det:'التفاصيل', th_in:'وارد (عهدة)', th_out:'منصرف', th_bal:'الرصيد',
+  view:'عرض', no_results:'لا توجد نتائج', no_deposits:'لا توجد عُهد مستلمة', no_move:'لا توجد حركات في الفترة', no_people:'لا يوجد بيانات بعد — بمجرد ما يحفظ الأشخاص تظهر هنا.',
+  dep_received:'عهدة مستلمة', all_people:'كل الأشخاص', all_months:'كل الأشهر', all_periods:'كل الفترات', selected:' مختار', default_exp:'مصروف',
+  t_saved:'تم الحفظ ✓', t_deleted:'تم الحذف', t_need_date:'أدخل التاريخ', t_need_amt:'أدخل مبلغًا صحيحًا', t_need_person:'اختر الشخص', t_no_att:'لا يوجد مرفق', t_att_fail:'تعذّر فتح المرفق',
+  cf_del_exp:'حذف هذا المصروف من بيانات الشخص؟', cf_del_dep:'حذف هذه العهدة من بيانات الشخص؟',
+  statement_of:'كشف حساب', report:'التقرير', err_login:'تعذّر تسجيل الدخول', err_cred:'البريد أو كلمة المرور غير صحيحة', err_email:'صيغة البريد غير صحيحة', err_many:'محاولات كثيرة، حاول لاحقاً', err_net:'تعذّر الاتصال بالشبكة', need_pass:'أدخل كلمة المرور', logging:'جارٍ الدخول…' },
+ en:{ office:'Sheikh Saad Al-Awadah — Administrative Office', connecting:'Connecting…', live_on:'🟢 Live — updates on save', live_off:'Offline',
+  admin_title:'Admin Board', nav_dash:'📊 Overview', nav_exp:'📁 Expenses', nav_dep:'💰 Custody', nav_stmt:'📄 Statement',
+  pg_dash:'📊 Overview', pg_exp:'📁 All expenses', pg_dep:'💰 All custody received', pg_stmt:'📄 Statement',
+  btn_add_exp:'＋ Expense', btn_add_dep:'＋ Custody', btn_print:'🖨️ Print', btn_print_stmt:'🖨️ Print statement', btn_save:'Save', btn_cancel:'Cancel',
+  btn_login:'Log in', btn_logout:'Log out', login_sub:'Admin login to continue',
+  per_person:'👥 By person', f_person:'Person', f_month:'Month', f_period:'Period', f_search:'Search', f_date:'Date', f_amount:'Amount (SAR)', f_amount_recv:'Received amount (SAR)', f_desc:'Description', f_vendor:'Vendor (optional)', f_cat:'Category', f_note:'Note (optional)', f_att:'Attachment',
+  ph_search:'Search description / vendor / category', ph_email:'Email', ph_pass:'Password',
+  add_expense:'Expense', edit_expense:'Edit expense', deposit:'Custody received', edit_deposit:'Edit custody',
+  c_recv:'Total custody received', c_spent:'Total spent', c_remaining:'Total remaining', c_count:'Expenses count', c_results:'Results count', c_results_total:'Results total',
+  u_sar:'SAR', u_entry:'entry', u_remaining:'SAR remaining', recv:'Received', spent:'Spent', remaining:'Remaining',
+  th_date:'Date', th_person:'Person', th_desc:'Description', th_vendor:'Vendor', th_cat:'Category', th_amount:'Amount', th_att:'Attachment', th_note:'Note', th_recv:'Received amount', th_type:'Item', th_det:'Details', th_in:'In (custody)', th_out:'Out', th_bal:'Balance',
+  view:'View', no_results:'No results', no_deposits:'No custody received', no_move:'No movements in the period', no_people:'No data yet — it appears here as soon as people save.',
+  dep_received:'Custody received', all_people:'All people', all_months:'All months', all_periods:'All periods', selected:' selected', default_exp:'Expense',
+  t_saved:'Saved ✓', t_deleted:'Deleted', t_need_date:'Enter the date', t_need_amt:'Enter a valid amount', t_need_person:'Choose the person', t_no_att:'No attachment', t_att_fail:'Could not open attachment',
+  cf_del_exp:'Delete this expense from the person’s data?', cf_del_dep:'Delete this custody record from the person’s data?',
+  statement_of:'Statement', report:'Report', err_login:'Login failed', err_cred:'Wrong email or password', err_email:'Invalid email format', err_many:'Too many attempts, try later', err_net:'Network error', need_pass:'Enter the password', logging:'Logging in…' }
+};
+function t(k){ return (DICT[L]&&DICT[L][k]!=null)?DICT[L][k]:(DICT.ar[k]!=null?DICT.ar[k]:k); }
+function applyI18n(){
+  document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent=t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.setAttribute('placeholder',t(el.getAttribute('data-i18n-ph'))); });
+  var lb=g('langbtn'); if(lb)lb.textContent=L==='ar'?'EN':'ع';
+  try{ document.title=t('admin_title')+' — '+t('office'); }catch(e){}
+  if(g('hd-ttl'))g('hd-ttl').textContent=t('admin_title');
+}
+function applyDir(){ document.documentElement.setAttribute('dir',L==='ar'?'rtl':'ltr'); document.documentElement.setAttribute('lang',L); }
+function toggleLang(){ setLang(L==='ar'?'en':'ar'); }
+function setLang(l){ L=l; try{localStorage.setItem('SAAD_LANG',l);}catch(e){} applyDir(); applyI18n(); buildNav(); go(CURPAGE); }
+
+/* helpers */
+function g(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function nid(){return 'r_'+Date.now().toString(36)+'_'+Math.floor(Math.random()*1e6).toString(36);}
+function toast(m){var el=g('toast');el.textContent=m;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');},2600);}
+function money(n){n=Number(n)||0;return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function monthOf(d){return (d||'').slice(0,7);}
+function card(lbl,val,unit,accent,cv){ return '<div class="card" style="--accent:'+accent+'"><div class="lbl">'+esc(lbl)+'</div><div class="val" style="--cv:'+(cv||'var(--cream)')+'">'+val+' <span class="u">'+esc(unit)+'</span></div></div>'; }
+function setSync(s){ var d=g('sdot'),tx=g('stext');d.className='dot'; if(s==='ok'){d.classList.add('ok');tx.textContent=t('live_on');} else if(s==='sv'){d.classList.add('sv');tx.textContent=t('live_on');} else if(s==='off'){d.classList.add('off');tx.textContent=t('live_off');} else tx.textContent=t('connecting'); }
+
+/* firebase live load */
+function initFB(){
+  try{ if(!firebase.apps.length) firebase.initializeApp(FB); db=firebase.firestore(); fbReady=true;
+    SOURCES.forEach(function(s){
+      db.collection(s.col).doc('state').onSnapshot(function(doc){
+        if(doc.exists && doc.data() && doc.data().payload){ try{ var p=JSON.parse(doc.data().payload); if(p) DATA[s.key]=p; }catch(e){} }
+        else DATA[s.key]=emptyData();
+        READY[s.key]=true; setSync('ok'); if(CURPAGE)go(CURPAGE);
+      }, function(){ setSync('off'); });
+    });
+  }catch(e){ setSync('off'); }
+}
+function saveSource(key){ if(!fbReady||!db)return; setSync('sv'); db.collection(srcOf(key).col).doc('state').set({payload:JSON.stringify(DATA[key]),updated:Date.now()}).then(function(){setSync('ok');}).catch(function(){setSync('off');}); }
+function holderIdOf(key){ var d=DATA[key]; return (d.holders&&d.holders[0]&&d.holders[0].id)||('h_'+key); }
+function catsOf(key){ return (DATA[key]&&DATA[key].cats&&DATA[key].cats.length)?DATA[key].cats:['مشتريات','صيانة','وقود','نظافة','ضيافة','متنوع']; }
+
+/* attachments (read + open) */
+function attToBlobUrl(dataUrl){ var parts=dataUrl.split(','), mime=((parts[0]||'').match(/data:([^;]+)/)||[])[1]||'image/jpeg'; var bin=atob(parts[1]||''), len=bin.length, u8=new Uint8Array(len); for(var i=0;i<len;i++)u8[i]=bin.charCodeAt(i); return URL.createObjectURL(new Blob([u8],{type:mime})); }
+function openAtt(srcKey,att){ if(!att){toast(t('t_no_att'));return;} var s=srcOf(srcKey);
+  try{var l=localStorage.getItem('SAAD_HATT_'+att.id); if(l){window.open(attToBlobUrl(l),'_blank');return;}}catch(e){}
+  if(db){ db.collection(s.attcol).doc(att.id).get().then(function(d){ if(d.exists&&d.data()&&d.data().data){window.open(attToBlobUrl(d.data().data),'_blank');} else toast(t('t_att_fail')); }).catch(function(){toast(t('t_att_fail'));}); }
+  else toast(t('t_att_fail'));
+}
+
+/* nav */
+var NAVS=[{k:'dash',key:'nav_dash'},{k:'exp',key:'nav_exp'},{k:'dep',key:'nav_dep'},{k:'stmt',key:'nav_stmt'}];
+function buildNav(){ g('nav').innerHTML=NAVS.map(function(n){return '<button class="nb'+(n.k===CURPAGE?' act':'')+'" data-k="'+n.k+'" onclick="go(\''+n.k+'\')">'+esc(t(n.key))+'</button>';}).join(''); }
+function go(k){ CURPAGE=k; document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('act');}); var pg=g('pg-'+k); if(pg)pg.classList.add('act');
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.toggle('act',b.getAttribute('data-k')===k);});
+  if(k==='dash')renderDash(); else if(k==='exp')renderExpFilters(); else if(k==='dep')renderDep(); else if(k==='stmt')renderStmtInit(); window.scrollTo(0,0); }
+
+/* merged accessors */
+function allExpenses(){ var out=[]; SOURCES.forEach(function(s){ (DATA[s.key].expenses||[]).forEach(function(e){ out.push({src:s.key,e:e}); }); }); return out; }
+function allDeposits(){ var out=[]; SOURCES.forEach(function(s){ (DATA[s.key].deposits||[]).forEach(function(d){ out.push({src:s.key,d:d}); }); }); return out; }
+function srcTotals(key){ var dep=0,exp=0; (DATA[key].deposits||[]).forEach(function(d){dep+=Number(d.amount)||0;}); (DATA[key].expenses||[]).forEach(function(e){exp+=Number(e.amount)||0;}); return {dep:dep,exp:exp,bal:dep-exp}; }
+
+/* dashboard */
+function renderDash(){
+  var tDep=0,tExp=0; SOURCES.forEach(function(s){var tt=srcTotals(s.key);tDep+=tt.dep;tExp+=tt.exp;});
+  var tBal=tDep-tExp, n=allExpenses().length;
+  g('dash-totals').innerHTML=card(t('c_recv'),money(tDep),t('u_sar'),'var(--blue)','#bcd4f0')+card(t('c_spent'),money(tExp),t('u_sar'),'var(--gold)','var(--gold2)')+card(t('c_remaining'),money(tBal),t('u_sar'),tBal<0?'var(--red)':'var(--green)',tBal<0?'#f0a8a8':'#7fdca0')+card(t('c_count'),String(n),t('u_entry'),'var(--gray)','var(--cream)');
+  var any=SOURCES.some(function(s){return (DATA[s.key].expenses||[]).length||(DATA[s.key].deposits||[]).length;});
+  if(!any){ g('dash-people').innerHTML='<div class="hint">'+t('no_people')+'</div>'; return; }
+  g('dash-people').innerHTML='<div class="cards">'+SOURCES.map(function(s){ var tt=srcTotals(s.key);
+    var pct=tt.dep>0?Math.max(0,Math.min(100,Math.round(tt.bal/tt.dep*100))):0; var cv=tt.bal<0?'#f0a8a8':'#7fdca0';
+    return '<div class="card" style="--accent:'+(tt.bal<0?'var(--red)':'var(--gold)')+'"><div class="lbl">👤 '+esc(srcName(s.key))+'</div>'+
+      '<div class="val" style="--cv:'+cv+'">'+money(tt.bal)+' <span class="u">'+t('u_remaining')+'</span></div>'+
+      '<div class="sub">'+t('recv')+' '+money(tt.dep)+' · '+t('spent')+' '+money(tt.exp)+'</div><div class="minibar"><i style="width:'+pct+'%"></i></div></div>';
+  }).join('')+'</div>';
+}
+
+/* expenses */
+function renderExpFilters(){
+  mselInit('fx-src', SOURCES.map(function(s){return {value:s.key,label:srcName(s.key)};}), {allLabel:t('all_people'),onChange:renderExp});
+  var mons={}; allExpenses().forEach(function(o){var m=monthOf(o.e.date);if(m)mons[m]=1;});
+  mselInit('fx-month', Object.keys(mons).sort().reverse().map(function(m){return {value:m,label:m};}), {allLabel:t('all_months'),onChange:renderExp});
+  renderExp();
+}
+function renderExp(){
+  var fs=mselValues('fx-src'), fm=mselValues('fx-month'), q=(g('fx-q').value||'').trim();
+  var rows=allExpenses().filter(function(o){ if(fs.length&&fs.indexOf(o.src)<0)return false; if(fm.length&&fm.indexOf(monthOf(o.e.date))<0)return false; if(q){var hay=(o.e.desc||'')+' '+(o.e.vendor||'')+' '+(o.e.cat||'');if(hay.indexOf(q)<0)return false;} return true; })
+    .sort(function(a,b){return (b.e.date||'').localeCompare(a.e.date||'')||(b.e.created||0)-(a.e.created||0);});
+  var tot=0; rows.forEach(function(o){tot+=Number(o.e.amount)||0;});
+  g('exp-sum').innerHTML=card(t('c_results'),String(rows.length),t('u_entry'),'var(--gray)','var(--cream)')+card(t('c_results_total'),money(tot),t('u_sar'),'var(--gold)','var(--gold2)');
+  var th='<thead><tr><th>'+t('th_date')+'</th><th>'+t('th_person')+'</th><th>'+t('th_desc')+'</th><th>'+t('th_vendor')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_amount')+'</th><th>'+t('th_att')+'</th><th class="no-print"></th></tr></thead>';
+  var tb=rows.map(function(o){var e=o.e; return '<tr><td>'+esc(e.date)+'</td><td><span class="pill tagp">'+esc(srcName(o.src))+'</span></td><td>'+esc(e.desc)+'</td><td>'+esc(e.vendor||'—')+'</td><td>'+esc(e.cat||'—')+'</td><td class="num warnv">'+money(e.amount)+'</td>'+
+    '<td>'+((e.att&&e.att.length)?'<button class="btn ghost sm no-print" onclick="openAtt(\''+o.src+'\','+attLit(e.att[0])+')">🖼️ '+t('view')+'</button>':'<span class="hint">—</span>')+'</td>'+
+    '<td class="no-print" style="white-space:nowrap"><button class="btn ghost sm" onclick="openExp(\''+o.src+'\',\''+e.id+'\')">✏️</button> <button class="btn red sm" onclick="delExp(\''+o.src+'\',\''+e.id+'\')">🗑️</button></td></tr>';
+  }).join('');
+  g('exp-tbl').innerHTML=th+'<tbody>'+(tb||'<tr><td colspan="8" class="hint" style="text-align:center;padding:20px">'+t('no_results')+'</td></tr>')+'</tbody>';
+}
+function attLit(a){ return JSON.stringify(a).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+function srcOptions(sel){ return SOURCES.map(function(s){return '<option value="'+s.key+'"'+(s.key===sel?' selected':'')+'>'+esc(srcName(s.key))+'</option>';}).join(''); }
+function catOptions(key,sel){ return '<option value="">—</option>'+catsOf(key).map(function(c){return '<option'+(c===sel?' selected':'')+'>'+esc(c)+'</option>';}).join(''); }
+function xSrcChange(){ g('x-cat').innerHTML=catOptions(g('x-src').value,''); }
+function openExp(srcKey,id){
+  g('x-src').innerHTML=srcOptions(srcKey||SOURCES[0].key);
+  if(id){ var e=(DATA[srcKey].expenses||[]).filter(function(x){return x.id===id;})[0]; if(!e)return;
+    g('ovx-title').textContent=t('edit_expense'); g('x-id').value=e.id; g('x-src-old').value=srcKey;
+    g('x-cat').innerHTML=catOptions(srcKey,e.cat); g('x-date').value=e.date; g('x-amt').value=e.amount; g('x-desc').value=e.desc||''; g('x-vendor').value=e.vendor||'';
+    g('x-att').innerHTML=(e.att&&e.att.length)?'<button class="btn ghost sm" onclick="openAtt(\''+srcKey+'\','+attLit(e.att[0])+')">🖼️ '+t('view')+'</button>':t('t_no_att');
+  } else { g('ovx-title').textContent=t('add_expense'); g('x-id').value=''; g('x-src-old').value=''; g('x-cat').innerHTML=catOptions(g('x-src').value,''); g('x-date').value=todayStr(); g('x-amt').value=''; g('x-desc').value=''; g('x-vendor').value=''; g('x-att').innerHTML=t('t_no_att'); }
+  g('ov-exp').classList.add('show');
+}
+function saveExp(){
+  var srcKey=g('x-src').value, amt=parseFloat(g('x-amt').value);
+  if(!srcKey){toast(t('t_need_person'));return;} if(!g('x-date').value){toast(t('t_need_date'));return;} if(isNaN(amt)||amt<=0){toast(t('t_need_amt'));return;}
+  var id=g('x-id').value, oldSrc=g('x-src-old').value;
+  var obj={date:g('x-date').value, amount:amt, desc:g('x-desc').value.trim()||t('default_exp'), vendor:g('x-vendor').value.trim(), cat:g('x-cat').value, holderId:holderIdOf(srcKey)};
+  if(id && oldSrc){
+    if(oldSrc===srcKey){ var e=(DATA[srcKey].expenses||[]).filter(function(x){return x.id===id;})[0]; if(e){e.date=obj.date;e.amount=obj.amount;e.desc=obj.desc;e.vendor=obj.vendor;e.cat=obj.cat;} saveSource(srcKey); }
+    else { var old=(DATA[oldSrc].expenses||[]).filter(function(x){return x.id===id;})[0]; var att=old&&old.att?old.att:[];
+      DATA[oldSrc].expenses=(DATA[oldSrc].expenses||[]).filter(function(x){return x.id!==id;}); saveSource(oldSrc);
+      obj.id=id; obj.att=att; obj.created=Date.now(); DATA[srcKey].expenses=DATA[srcKey].expenses||[]; DATA[srcKey].expenses.push(obj); saveSource(srcKey); }
+  } else { obj.id=nid(); obj.att=[]; obj.created=Date.now(); DATA[srcKey].expenses=DATA[srcKey].expenses||[]; DATA[srcKey].expenses.push(obj); saveSource(srcKey); }
+  closeOv('ov-exp'); toast(t('t_saved')); go(CURPAGE);
+}
+function delExp(srcKey,id){ if(!confirm(t('cf_del_exp')))return; DATA[srcKey].expenses=(DATA[srcKey].expenses||[]).filter(function(x){return x.id!==id;}); saveSource(srcKey); toast(t('t_deleted')); go(CURPAGE); }
+
+/* deposits */
+function renderDep(){ var rows=allDeposits().sort(function(a,b){return (b.d.date||'').localeCompare(a.d.date||'');});
+  var th='<thead><tr><th>'+t('th_date')+'</th><th>'+t('th_person')+'</th><th>'+t('th_recv')+'</th><th>'+t('th_note')+'</th><th class="no-print"></th></tr></thead>';
+  var tb=rows.map(function(o){var d=o.d; return '<tr><td>'+esc(d.date)+'</td><td><span class="pill tagp">'+esc(srcName(o.src))+'</span></td><td class="num pos">'+money(d.amount)+'</td><td>'+esc(d.note||'—')+'</td>'+
+    '<td class="no-print" style="white-space:nowrap"><button class="btn ghost sm" onclick="openDep(\''+o.src+'\',\''+d.id+'\')">✏️</button> <button class="btn red sm" onclick="delDep(\''+o.src+'\',\''+d.id+'\')">🗑️</button></td></tr>';
+  }).join('');
+  g('dep-tbl').innerHTML=th+'<tbody>'+(tb||'<tr><td colspan="5" class="hint" style="text-align:center;padding:20px">'+t('no_deposits')+'</td></tr>')+'</tbody>';
+}
+function openDep(srcKey,id){ g('d-src').innerHTML=srcOptions(srcKey||SOURCES[0].key);
+  if(id){ var d=(DATA[srcKey].deposits||[]).filter(function(x){return x.id===id;})[0]; if(!d)return; g('ovd-title').textContent=t('edit_deposit'); g('d-id').value=d.id; g('d-src-old').value=srcKey; g('d-date').value=d.date; g('d-amt').value=d.amount; g('d-note').value=d.note||''; }
+  else { g('ovd-title').textContent=t('deposit'); g('d-id').value=''; g('d-src-old').value=''; g('d-date').value=todayStr(); g('d-amt').value=''; g('d-note').value=''; }
+  g('ov-dep').classList.add('show');
+}
+function saveDep(){ var srcKey=g('d-src').value, amt=parseFloat(g('d-amt').value);
+  if(!srcKey){toast(t('t_need_person'));return;} if(!g('d-date').value){toast(t('t_need_date'));return;} if(isNaN(amt)||amt<=0){toast(t('t_need_amt'));return;}
+  var id=g('d-id').value, oldSrc=g('d-src-old').value;
+  var obj={date:g('d-date').value, amount:amt, note:g('d-note').value.trim(), holderId:holderIdOf(srcKey)};
+  if(id && oldSrc){
+    if(oldSrc===srcKey){ var d=(DATA[srcKey].deposits||[]).filter(function(x){return x.id===id;})[0]; if(d){d.date=obj.date;d.amount=obj.amount;d.note=obj.note;} saveSource(srcKey); }
+    else { DATA[oldSrc].deposits=(DATA[oldSrc].deposits||[]).filter(function(x){return x.id!==id;}); saveSource(oldSrc); obj.id=id; obj.created=Date.now(); DATA[srcKey].deposits=DATA[srcKey].deposits||[]; DATA[srcKey].deposits.push(obj); saveSource(srcKey); }
+  } else { obj.id=nid(); obj.created=Date.now(); DATA[srcKey].deposits=DATA[srcKey].deposits||[]; DATA[srcKey].deposits.push(obj); saveSource(srcKey); }
+  closeOv('ov-dep'); toast(t('t_saved')); go(CURPAGE);
+}
+function delDep(srcKey,id){ if(!confirm(t('cf_del_dep')))return; DATA[srcKey].deposits=(DATA[srcKey].deposits||[]).filter(function(x){return x.id!==id;}); saveSource(srcKey); toast(t('t_deleted')); go(CURPAGE); }
+
+/* statement */
+function renderStmtInit(){ g('st-src').innerHTML=srcOptions(SOURCES[0].key); var mons={}; allExpenses().forEach(function(o){var m=monthOf(o.e.date);if(m)mons[m]=1;}); allDeposits().forEach(function(o){var m=monthOf(o.d.date);if(m)mons[m]=1;});
+  mselInit('st-month', Object.keys(mons).sort().reverse().map(function(m){return {value:m,label:m};}), {allLabel:t('all_periods'),onChange:renderStmt}); renderStmt(); }
+function renderStmt(){ var key=g('st-src').value, fm=mselValues('st-month'), items=[];
+  (DATA[key].deposits||[]).forEach(function(d){ if(!fm.length||fm.indexOf(monthOf(d.date))>=0) items.push({date:d.date,type:t('dep_received'),desc:d.note||'',in:Number(d.amount)||0,out:0,created:d.created||0}); });
+  (DATA[key].expenses||[]).forEach(function(e){ if(!fm.length||fm.indexOf(monthOf(e.date))>=0) items.push({date:e.date,type:e.cat||t('default_exp'),desc:e.desc||'',in:0,out:Number(e.amount)||0,created:e.created||0}); });
+  items.sort(function(a,b){return (a.date||'').localeCompare(b.date||'')||(a.created-b.created);});
+  var tIn=0,tOut=0,run=0; var body=items.map(function(it){ tIn+=it.in;tOut+=it.out;run+=it.in-it.out;
+    return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.type)+'</td><td>'+esc(it.desc)+'</td><td class="num pos">'+(it.in?money(it.in):'—')+'</td><td class="num warnv">'+(it.out?money(it.out):'—')+'</td><td class="num '+(run<0?'neg':'')+'">'+money(run)+'</td></tr>'; }).join('');
+  g('stmt-sum').innerHTML=card(t('recv'),'+ '+money(tIn),t('u_sar'),'var(--blue)','#bcd4f0')+card(t('spent'),'- '+money(tOut),t('u_sar'),'var(--gold)','var(--gold2)')+card(t('remaining'),money(tIn-tOut),t('u_sar'),(tIn-tOut)<0?'var(--red)':'var(--green)',(tIn-tOut)<0?'#f0a8a8':'#7fdca0');
+  var th='<thead><tr><th>'+t('th_date')+'</th><th>'+t('th_type')+'</th><th>'+t('th_det')+'</th><th>'+t('th_in')+'</th><th>'+t('th_out')+'</th><th>'+t('th_bal')+'</th></tr></thead>';
+  g('stmt-tbl').innerHTML=th+'<tbody>'+(body||'<tr><td colspan="6" class="hint" style="text-align:center;padding:20px">'+t('no_move')+'</td></tr>')+'</tbody>';
+}
+function printStmt(){ var key=g('st-src').value, fm=mselValues('st-month'); g('phsub').textContent=t('statement_of')+': '+srcName(key)+' — '+(fm.length?fm.join('، '):t('all_periods')); printOnly('stmt'); }
+
+/* msel */
+var MSEL={};
+function mselInit(id,items,opts){ opts=opts||{}; MSEL[id]={items:items,values:[],allLabel:opts.allLabel||'الكل',onChange:opts.onChange}; var el=g(id); if(!el)return; el.className='msel'; el.innerHTML='<button type="button" class="msel-btn"><span class="cap"></span><span class="arw">▾</span></button><div class="msel-panel"></div>';
+  el.querySelector('.msel-btn').onclick=function(e){e.stopPropagation();var was=el.classList.contains('open');closeAllMsel();if(!was)el.classList.add('open');}; mselRenderPanel(id); mselUpdateBtn(id); }
+function mselRenderPanel(id){ var st=MSEL[id],el=g(id);if(!st||!el)return; var p=el.querySelector('.msel-panel');var h='<div class="msel-opt" data-all="1"><input type="checkbox" '+(st.values.length===0?'checked':'')+'><span>'+esc(st.allLabel)+'</span></div>';
+  st.items.forEach(function(it,idx){h+='<div class="msel-opt" data-i="'+idx+'"><input type="checkbox" '+(st.values.indexOf(it.value)>=0?'checked':'')+'><span>'+esc(it.label)+'</span></div>';}); p.innerHTML=h;
+  p.querySelectorAll('.msel-opt').forEach(function(row){ row.onclick=function(){ if(row.getAttribute('data-all')){st.values=[];} else{var it=st.items[+row.getAttribute('data-i')];var k=st.values.indexOf(it.value);if(k>=0)st.values.splice(k,1);else st.values.push(it.value);} mselRenderPanel(id); mselUpdateBtn(id); if(st.onChange)st.onChange(); }; }); }
+function mselUpdateBtn(id){ var st=MSEL[id],el=g(id);if(!st||!el)return; el.querySelector('.cap').textContent=st.values.length===0?st.allLabel:(st.values.length===1?labelOf(st,st.values[0]):(st.values.length+t('selected'))); }
+function labelOf(st,v){var it=st.items.filter(function(x){return x.value===v;})[0];return it?it.label:v;}
+function mselValues(id){return (MSEL[id]&&MSEL[id].values)||[];}
+function closeAllMsel(){document.querySelectorAll('.msel.open').forEach(function(x){x.classList.remove('open');});}
+document.addEventListener('click',function(){closeAllMsel();});
+
+/* print / overlays */
+function printOnly(k){ document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('printme');}); var pg=g('pg-'+k); if(pg)pg.classList.add('printme'); window.print(); setTimeout(function(){if(pg)pg.classList.remove('printme');},400); }
+function printPage(k,tk){ g('phsub').textContent=tk?t(tk):''; printOnly(k); }
+function closeOv(id){g(id).classList.remove('show');}
+
+window.__APP_BOOT__=function(){ applyDir(); applyI18n(); buildNav(); setSync(''); initFB(); go('dash'); };
+</script>
+
+<script>
+(function(){
+  var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
+  try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
+  var _auth=firebase.auth(); try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
+  var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn'), booted=false;
+  function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; }
+  function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; }
+  function bootOnce(){ if(!booted){ booted=true; try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){} } }
+  _auth.onAuthStateChanged(function(user){ if(user){ hideGate(); bootOnce(); } else { showGate(); } });
+  function tt(k){ try{ return t(k); }catch(e){ return ''; } }
+  function doLogin(){ var em=(document.getElementById('authEmail').value||'').trim(), pw=document.getElementById('authPass').value||''; var msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
+    if(!pw){ msg.textContent=tt('need_pass'); return; } msg.textContent=''; btn.disabled=true; btn.textContent=tt('logging');
+    _auth.signInWithEmailAndPassword(em,pw).catch(function(err){ var code=err&&err.code?err.code:'', m=tt('err_login');
+      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m=tt('err_cred'); else if(code==='auth/invalid-email') m=tt('err_email'); else if(code==='auth/too-many-requests') m=tt('err_many'); else if(code==='auth/network-request-failed') m=tt('err_net'); msg.textContent=m;
+    }).finally(function(){ btn.disabled=false; btn.textContent=tt('btn_login'); });
+  }
+  var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',doLogin);
+  var ap=document.getElementById('authPass'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
+  if(logoutBtn) logoutBtn.addEventListener('click',function(){ _auth.signOut(); });
+})();
+</script>
+</body>
+</html>
