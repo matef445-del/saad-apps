@@ -321,9 +321,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
   <div style="width:min(92vw,380px);background:#11331c;border:1px solid #1d4a2c;border-radius:16px;padding:30px 24px;text-align:center;box-shadow:0 22px 60px rgba(0,0,0,.5)">
     <img id="authLogo" src="logo_badge.png?v=1" alt="" style="height:88px;margin-bottom:8px">
     <h2 style="color:#f3ead0;margin:6px 0 2px;font-size:19px;font-weight:800" data-i18n="office">المكتب الإداري للشيخ سعد علي آل عوضه</h2>
-    <div style="color:#9db3a3;font-size:13px;margin-bottom:20px" data-i18n="login_sub">تسجيل الدخول للمتابعة</div>
-    <input id="authEmail" type="email" data-i18n-ph="ph_email" placeholder="البريد الإلكتروني" autocomplete="username" style="width:100%;padding:12px;margin-bottom:12px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:start;outline:none">
-    <input id="authPass" type="password" data-i18n-ph="ph_pass" placeholder="كلمة المرور" autocomplete="current-password" style="width:100%;padding:12px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:14px;text-align:start;outline:none">
+    <div style="color:#9db3a3;font-size:13px;margin-bottom:20px" data-i18n="pin_sub">أدخل الرمز السري للدخول</div>
+    <input id="authPin" type="password" inputmode="numeric" data-i18n-ph="ph_pin_login" placeholder="الرمز السري" autocomplete="off" style="width:100%;padding:13px;margin-bottom:16px;border-radius:10px;border:1px solid #1d4a2c;background:#06240c;color:#f3ead0;font-family:inherit;font-size:18px;text-align:center;letter-spacing:6px;outline:none">
     <button id="authBtn" style="width:100%;padding:13px;border:none;border-radius:10px;background:linear-gradient(180deg,#d8b441,#b8921a);color:#06240c;font-weight:800;font-family:inherit;font-size:15px;cursor:pointer" data-i18n="btn_login">دخول</button>
     <div id="authMsg" style="color:#c0532f;font-size:13px;min-height:18px;margin-top:12px"></div>
   </div>
@@ -332,7 +331,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 
 <script>
 /* ===== إعداد النسخة — هذا السطر وحده يختلف بين النسخ ===== */
-var APP_CFG={ title:{ar:'عهدة عبدالرحمن',en:'Abdulrahman Custody'}, key:'abdulrahman', holders:[{id:'h_abd',name:'عبدالرحمن',active:true}] };
+var APP_CFG={ title:{ar:'عهدة عبدالرحمن',en:'Abdulrahman Custody'}, key:'abdulrahman', holders:[{id:'h_abd',name:'عبدالرحمن',active:true}], pin:'3344' };
 var FB={projectId:"my-apps-4544f",apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
 var LOGO='logo_badge.png?v=1';
 var COLLECTION='custody_'+APP_CFG.key+'_db', DOCID='state';
@@ -351,7 +350,7 @@ var DICT={
   btn_batch:'＋ إدخال مجمّع', btn_print:'🖨️ طباعة', btn_print_stmt:'🖨️ طباعة الكشف', btn_add_dep:'＋ عهدة مستلمة',
   btn_photo:'📷 تصوير / رفع فواتير', btn_add_row:'＋ صف بدون صورة', btn_save_all:'💾 حفظ الكل', btn_clear:'🗑️ تفريغ الدفعة',
   btn_save:'حفظ', btn_cancel:'إلغاء', btn_backup:'⬇️ تنزيل نسخة احتياطية (JSON)', btn_restore:'⬆️ استرجاع من نسخة', btn_add:'＋ إضافة',
-  btn_login:'دخول', btn_logout:'خروج', login_sub:'تسجيل الدخول للمتابعة',
+  btn_login:'دخول', btn_logout:'🔒 قفل', login_sub:'تسجيل الدخول للمتابعة', pin_sub:'أدخل الرمز السري للدخول', ph_pin_login:'الرمز السري', err_pin:'رمز غير صحيح',
   holders_balances:'👥 أرصدة أصحاب العهد', holders_summary:'👥 ملخّص أصحاب العهد', alerts:'⚠️ التنبيهات',
   batch_settings:'⚙️ إعدادات الدفعة', batch_settings_hint:'(تُطبَّق على كل صف جديد ويمكن تعديلها لكل فاتورة)',
   ocr_label:'قراءة الفاتورة تلقائيًا', batch_list:'الفواتير في هذه الدفعة',
@@ -397,7 +396,7 @@ var DICT={
   btn_batch:'＋ Batch entry', btn_print:'🖨️ Print', btn_print_stmt:'🖨️ Print statement', btn_add_dep:'＋ Custody received',
   btn_photo:'📷 Capture / upload invoices', btn_add_row:'＋ Row without image', btn_save_all:'💾 Save all', btn_clear:'🗑️ Clear batch',
   btn_save:'Save', btn_cancel:'Cancel', btn_backup:'⬇️ Download backup (JSON)', btn_restore:'⬆️ Restore from backup', btn_add:'＋ Add',
-  btn_login:'Log in', btn_logout:'Log out', login_sub:'Log in to continue',
+  btn_login:'Enter', btn_logout:'🔒 Lock', login_sub:'Log in to continue', pin_sub:'Enter the secret code', ph_pin_login:'Secret code', err_pin:'Wrong code',
   holders_balances:'👥 Holder balances', holders_summary:'👥 Holders summary', alerts:'⚠️ Alerts',
   batch_settings:'⚙️ Batch settings', batch_settings_hint:'(applied to each new row; editable per invoice)',
   ocr_label:'Auto-read invoice', batch_list:'Invoices in this batch',
@@ -693,7 +692,7 @@ function batchSaveAll(){
 function renderExpFilters(){
   mselInit('fx-holder', STATE.holders.map(function(h){return {value:h.id,label:h.name};}), {allLabel:t('all_people'),onChange:renderExp});
   mselInit('fx-month', expMonths().map(function(m){return {value:m,label:m};}), {allLabel:t('all_months'),onChange:renderExp});
-  mselInit('fx-cat', STATE.cats.map(function(c){return {value:c,label:c};}), {allLabel:t('all_cats'),onChange:renderExp});
+  mselInit('fx-cat', STATE.cats.map(function(c){return {value:c,label:catLabel(c)};}), {allLabel:t('all_cats'),onChange:renderExp});
   renderExp();
 }
 function expMonths(){var s={};STATE.expenses.forEach(function(e){var m=monthOf(e.date);if(m)s[m]=1;});return Object.keys(s).sort().reverse();}
@@ -709,7 +708,7 @@ function renderExp(){
   g('exp-sum').innerHTML=card(t('c_results'),String(rows.length),t('u_entry'),'var(--gray)','var(--cream)')+card(t('c_results_total'),money(tot),t('u_sar'),'var(--gold)','var(--gold2)');
   var th='<thead><tr><th>'+t('th_date')+'</th><th>'+t('th_holder')+'</th><th>'+t('th_desc')+'</th><th>'+t('th_vendor')+'</th><th>'+t('th_cat')+'</th><th>'+t('th_amount')+'</th><th>'+t('th_att')+'</th><th class="no-print"></th></tr></thead>';
   var tb=rows.map(function(e){ return '<tr><td>'+esc(e.date)+'</td><td>'+esc(holderName(e.holderId))+'</td><td>'+esc(e.desc)+'</td><td>'+esc(e.vendor||'—')+'</td>'+
-      '<td><span class="pill" style="background:rgba(184,146,26,.15);color:var(--gold2)">'+esc(e.cat||'—')+'</span></td>'+
+      '<td><span class="pill" style="background:rgba(184,146,26,.15);color:var(--gold2)">'+esc(e.cat?catLabel(e.cat):'—')+'</span></td>'+
       '<td class="num warnv">'+money(e.amount)+'</td>'+
       '<td>'+((e.att&&e.att.length)?'<button class="btn ghost sm no-print" onclick="openAttRef('+attRefLit(e.att[0])+')">🖼️ '+t('view')+'</button>':'<span class="hint">—</span>')+'</td>'+
       '<td class="no-print" style="white-space:nowrap"><button class="btn ghost sm" onclick="openExp(\''+e.id+'\')">✏️</button> <button class="btn red sm" onclick="delExp(\''+e.id+'\')">🗑️</button></td></tr>';
@@ -760,7 +759,7 @@ function renderStmtInit(){ fillSelect('st-holder',holderOpts()); mselInit('st-mo
 function renderStmt(){
   var tb=!!STATE.settings.trackBalance, hid=g('st-holder').value, fm=mselValues('st-month'), items=[];
   if(tb) STATE.deposits.forEach(function(d){ if(d.holderId===hid && (!fm.length||fm.indexOf(monthOf(d.date))>=0)) items.push({date:d.date,type:t('dep_received'),desc:d.note||'',in:Number(d.amount)||0,out:0,created:d.created||0}); });
-  STATE.expenses.forEach(function(e){ if(e.holderId===hid && (!fm.length||fm.indexOf(monthOf(e.date))>=0)) items.push({date:e.date,type:e.cat||t('default_exp'),desc:e.desc||'',in:0,out:Number(e.amount)||0,created:e.created||0}); });
+  STATE.expenses.forEach(function(e){ if(e.holderId===hid && (!fm.length||fm.indexOf(monthOf(e.date))>=0)) items.push({date:e.date,type:(e.cat?catLabel(e.cat):t('default_exp')),desc:e.desc||'',in:0,out:Number(e.amount)||0,created:e.created||0}); });
   items.sort(function(a,b){return (a.date||'').localeCompare(b.date||'')||(a.created-b.created);});
   var tIn=0,tOut=0,run=0;
   var body=items.map(function(it){ tIn+=it.in; tOut+=it.out;
@@ -802,8 +801,10 @@ function backupJson(){ var data=JSON.stringify(STATE,null,2); var blob=new Blob(
 function restoreJson(file){ if(!file)return; var r=new FileReader(); r.onload=function(e){ try{var p=JSON.parse(e.target.result); if(!p||!p.holders){toast(t('t_bad_file'));return;} if(!confirm(t('cf_restore')))return; STATE=p; normalize(); persist(); toast(t('t_restore_done')); go('dash'); }catch(err){toast(t('t_read_fail'));} }; r.readAsText(file); g('restore-in').value=''; }
 
 /* ===== selects / msel ===== */
+var CATMAP={'مشتريات':'Purchases','صيانة':'Maintenance','وقود':'Fuel','نظافة':'Cleaning','ضيافة':'Hospitality','مكتبية':'Office','متنوع':'Misc','أخرى':'Other'};
+function catLabel(c){ return (L==='en'&&CATMAP[c])?CATMAP[c]:c; }
 function holderOpts(sel){return STATE.holders.filter(function(h){return h.active!==false||h.id===sel;}).map(function(h){return '<option value="'+h.id+'"'+(h.id===sel?' selected':'')+'>'+esc(h.name)+'</option>';}).join('');}
-function catOpts(sel){return '<option value="">—</option>'+STATE.cats.map(function(c){return '<option'+(c===sel?' selected':'')+'>'+esc(c)+'</option>';}).join('');}
+function catOpts(sel){return '<option value="">—</option>'+STATE.cats.map(function(c){return '<option value="'+esc(c)+'"'+(c===sel?' selected':'')+'>'+esc(catLabel(c))+'</option>';}).join('');}
 function fillSelect(id,html){var el=g(id);if(el)el.innerHTML=html;}
 var MSEL={};
 function mselInit(id,items,opts){ opts=opts||{}; MSEL[id]={items:items,values:opts.selected?opts.selected.slice():[],allLabel:opts.allLabel||'الكل',onChange:opts.onChange};
@@ -837,38 +838,28 @@ window.addEventListener('beforeunload',function(e){ if(BATCH.length){e.preventDe
 (function(){
   var _CFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
   try{ if(!firebase.apps.length) firebase.initializeApp(_CFG); }catch(e){}
-  var _auth=firebase.auth();
-  try{ _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
+  var _auth=null; try{ _auth=firebase.auth(); _auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
   var gate=document.getElementById('authGate'), logoutBtn=document.getElementById('authLogoutBtn'), booted=false;
-  /* ▼ الدخول مفعّل: كل شخص يسجّل دخوله. لتعطيله مؤقتًا اجعلها false ▼ */
-  var REQUIRE_LOGIN=true;
-  function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; }
-  function hideGate(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display=(REQUIRE_LOGIN?'block':'none'); }
+  var AKEY='SAAD_AUTH_'+APP_CFG.key;
   function hideSplash(){ try{ var sp=document.getElementById('splash'); if(sp) sp.style.display='none'; }catch(e){} }
-  function bootOnce(){ if(!booted){ booted=true; try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){} } }
-  _auth.onAuthStateChanged(function(user){
-    if(user){ hideGate(); hideSplash(); bootOnce(); }
-    else if(!REQUIRE_LOGIN){ hideGate(); hideSplash(); try{ _auth.signInAnonymously().catch(function(){ bootOnce(); }); }catch(e){ bootOnce(); } setTimeout(bootOnce,1500); }
-    else { showGate(); }
-  });
-  function tt(k){ try{ return t(k); }catch(e){ return ''; } }
-  function doLogin(){
-    var em=(document.getElementById('authEmail').value||'').trim(), pw=document.getElementById('authPass').value||'';
-    var msg=document.getElementById('authMsg'), btn=document.getElementById('authBtn');
-    if(!pw){ msg.textContent=tt('need_pass'); return; }
-    msg.textContent=''; btn.disabled=true; btn.textContent=tt('logging');
-    _auth.signInWithEmailAndPassword(em,pw).catch(function(err){
-      var code=err&&err.code?err.code:'', m=tt('err_login');
-      if(code==='auth/wrong-password'||code==='auth/invalid-credential'||code==='auth/user-not-found') m=tt('err_cred');
-      else if(code==='auth/invalid-email') m=tt('err_email');
-      else if(code==='auth/too-many-requests') m=tt('err_many');
-      else if(code==='auth/network-request-failed') m=tt('err_net');
-      msg.textContent=m;
-    }).finally(function(){ btn.disabled=false; btn.textContent=tt('btn_login'); });
+  function boot(){ if(booted)return; booted=true;
+    try{ if(_auth) _auth.signInAnonymously().catch(function(){}); }catch(e){}
+    hideSplash(); try{ if(typeof window.__APP_BOOT__==='function') window.__APP_BOOT__(); }catch(e){}
   }
-  var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',doLogin);
-  var ap=document.getElementById('authPass'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') doLogin(); });
-  if(logoutBtn) logoutBtn.addEventListener('click',function(){ _auth.signOut(); });
+  function showGate(){ if(gate) gate.style.display='flex'; if(logoutBtn) logoutBtn.style.display='none'; var p=document.getElementById('authPin'); if(p){ try{p.focus();}catch(e){} } }
+  function unlock(){ if(gate) gate.style.display='none'; if(logoutBtn) logoutBtn.style.display='block'; boot(); }
+  function tt(k){ try{ return t(k); }catch(e){ return ''; } }
+  function tryPin(){
+    var v=(document.getElementById('authPin').value||'').trim(), msg=document.getElementById('authMsg');
+    if(v===String(APP_CFG.pin)){ try{ localStorage.setItem(AKEY,'1'); }catch(e){} if(msg)msg.textContent=''; unlock(); }
+    else { if(msg)msg.textContent=tt('err_pin'); }
+  }
+  try{ applyDir(); applyI18n(); }catch(e){}
+  var remembered=false; try{ remembered=localStorage.getItem(AKEY)==='1'; }catch(e){}
+  if(remembered) unlock(); else showGate();
+  var ab=document.getElementById('authBtn'); if(ab) ab.addEventListener('click',tryPin);
+  var ap=document.getElementById('authPin'); if(ap) ap.addEventListener('keydown',function(e){ if(e.key==='Enter') tryPin(); });
+  if(logoutBtn) logoutBtn.addEventListener('click',function(){ try{ localStorage.removeItem(AKEY); }catch(e){} location.reload(); });
 })();
 </script>
 
