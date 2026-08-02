@@ -106,6 +106,48 @@ label{font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase;l
 .sbov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
 @media(max-width:860px){.sb{transform:translateX(110%);transition:transform .26s ease}.sb.open{transform:none}.sbov{display:block;opacity:0;pointer-events:none;transition:opacity .22s}.sbov.show{opacity:1;pointer-events:all}.main{margin-right:0}.ham{display:flex}.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.fg{grid-template-columns:1fr}.s2{grid-column:1}.psum{grid-template-columns:1fr}.ps{border-left:none;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)}.ps:last-child{border-bottom:none}.dmod,.pvmod,.amod{border-radius:16px 16px 0 0;max-height:96vh;margin:auto 0 0}.ov{align-items:flex-end;padding:0}}
 @media(max-width:500px){.topbar{padding:9px 13px}.page{padding:12px}.stats{grid-template-columns:1fr 1fr}}
+
+/* ORG STRUCTURE STYLES */
+.ptabs{display:flex;gap:8px;margin:0 0 14px}
+.ptab{padding:9px 18px;border:1px solid var(--brd);background:#fff;border-radius:10px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink2)}
+.ptab.on{background:var(--grn);color:#fff;border-color:var(--grn)}
+.org-wrap{padding:6px 2px}
+.org-title{text-align:center;font-size:18px;font-weight:800;color:var(--grn);margin:6px 0 18px}
+.org-parent{max-width:660px;margin:0 auto;background:linear-gradient(135deg,#0f7a4f,#0c6340);color:#fff;border-radius:14px;padding:16px 18px;cursor:pointer;box-shadow:0 6px 20px rgba(15,122,79,.25)}
+.op-n{font-size:18px;font-weight:800;text-align:center}
+.op-d{font-size:12px;opacity:.92;margin-top:6px;line-height:1.7;text-align:center}
+.org-stem{width:2px;height:22px;background:var(--brd);margin:6px auto}
+.org-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:6px 0 4px}
+.oc{flex:1 1 240px;max-width:300px;background:#fff;border:1px solid var(--brd);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.15s;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.oc:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+.oc-t{font-weight:800;font-size:14px;color:var(--ink);display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}
+.oc-sh{background:var(--grl);color:var(--grn);font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap}
+.oc-b{font-size:12px;color:var(--gold);margin-top:3px;font-weight:700}
+.oc-p{font-size:12px;color:var(--ink2);margin-top:6px;line-height:1.6}
+.oc-m{font-size:11.5px;color:var(--ink3);margin-top:6px}
+.oc-lk{font-size:11.5px;color:var(--grn);margin-top:8px;font-weight:700}
+.org-sec{text-align:center;font-weight:800;color:var(--ink2);margin:20px 0 8px;background:var(--gl);padding:6px;border-radius:8px}
+.org-sub-note{text-align:center;font-size:12px;color:var(--ink3);margin:12px 0 2px}
+.org-tbl{width:100%;border-collapse:collapse;margin-top:24px;font-size:12px}
+.org-tbl th{background:var(--grn);color:#fff;padding:8px;font-weight:700}
+.org-tbl td{border:1px solid var(--brd);padding:7px 8px;text-align:center}
+.org-tbl tbody tr:nth-child(even) td{background:#f7faf8}
+.oc-edit{font-size:11.5px;color:var(--gold);margin-top:6px;font-weight:700;cursor:pointer;display:inline-block}
+.oe-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9999}
+.oe-ov.on{display:flex}
+.oe-bx{background:#fff;border-radius:14px;padding:18px;width:min(560px,92vw);max-height:88vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.oe-bx h3{margin:0 0 12px;color:var(--grn);font-size:16px}
+.oe-fg{margin-bottom:10px}
+.oe-fg label{display:block;font-size:12px;color:var(--ink2);margin-bottom:4px;font-weight:700}
+.oe-fg input,.oe-fg textarea{width:100%;padding:8px 10px;border:1px solid var(--brd);border-radius:8px;font-family:inherit;font-size:13px;box-sizing:border-box}
+.oe-prow{display:flex;gap:6px;margin-bottom:6px}
+.oe-prow input.pn{flex:2} .oe-prow input.pp{flex:1}
+.oe-prow button{border:none;background:var(--rdl,#fde);color:var(--red,#c00);border-radius:8px;padding:0 10px;cursor:pointer;font-weight:800}
+.oe-add{background:var(--grl);color:var(--grn);border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:700;font-size:12px}
+.oe-foot{display:flex;gap:8px;justify-content:flex-start;margin-top:14px}
+.oe-foot .sv{background:var(--grn);color:#fff;border:none;padding:9px 20px;border-radius:9px;cursor:pointer;font-weight:800;font-family:inherit}
+.oe-foot .cn{background:#eee;color:var(--ink2);border:none;padding:9px 20px;border-radius:9px;cursor:pointer;font-weight:700;font-family:inherit}
+
 </style><style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
 @media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
@@ -117,11 +159,11 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <div class="ni" onclick="setNav('done',this)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/></svg>مكتملة الدفع</div></nav>
 <div class="sb-ft"><div style="background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#b5820a,#7c5a07);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">م</div><div><div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8)">مدير المكتب</div><div style="font-size:9px;color:rgba(255,255,255,.3)">صلاحية كاملة</div></div></div></div></aside>
 <main class="main"><header class="topbar"><img src="logo_green.png?v=4" alt="سعد آل عوضة — المكتب الإداري" style="height:54px;width:auto;display:inline-block;vertical-align:middle;object-fit:contain"><button class="ham" onclick="toggleSB()"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button><span style="font-size:14px;font-weight:700;white-space:nowrap">الشراكات والمشاريع</span><div class="sw"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg><input id="qin" type="text" placeholder="بحث..." oninput="render()" autocomplete="off"></div><button class="btn-new" onclick="openAdd()"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>شراكة جديدة</button></header>
-<div class="page"><div class="stats"><div class="stat"><div class="st-ic" style="background:rgba(28,28,28,.07)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--ink2)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div><div class="st-v" id="sv0">0</div><div class="st-l">إجمالي الشراكات</div></div>
+<div class="page"><div class="ptabs" id="ptabs"><button class="ptab on" id="ptab-list" onclick="topTab('list')">الشراكات</button><button class="ptab" id="ptab-org" onclick="topTab('org')">الهيكل التنظيمي</button></div><div id="listView"><div class="stats"><div class="stat"><div class="st-ic" style="background:rgba(28,28,28,.07)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--ink2)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div><div class="st-v" id="sv0">0</div><div class="st-l">إجمالي الشراكات</div></div>
 <div class="stat"><div class="st-ic" style="background:var(--gl)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--gold)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="st-v" id="sv1">0</div><div class="st-l">إجمالي المدفوع (ر.س)</div></div>
 <div class="stat"><div class="st-ic" style="background:var(--rdl)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--red)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="st-v" id="sv2">0</div><div class="st-l">إجمالي المتبقي (ر.س)</div></div>
 <div class="stat"><div class="st-ic" style="background:var(--grl)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--grn)"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="st-v" id="sv3">0</div><div class="st-l">شراكات نشطة</div></div></div>
-<div class="grid" id="grid"></div><div id="emp" style="display:none;text-align:center;padding:50px;color:var(--ink3)">لا توجد نتائج</div></div></main></div>
+<div class="grid" id="grid"></div><div id="emp" style="display:none;text-align:center;padding:50px;color:var(--ink3)">لا توجد نتائج</div></div><div id="orgView" style="display:none"></div></div></main></div>
 <div class="ov" id="dov" onclick="if(event.target.id==='dov')co('dov')"><div class="dmod">
 <div class="dh"><div class="dh-av" id="dav">م</div><div style="flex:1;min-width:0"><div class="dh-nm" id="dnm">—</div><div class="dh-mt" id="dmt"></div></div><button class="btn b-wa" onclick="waShare()" style="padding:6px 12px;font-size:11px"><svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a6.105 6.105 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>مشاركة</button><button class="xb" onclick="co('dov')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button></div>
 <div class="tabs"><button class="tab on" onclick="stab('info',this)">بيانات الشراكة</button><button class="tab" onclick="stab('pays',this)">الدفعات</button><button class="tab" onclick="stab('docs',this)">المستندات</button></div>
@@ -308,7 +350,131 @@ function toggleSB(){const sb=document.getElementById('SB'),ov=document.getElemen
 function closeSB(){const sb=document.getElementById('SB'),ov=document.getElementById('sbov');if(sb)sb.classList.remove('open');if(ov)ov.classList.remove('show');}
 function toast(msg,type){const w=document.getElementById('tw');if(!w)return;const t=document.createElement('div');t.className='toast'+(type?' '+type:'');const ic=type==='ok'?'<svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>':type==='err'?'<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>':'';t.innerHTML=ic+msg;w.appendChild(t);setTimeout(()=>t.remove(),3200);}
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){['dov','pvov','aov','cov'].forEach(id=>co(id));closeSB();}});
-bootData(function(){render();});
+
+/* ==== ORG INJECT ==== */
+/* ================= الهيكل التنظيمي — نالكم الحاضنة ================= */
+var ORG_UND='غير محدد';
+function _onum(n){ n=parseFloat(n)||0; return n.toLocaleString('en-US'); }
+function topTab(w){
+  var bl=document.getElementById('ptab-list'), bo=document.getElementById('ptab-org');
+  if(bl)bl.classList.toggle('on', w==='list'); if(bo)bo.classList.toggle('on', w==='org');
+  var lv=document.getElementById('listView'), ov=document.getElementById('orgView');
+  if(lv)lv.style.display=(w==='org')?'none':''; if(ov)ov.style.display=(w==='org')?'':'none';
+  if(w==='org') renderOrg();
+}
+function topTabOpen(id){ topTab('list'); if(typeof openD==='function') openD(id); }
+function ensureOrgData(){
+  function has(id){return DATA.some(function(x){return x.id===id;});}
+  var mp={
+    p1:{partners:[{n:'نالكم للاستثمار',p:33.33},{n:'شركاء آخرون',p:ORG_UND}],brands:'شمس',org:'sub'},
+    p2:{partners:[{n:'نالكم للاستثمار',p:40},{n:'يوسف',p:22.5},{n:'عواد',p:15},{n:'أحمد',p:15},{n:'فيصل',p:7.5}],brands:'ستة رجب',org:'sub'},
+    p3:{partners:[{n:'نالكم للاستثمار',p:30},{n:'أميرة',p:35},{n:'عبدالله',p:35}],brands:'سويرل SWIRL',org:'sub'}
+  };
+  DATA.forEach(function(x){ if(mp[x.id]){ if(!x.partners)x.partners=mp[x.id].partners; if(!x.brands)x.brands=mp[x.id].brands; if(!x.org)x.org=mp[x.id].org; } });
+  var add=[];
+  if(!has('nalkum')) add.push({id:'nalkum',name:'شركة نالكم للاستثمار',country:'المملكة العربية السعودية',sector:'شركة قابضة (أم)',share:100,total:12000000,status:'active',color:'#0f7a4f',org:'parent',brands:'',notes:'الشركة الأم الحاضنة. المالك: أ. سعد علي محمد آل عوضه 100%. أرباح أ. أسامة الهتان 5% (بعقد العمل) + ملحق شراكة 5% مشروط بتحقيق صافي ربح 35 مليون/سنة خلال 7 سنوات. رأس المال 12 مليون ر.س يُدفع على مراحل (المرحلة الأولى 500 ألف).',partners:[{n:'سعد علي محمد آل عوضه',p:100},{n:'أسامة الهتان (أرباح)',p:5},{n:'ملحق شراكة مشروط',p:5}],pays:[],docs:[]});
+  if(!has('lava')) add.push({id:'lava',name:'شركة لافا',country:'المملكة العربية السعودية',sector:'علامات تجارية',share:35,total:0,status:'active',color:'#8a6d1f',org:'sub',brands:'سليك – فوكا',notes:'إرسال خطابات من الشركة باستثمار أبو أسامة والمبلغ المدفوع والمتبقي.',partners:[{n:'نالكم للاستثمار',p:35},{n:'أسامة الهتان',p:65},{n:'3 شركاء آخرون',p:ORG_UND}],pays:[],docs:[]});
+  if(!has('bait')) add.push({id:'bait',name:'شركة بيت الأثيل',country:'المملكة العربية السعودية',sector:'مشروبات — توسعة سويرل',share:50,total:0,status:'active',color:'#0f7a4f',org:'sub',parent:'p3',brands:'سويرل',notes:'التوسع في العلامة سويرل بـ 5 فروع في الرياض. قيمة الاستثمار للشركاء تُدفع عند التأسيس (غير محدد).',partners:[{n:'اللفة/نالكم',p:50},{n:'أسامة الهتان',p:50}],pays:[],docs:[]});
+  if(!has('consult')) add.push({id:'consult',name:'شركة الاستشارات',country:'المملكة العربية السعودية',sector:'استشارات',share:5,total:0,status:'active',color:'#555555',org:'sub',brands:'',notes:'باقي النسب غير محدد.',partners:[{n:'نالكم للاستثمار',p:5},{n:'عمر سعد',p:5},{n:'أخرى',p:ORG_UND}],pays:[],docs:[]});
+  if(!has('kolbo')) add.push({id:'kolbo',name:'شركة كولبو',country:'المملكة العربية السعودية',sector:'علامة تجارية (مستقلة)',share:90,total:4000000,status:'active',color:'#7a4f0f',org:'indep',brands:'كولبو',notes:'شركة مستقلة. تشغيل العلامة كولبو. رأس المال 4 مليون ر.س يُدفع على مراحل (المرحلة الأولى 500 ألف).',partners:[{n:'سعد علي محمد آل عوضه',p:90},{n:'أسامة الهتان',p:10}],pays:[],docs:[]});
+  if(add.length){ add.forEach(function(c){DATA.push(c);}); if(typeof saveD==='function')saveD(DATA); }
+}
+function _prtStr(p){ return (p.partners||[]).map(function(x){return e(x.n)+' '+(x.p===ORG_UND?ORG_UND:(x.p+'%'));}).join(' · '); }
+function orgCard(id){
+  var p=DATA.find(function(x){return x.id===id;}); if(!p) return '';
+  var pa=paid(p),rm=rem(p);
+  var money=(parseFloat(p.total)||0)>0 ? ('<div class="oc-m">إجمالي: '+_onum(p.total)+' · مدفوع: '+_onum(pa)+' · متبقٍّ: '+_onum(rm)+' ر.س</div>') : '<div class="oc-m">القيمة: غير محدد</div>';
+  return '<div class="oc" style="border-top:4px solid '+(p.color||'#0f7a4f')+'" onclick="topTabOpen(\''+p.id+'\')">'
+    +'<div class="oc-t"><span>'+e(p.name)+'</span>'+(p.share?'<span class="oc-sh">حصة نالكم '+p.share+'%</span>':'')+'</div>'
+    +(p.brands?'<div class="oc-b">'+e(p.brands)+'</div>':'')
+    +'<div class="oc-p">'+_prtStr(p)+'</div>'+money
+    +'<div class="oc-lk">عرض المستندات والدفعات ›</div> '
+    +'<span class="oc-edit" onclick="event.stopPropagation();orgEditOpen(\''+p.id+'\')">✎ تعديل</span></div>';
+}
+function orgTable(){
+  var ids=['nalkum','lava','p1','p3','bait','p2','consult','kolbo'];
+  var rows=ids.map(function(id){
+    var p=DATA.find(function(x){return x.id===id;}); if(!p)return '';
+    var pa=paid(p),rm=rem(p);
+    var prt=(p.partners||[]).map(function(x){return e(x.n)+' '+(x.p===ORG_UND?ORG_UND:(x.p+'%'));}).join('، ');
+    var tot=(parseFloat(p.total)||0)>0?_onum(p.total):ORG_UND;
+    return '<tr><td style="text-align:right">'+e(p.name)+'</td><td>'+(p.share?p.share+'%':'—')+'</td><td>'+e(p.brands||'—')+'</td><td style="text-align:right">'+prt+'</td><td>'+tot+'</td><td>'+_onum(pa)+'</td><td>'+_onum(rm)+'</td></tr>';
+  }).join('');
+  return '<table class="org-tbl"><thead><tr><th>الشركة</th><th>حصة نالكم</th><th>العلامات</th><th>الشركاء</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function renderOrg(){
+  var host=document.getElementById('orgView'); if(!host)return;
+  var parent=DATA.find(function(x){return x.org==='parent';});
+  var subs=['lava','p1','p3','p2','consult'];
+  var indep=DATA.filter(function(x){return x.org==='indep';}).map(function(x){return x.id;});
+  var h='<div class="org-wrap">';
+  h+='<div class="org-title">الهيكل التنظيمي لمجموعة شركات الشيخ سعد بن علي آل عوضه</div>';
+  if(parent){ h+='<div class="org-parent" onclick="topTabOpen(\''+parent.id+'\')"><div class="op-n">'+e(parent.name)+' · حصة الشيخ 100%</div><div class="op-d">'+e(parent.notes)+'</div><div class="oc-lk" style="color:#dff5e8;text-align:center;margin-top:8px">عرض التفاصيل ›  <span class="oc-edit" style="color:#ffe9b0" onclick="event.stopPropagation();orgEditOpen(\''+parent.id+'\')">✎ تعديل</span></div></div>'; h+='<div class="org-stem"></div>'; }
+  h+='<div class="org-row">'; subs.forEach(function(id){ h+=orgCard(id); }); h+='</div>';
+  var bait=DATA.find(function(x){return x.id==='bait';});
+  if(bait){ h+='<div class="org-sub-note">↳ تابعة لـ«اللفة / سويرل»</div><div class="org-row">'+orgCard('bait')+'</div>'; }
+  if(indep.length){ h+='<div class="org-sec">شركات مستقلة</div><div class="org-row">'; indep.forEach(function(id){h+=orgCard(id);}); h+='</div>'; }
+  h+=orgTable();
+  h+='</div>';
+  host.innerHTML=h;
+}
+/* ---- محرّر الخانات (أسماء/نِسب/مبالغ/شركاء) ---- */
+var _oeId=null;
+function _oeModal(){
+  var m=document.getElementById('oeOv'); if(m)return m;
+  m=document.createElement('div'); m.id='oeOv'; m.className='oe-ov';
+  m.innerHTML='<div class="oe-bx"><h3 id="oe-ttl">تعديل</h3>'
+    +'<div class="oe-fg"><label>اسم الشركة</label><input id="oe-name"></div>'
+    +'<div class="oe-fg"><label>حصة نالكم (%)</label><input id="oe-share" type="number" step="0.01"></div>'
+    +'<div class="oe-fg"><label>العلامات التجارية</label><input id="oe-brands"></div>'
+    +'<div class="oe-fg"><label>الإجمالي / رأس المال (ر.س)</label><input id="oe-total" type="number" step="0.01"></div>'
+    +'<div class="oe-fg"><label>الشركاء والنِّسب</label><div id="oe-partners"></div><button class="oe-add" onclick="orgEditAddPartner(\'\',\'\')">+ إضافة شريك</button></div>'
+    +'<div class="oe-fg"><label>ملاحظات</label><textarea id="oe-notes" rows="3"></textarea></div>'
+    +'<div class="oe-foot"><button class="sv" onclick="orgEditSave()">حفظ</button><button class="cn" onclick="orgEditClose()">إلغاء</button></div></div>';
+  document.body.appendChild(m); return m;
+}
+function orgEditAddPartner(n,p){
+  var box=document.getElementById('oe-partners'); if(!box)return;
+  var row=document.createElement('div'); row.className='oe-prow';
+  var pv=(p===ORG_UND||p===''||p==null)?'':p;
+  row.innerHTML='<input class="pn" placeholder="اسم الشريك" value="'+String(n||'').replace(/"/g,'&quot;')+'"><input class="pp" type="number" step="0.01" placeholder="%" value="'+pv+'"><button onclick="this.parentNode.remove()">×</button>';
+  box.appendChild(row);
+}
+function orgEditOpen(id){
+  var p=DATA.find(function(x){return x.id===id;}); if(!p)return; _oeId=id;
+  _oeModal();
+  document.getElementById('oe-ttl').textContent='تعديل: '+p.name;
+  document.getElementById('oe-name').value=p.name||'';
+  document.getElementById('oe-share').value=(p.share!=null?p.share:'');
+  document.getElementById('oe-brands').value=p.brands||'';
+  document.getElementById('oe-total').value=(parseFloat(p.total)||0)||'';
+  document.getElementById('oe-notes').value=p.notes||'';
+  var box=document.getElementById('oe-partners'); box.innerHTML='';
+  (p.partners||[]).forEach(function(x){ orgEditAddPartner(x.n, x.p); });
+  document.getElementById('oeOv').classList.add('on');
+}
+function orgEditClose(){ var m=document.getElementById('oeOv'); if(m)m.classList.remove('on'); _oeId=null; }
+function orgEditSave(){
+  var p=DATA.find(function(x){return x.id===_oeId;}); if(!p){orgEditClose();return;}
+  p.name=document.getElementById('oe-name').value.trim()||p.name;
+  var sh=document.getElementById('oe-share').value; p.share=(sh===''?p.share:parseFloat(sh));
+  p.brands=document.getElementById('oe-brands').value.trim();
+  var tt=document.getElementById('oe-total').value; p.total=(tt===''?0:parseFloat(tt));
+  p.notes=document.getElementById('oe-notes').value;
+  var prt=[];
+  document.querySelectorAll('#oe-partners .oe-prow').forEach(function(r){
+    var nm=r.querySelector('.pn').value.trim(); var pp=r.querySelector('.pp').value;
+    if(nm){ prt.push({n:nm, p:(pp===''?ORG_UND:parseFloat(pp))}); }
+  });
+  p.partners=prt;
+  if(typeof saveD==='function') saveD(DATA);
+  orgEditClose();
+  renderOrg();
+  if(typeof render==='function') render();
+  if(typeof toast==='function') toast('تم حفظ التعديلات','ok');
+}
+
+bootData(function(){ensureOrgData();render();});
 
 </script>
 <!-- ====== حماية بكلمة سر (أضيفت بواسطة Claude) ====== -->

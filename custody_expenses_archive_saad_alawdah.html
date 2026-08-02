@@ -1138,6 +1138,8 @@ function doPull(){
   saveSnapshotDoc(id,snap);
   if(!STATE.archives)STATE.archives=[];
   STATE.archives.unshift({id:id,name:name,from:from,to:to,note:note,mode:'snapshot',source:'expenses',created:Date.now(),totals:t});
+  /* دمج قيود المصروفات الحالية في السجل الرئيسي ليظهر التفصيل والتصفية بالأشهر */
+  if(_pullSrc&&_pullSrc.accounts){for(var _mk in _pullSrc.accounts){if(!STATE.accounts[_mk])STATE.accounts[_mk]={opening:0,rows:[]};var _src=_pullSrc.accounts[_mk];STATE.accounts[_mk].opening=_src.opening||0;STATE.accounts[_mk].rows=(_src.rows||[]).map(function(r){var o=JSON.parse(JSON.stringify(r));o.date=normDate(o.date)||o.date;return o;});}}
   persist();
   renderArchives();
   /* نسخ الفواتير المرفقة إلى مخزن الأرشيف */
