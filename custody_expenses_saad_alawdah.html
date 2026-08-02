@@ -461,7 +461,7 @@ function initState(){
   ACCKEYS.forEach(function(k){
     var s=SEED[k]||{rows:[],opening:0};
     STATE.accounts[k]={opening:s.opening||0,rows:(s.rows||[]).map(function(r){
-      var o={id:nid(),date:r.date||'',desc:r.desc||'',amount:+r.amount||0,
+      var o={id:nid(),date:normDate(r.date),desc:r.desc||'',amount:+r.amount||0,
              type:r.type||(ACCMETA[k].simple?'مصروف مكتب':ACCMETA[k].types[0]),
              cat:r.cat||'',inv:r.invoice||'',note:r.note||'',att:r.att||[]};
       return o;
@@ -1020,7 +1020,7 @@ function removeAtt(i){
 }
 function saveEntry(){
   var m=ACCMETA[CUR], id=g('em-id').value;
-  var date=g('em-date').value, amt=parseFloat(g('em-amount').value), desc=g('em-desc').value.trim();
+  var date=normDate(g('em-date').value), amt=parseFloat(g('em-amount').value), desc=g('em-desc').value.trim();
   if(!date){toast('أدخل التاريخ');return;}
   if(isNaN(amt)||amt<=0){toast('أدخل مبلغاً صحيحاً');return;}
   if(!desc){toast('أدخل البيان');return;}
@@ -1670,6 +1670,7 @@ function clnApply(){
   g('ov-cleanup').classList.remove('show');
   toast('تم: حُذف '+nRem+' وصُحّح '+_clnFix.length+' ✓ — انتظر «محفوظ سحابياً» قبل تحديث الصفحة');
 }
+function normDate(d){d=String(d==null?'':d).trim();var m=d.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(!m)return '';var y=+m[1],mo=+m[2],da=+m[3];if(mo>12&&da>=1&&da<=12){var _t=mo;mo=da;da=_t;}if(mo<1||mo>12||da<1||da>31)return '';var _p=function(n){return(n<10?'0':'')+n;};return y+'-'+_p(mo)+'-'+_p(da);}
 function afterLoad(){ ensureAccounts(); migrateRouting(); migratePropAccount(); buildNav(); go('dash'); }
 function enter(){var sp=g('splash');sp.style.opacity='0';setTimeout(function(){sp.style.display='none';},600);}
 window.__APP_BOOT__=function(){ setSync(''); initFB(); };

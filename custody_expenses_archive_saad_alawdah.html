@@ -502,7 +502,8 @@ function dfmt(d){
   return d;
 }
 function dirOf(t){return INFLOW.indexOf(t)>=0?1:-1;}
-function monthOf(d){return d?String(d).slice(0,7):'';}
+function normDate(d){d=String(d==null?'':d).trim();var m=d.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(!m)return '';var y=+m[1],mo=+m[2],da=+m[3];if(mo>12&&da>=1&&da<=12){var _t=mo;mo=da;da=_t;}if(mo<1||mo>12||da<1||da>31)return '';var _p=function(n){return(n<10?'0':'')+n;};return y+'-'+_p(mo)+'-'+_p(da);}
+function monthOf(d){d=normDate(d);return d?d.slice(0,7):'';}
 /* تطابق الفترة: لا تحديد = الكل. يقبل قيم السنة (YYYY) أو الشهر (YYYY-MM). */
 function periodMatch(date,sel){ if(!sel||!sel.length)return true; var mo=monthOf(date), yr=String(date||'').slice(0,4); return sel.indexOf(mo)>=0||sel.indexOf(yr)>=0; }
 function esc(s){return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split('"').join('&quot;');}
@@ -799,7 +800,7 @@ var ARCHCOL='custody_archive_periods_db';
 var CARRY_KEYS=['3000','3001','3002','3003']; /* الحسابات التي يُرحَّل رصيدها الختامي */
 var _avSnap=null, _avEntry=null; /* اللقطة المعروضة حالياً في نافذة العرض */
 
-function inRangeDate(d,from,to){ d=String(d||''); return d>=from && d<=to; }
+function inRangeDate(d,from,to){ d=normDate(d)||String(d||''); return d>=from && d<=to; }
 
 /* بناء لقطة للفترة: يلتقط لكل حساب قيوده ضمن المدى + رصيده الافتتاحي عند بدايتها،
    ويحفظ القيود المخزّنة الأصلية والدلتا اللازمة للاسترجاع الدقيق لاحقاً. */
