@@ -314,11 +314,11 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       </div>
       <button class="btn gold sm" onclick="cleanupData()">🧹 فحص وتنظيف البيانات</button>
     </div>
-    <div class="sec"><h2>📥 استبدال الحساب الرئيسي من ملف Excel</h2>
+    <div class="sec"><h2>📥 تحديث الحساب الرئيسي من كشف Excel (إضافة غير المسجّل فقط)</h2>
       <div style="font-size:13px;color:var(--muted);line-height:2.1;margin-bottom:12px">
-        يستبدل قيود الحساب الرئيسي بالكامل بقيود ملف Excel نظيف (ورقة «الرئيسي»)، ويحاول الحفاظ على مرفقات الفواتير بمطابقة البيان والمبلغ. تُحفظ نسخة احتياطية أولاً ويمكن التراجع بـ Ctrl+Z. الحسابات المشتقّة (العهد ومصروفات العقار) تتحدّث تلقائياً.
+        يقارن كشف Excel (ورقة «الرئيسي») بالقيود الحالية ويضيف <b>غير المسجّل فقط</b> — لا يحذف ولا يعدّل أي قيد أو رصيد قائم. المطابقة تعتمد على (التاريخ + المبلغ + البيان). تُحفظ نسخة احتياطية أولاً ويمكن التراجع بـ Ctrl+Z. الحسابات المشتقّة (العهد ومصروفات العقار) تتحدّث تلقائياً.
       </div>
-      <button class="btn gold sm" onclick="document.getElementById('main-xl-in').click()">📥 اختيار ملف واستبدال الرئيسي</button>
+      <button class="btn gold sm" onclick="document.getElementById('main-xl-in').click()">📥 اختيار كشف وإضافة غير المسجّل</button>
       <input type="file" id="main-xl-in" accept=".xlsx,.xls" style="display:none" onchange="importMainFromXL(this.files[0])">
     </div>  </div>
 
@@ -874,6 +874,11 @@ function renderAcc(){
     var isCount=(i===3);
     ch+='<div class="card" style="--accent:'+acc[i]+'"><div class="lbl">'+esc(lbls[i])+'</div><div class="val" style="--cv:'+cv[i]+'">'+(isCount?vals[i]:fmt(vals[i])+' <span class="u">ر.س</span>')+'</div></div>';
   }
+  if(!m.simple){
+    var _fr=null; for(var _pi=0;_pi<filtered.length;_pi++){ if(!filtered[_pi]._ref){_fr=filtered[_pi];break;} }
+    var _po=_fr? ((+_fr._bal||0)-((_fr._dir||0)*(+_fr.amount||0))) : ((STATE.accounts[CUR]&&STATE.accounts[CUR].opening)||0);
+    ch='<div class="card" style="--accent:#2f6db3"><div class="lbl">رصيد أول الفترة</div><div class="val" style="--cv:#9cc3ef">'+fmt(_po)+' <span class="u">ر.س</span></div></div>'+ch;
+  }
   g('acc-cards').innerHTML=ch;
   var rows=filtered.reverse(); /* الأحدث أولاً في العرض — الرصيد التراكمي محسوب زمنياً ويبقى صحيحاً */
   var tbl=g('acc-tbl');
@@ -1253,16 +1258,21 @@ function fill(cell,argb){cell.fill={type:'pattern',pattern:'solid',fgColor:{argb
 function fnt(cell,o){cell.font=Object.assign({name:'Cairo'},o);}
 function ctr(cell){cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};}
 
-function buildAccSheet(wb,key){
+function buildAccSheet(wb,key,opts){
+  opts=opts||{};
   var m=ACCMETA[key], s=summary(key);
+  var useRows=opts.rows||s.rows, filtered=!!opts.isFiltered;
   var ws=wb.addWorksheet((m.code||m.name).slice(0,28),{views:[{rightToLeft:true}]});
-  if(m.simple){ return buildOfficeSheet(ws,key,s); }
+  if(m.simple){ return buildOfficeSheet(ws,key,s,useRows,filtered); }
+  var _inT=0,_outT=0; useRows.forEach(function(r){ if(r._ref)return; if(r._dir>0)_inT+=+r.amount||0; else _outT+=+r.amount||0; });
+  var _net=_inT-_outT, _pOpen;
+  if(filtered){ var _frr=null; for(var _ii=0;_ii<useRows.length;_ii++){ if(!useRows[_ii]._ref){_frr=useRows[_ii];break;} } _pOpen=_frr?((+_frr._bal||0)-((_frr._dir||0)*(+_frr.amount||0))):(STATE.accounts[key].opening||0); } else { _pOpen=STATE.accounts[key].opening||0; }
   ws.columns=[{width:3},{width:13},{width:5},{width:40},{width:14},{width:18},{width:15},{width:16},{width:11},{width:20}];
   // title
-  ws.mergeCells('B2:J2'); var t=ws.getCell('B2'); t.value=m.icon+'   '+m.name+'  •  '+m.code;
+  ws.mergeCells('B2:J2'); var t=ws.getCell('B2'); t.value=m.icon+'   '+m.name+'  •  '+m.code+((filtered&&opts.label)?('     —     '+opts.label):'');
   fill(t,'385723'); fnt(t,{bold:true,size:18,color:{argb:'FFFFFFFF'}}); ctr(t); ws.getRow(2).height=34;
   // cards
-  var cards=[['B','C',m.lbls[0],s.balance,'548235'],['D','E',m.lbls[1],s.inflow,'1F4E79'],['F','G',m.lbls[2],s.outflow,'C00000'],['H','J',m.lbls[3],s.count,'595959']];
+  var cards=filtered?[['B','C','صافي الفترة',_net,'548235'],['D','E',m.lbls[1],_inT,'1F4E79'],['F','G',m.lbls[2],_outT,'C00000'],['H','J',m.lbls[3],useRows.length,'595959']]:[['B','C',m.lbls[0],s.balance,'548235'],['D','E',m.lbls[1],s.inflow,'1F4E79'],['F','G',m.lbls[2],s.outflow,'C00000'],['H','J',m.lbls[3],s.count,'595959']];
   cards.forEach(function(c){
     ws.mergeCells(c[0]+'3:'+c[1]+'3'); var tt=ws.getCell(c[0]+'3'); tt.value=c[2]; fill(tt,c[4]); fnt(tt,{bold:true,size:11,color:{argb:'FFFFFFFF'}}); ctr(tt);
     ws.mergeCells(c[0]+'4:'+c[1]+'5'); var vv=ws.getCell(c[0]+'4');
@@ -1271,14 +1281,14 @@ function buildAccSheet(wb,key){
   });
   ws.getRow(4).height=26;
   // opening
-  var ob=ws.getCell('B7'); ob.value='💵   رصيد أول المدة'; fnt(ob,{bold:true,size:12,color:{argb:'FF385723'}});
-  var ov=ws.getCell('F7'); ov.value=STATE.accounts[key].opening||0; ov.numFmt=NUMFMT; fill(ov,'FFFF00'); fnt(ov,{bold:true,size:12,color:{argb:'FF385723'}}); ctr(ov);
+  var ob=ws.getCell('B7'); ob.value=filtered?'💵   رصيد أول الفترة':'💵   رصيد أول المدة'; fnt(ob,{bold:true,size:12,color:{argb:'FF385723'}});
+  var ov=ws.getCell('F7'); ov.value=_pOpen; ov.numFmt=NUMFMT; fill(ov,'FFFF00'); fnt(ov,{bold:true,size:12,color:{argb:'FF385723'}}); ctr(ov);
   // headers row 8
   var heads=['التاريخ','م','البيان / الوصف','النوع','التصنيف','المبلغ (ر.س)','الرصيد التراكمي','الفاتورة','ملاحظات'];
   heads.forEach(function(h,i){var cl=ws.getCell(8,i+2); cl.value=h; fill(cl,'385723'); fnt(cl,{bold:true,size:11,color:{argb:'FFFFFFFF'}}); ctr(cl);});
   ws.getRow(8).height=24;
   // data
-  s.rows.forEach(function(r,idx){
+  useRows.forEach(function(r,idx){
     var rn=9+idx, alt=idx%2?'F0F7EC':'FFFFFF';
     var c2=ws.getCell(rn,2); c2.value=r.date; var mc=MONTHCOL[(r.date||'').slice(5,7)]||['FFFFFF','385723'];
     fill(c2,mc[0]); fnt(c2,{bold:true,size:10,color:{argb:'FF'+mc[1]}}); ctr(c2);
@@ -1294,14 +1304,15 @@ function buildAccSheet(wb,key){
   });
   return ws;
 }
-function buildOfficeSheet(ws,key,s){
+function buildOfficeSheet(ws,key,s,rowsArg,filtered){
   var m=ACCMETA[key];
+  var useRows=rowsArg||s.rows;
   ws.columns=[{width:3},{width:5},{width:14},{width:44},{width:16}];
   ws.mergeCells('B2:E2'); var t=ws.getCell('B2'); t.value=m.icon+'   '+m.name; fill(t,'385723'); fnt(t,{bold:true,size:16,color:{argb:'FFFFFFFF'}}); ctr(t); ws.getRow(2).height=30;
   ws.mergeCells('B3:C3'); var tt=ws.getCell('B3'); tt.value='إجمالي المصروف'; fill(tt,'C00000'); fnt(tt,{bold:true,color:{argb:'FFFFFFFF'}}); ctr(tt);
-  ws.mergeCells('D3:E3'); var vv=ws.getCell('D3'); vv.value=s.outflow; vv.numFmt=NUMFMT; fnt(vv,{bold:true,size:14,color:{argb:'FFC00000'}}); ctr(vv);
+  ws.mergeCells('D3:E3'); var vv=ws.getCell('D3'); vv.value=filtered?useRows.reduce(function(a,r){return a+(+r.amount||0);},0):s.outflow; vv.numFmt=NUMFMT; fnt(vv,{bold:true,size:14,color:{argb:'FFC00000'}}); ctr(vv);
   ['م','التاريخ','البيان','المبلغ (ر.س)'].forEach(function(h,i){var cl=ws.getCell(5,i+2);cl.value=h;fill(cl,'385723');fnt(cl,{bold:true,color:{argb:'FFFFFFFF'}});ctr(cl);});
-  s.rows.forEach(function(r,idx){
+  useRows.forEach(function(r,idx){
     var rn=6+idx, alt=idx%2?'F0F7EC':'FFFFFF';
     var a=ws.getCell(rn,2);a.value=idx+1;fill(a,alt);fnt(a,{bold:true,color:{argb:'FF548235'}});ctr(a);
     var b=ws.getCell(rn,3);b.value=r.date;var mc=MONTHCOL[(r.date||'').slice(5,7)]||['FFFFFF','385723'];fill(b,mc[0]);fnt(b,{bold:true,size:10,color:{argb:'FF'+mc[1]}});ctr(b);
@@ -1330,10 +1341,28 @@ function saveWB(wb,name){
     toast('تم تصدير الملف ✓');
   });
 }
+function accFilteredRows(key){
+  var s=summary(key);
+  var fm=mselValues('f-month'), ft=mselValues('f-type'), fc=mselValues('f-cat'), q=((g('f-search')&&g('f-search').value)||'').trim();
+  var isFiltered=(fm.length||ft.length||fc.length||q)?true:false;
+  if(!isFiltered) return {rows:s.rows, isFiltered:false, fm:fm};
+  var rows=s.rows.filter(function(r){
+    if(!periodMatch(r.date,fm))return false;
+    if(ft.length&&ft.indexOf(r.type)<0)return false;
+    if(fc.length&&fc.indexOf(r.cat)<0)return false;
+    if(q&&(r.desc||'').indexOf(q)<0&&(r.cat||'').indexOf(q)<0)return false;
+    return true;
+  });
+  return {rows:rows, isFiltered:true, fm:fm};
+}
 function exportAcc(){
-  var m=ACCMETA[CUR]; var wb=new ExcelJS.Workbook(); wb.creator='نظام العهد والمصروفات';
-  buildAccSheet(wb,CUR);
-  saveWB(wb,'حساب_'+m.name.replace(/[\\/:*?"<>|—•]/g,'').trim()+'.xlsx');
+  var m=ACCMETA[CUR]; var fr=accFilteredRows(CUR);
+  if(fr.isFiltered && !fr.rows.length){ toast('لا توجد بيانات ضمن الفرز الحالي'); return; }
+  var label='', suffix='';
+  if(fr.isFiltered){ var fmv=fr.fm||[]; label=fmv.length?('الفترة: '+fmv.join('، ')):'حسب الفرز الحالي'; suffix='_'+(fmv.join('-')||'مصفى'); }
+  var wb=new ExcelJS.Workbook(); wb.creator='نظام العهد والمصروفات';
+  buildAccSheet(wb,CUR,{rows:fr.rows,isFiltered:fr.isFiltered,label:label});
+  saveWB(wb,'حساب_'+m.name.replace(/[\\/:*?"<>|—•]/g,'').trim()+suffix+'.xlsx');
 }
 function exportFull(){
   toast('جارٍ تجهيز الملف…');
@@ -1551,6 +1580,7 @@ function _xlDate(v){
   m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if(m){ var a=+m[1],b=+m[2],y=m[3]; if(y.length===2)y='20'+y; var day,mon; if(a>12){day=a;mon=b;}else if(b>12){mon=a;day=b;}else{mon=a;day=b;} return y+'-'+('0'+mon).slice(-2)+'-'+('0'+day).slice(-2); }
   return '';
 }
+function _mainKey(date,amount,desc){ return String(date||'')+'|'+Math.round(Math.abs(parseFloat(amount)||0)*100)+'|'+String(desc||'').replace(/\s+/g,' ').trim(); }
 function importMainFromXL(file){
   if(!file)return;
   var rd=new FileReader();
@@ -1566,11 +1596,17 @@ function importMainFromXL(file){
       if(col.date==null||col.amt==null){ toast('الأعمدة غير مكتملة (تاريخ/مبلغ)'); return; }
       var opening=null;
       for(var z=0;z<hr;z++){ var row=aoa[z]||[]; if(row.some(function(c){return String(c||'').indexOf('رصيد أول المدة')>=0;})){ row.forEach(function(c){ var n=parseFloat(String(c).replace(/[,\s]/g,'')); if(!isNaN(n)&&Math.abs(n)>0.0001) opening=n; }); } }
-      var attMap={}; (((STATE.accounts['3000']||{}).rows)||[]).forEach(function(r){ if(r.att&&r.att.length){ var key=String(r.desc||'')+'|'+Math.round((+r.amount||0)*100); if(!attMap[key]) attMap[key]=r.att; } });
-      var newRows=[], skipped=0, attKept=0;
+      if(!STATE.accounts['3000'])STATE.accounts['3000']={opening:0,rows:[]};
+      var curRows=STATE.accounts['3000'].rows||[];
+      var attMap={}; curRows.forEach(function(r){ if(r.att&&r.att.length){ var key=String(r.desc||'')+'|'+Math.round((+r.amount||0)*100); if(!attMap[key]) attMap[key]=r.att; } });
+      var existKeys={}; curRows.forEach(function(r){ existKeys[_mainKey(r.date,r.amount,r.desc)]=true; });
+      var newRows=[], skipped=0, dup=0, attKept=0;
       for(var j=hr+1;j<aoa.length;j++){
         var row2=aoa[j]||[]; var d=_xlDate(row2[col.date]); var amt=parseFloat(String(row2[col.amt]).replace(/[,\s]/g,'')); var desc=String(row2[col.desc]||'').trim();
         if(!d || isNaN(amt) || !desc){ skipped++; continue; }
+        var mk=_mainKey(d,amt,desc);
+        if(existKeys[mk]){ dup++; continue; }
+        existKeys[mk]=true;
         var typ=col.type!=null?String(row2[col.type]||'').trim():''; if(!typ)typ='مصروف';
         var cat=col.cat!=null?String(row2[col.cat]||'').trim():'';
         var inv=col.inv!=null?String(row2[col.inv]||'').trim():''; if(inv.indexOf('غير مرفقة')>=0||inv==='—')inv='';
@@ -1579,18 +1615,15 @@ function importMainFromXL(file){
         var ak=desc+'|'+Math.round(Math.abs(amt)*100); if(attMap[ak]){ o.att=attMap[ak]; attKept++; }
         newRows.push(o);
       }
-      if(!newRows.length){ toast('لم أجد قيوداً صالحة في الملف'); return; }
-      var oldN=(((STATE.accounts['3000']||{}).rows)||[]).length;
-      if(!confirm('سيتم استبدال قيود الحساب الرئيسي:\n\n• القديمة: '+oldN+' قيد (ستُحذف)\n• الجديدة من الملف: '+newRows.length+' قيد\n• مرفقات محفوظة بالمطابقة: '+attKept+(opening!=null?('\n• رصيد أول المدة: '+opening):'')+'\n\nستُحفظ نسخة احتياطية ويمكن التراجع بـ Ctrl+Z.\n\nمتابعة؟'))return;
-      try{ localStorage.setItem('SAAD_MAINREPL_BACKUP_'+Date.now(), JSON.stringify(STATE)); }catch(e){}
+      if(!newRows.length){ toast(dup? ('كل القيود مسجّلة مسبقاً — لا يوجد جديد ('+dup+' مطابقة)') : 'لم أجد قيوداً صالحة في الملف'); return; }
+      if(!confirm('سيتم إضافة القيود غير المسجّلة فقط إلى الحساب الرئيسي:\n\n• قيود جديدة ستُضاف: '+newRows.length+'\n• موجودة مسبقاً (تم تجاهلها): '+dup+'\n• غير صالحة (تخطّي): '+skipped+'\n• مرفقات مطابَقة: '+attKept+'\n\nالقيود الحالية ورصيد أول المدة تبقى كما هي. تُحفظ نسخة احتياطية ويمكن التراجع بـ Ctrl+Z.\n\nمتابعة؟'))return;
+      try{ localStorage.setItem('SAAD_MAINMERGE_BACKUP_'+Date.now(), JSON.stringify(STATE)); }catch(e){}
       if(typeof backupJSON==='function'){ try{ backupJSON(); }catch(e){} }
       pushUndo();
-      if(!STATE.accounts['3000'])STATE.accounts['3000']={opening:0,rows:[]};
-      STATE.accounts['3000'].rows=newRows;
-      if(opening!=null) STATE.accounts['3000'].opening=opening;
+      STATE.accounts['3000'].rows=curRows.concat(newRows);
       persist(); try{ if(typeof pushCloud==='function') pushCloud(); }catch(e){}
       try{refreshUI();}catch(e){}
-      toast('تم استبدال الحساب الرئيسي بـ '+newRows.length+' قيد ✓ — انتظر «محفوظ سحابياً» قبل تحديث الصفحة');
+      toast('تمت إضافة '+newRows.length+' قيد جديد ✓ (تجاهل '+dup+' مكرر) — انتظر «محفوظ سحابياً»');
     }catch(err){ toast('تعذّر قراءة الملف'); }
   };
   rd.readAsArrayBuffer(file);
