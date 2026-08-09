@@ -294,5 +294,7 @@ function exportXls(){
 }
 g('q').oninput=render;g('fb').onchange=render;g('fs').onchange=render;
 g('modal').addEventListener('click',ev=>{if(ev.target===g('modal'))closeModal();});
-updateCalBtn();render();
+/* الإقلاع: تهيئة قاعدة البيانات المحلية وتحميل البيانات المحفوظة قبل العرض
+   (بدون هذه الخطوة يبقى _db=null فتصبح save() بلا أثر ولا تُحفظ أي تعديلات مثل التجديد) */
+idbInit(function(){idbGet('cal',function(cv){if(cv==='g'||cv==='h')CAL=cv;idbGet('cars',function(d){if(d&&d.length){try{CARS=attachImgs(d);}catch(e){}}updateCalBtn();render();});});});
 </script></body></html>
