@@ -210,7 +210,7 @@ function insCompanies(){var s={};CARS.forEach(function(c){if(c.ins_co&&c.ins_co!
 function renew(i,field){
  var c=CARS[i];var M={license:['license_exp','رخصة السير'],inspection:['inspection_exp','الفحص الدوري'],insurance:['ins_exp','التأمين']};
  var fld=M[field][0],nm=M[field][1];
- var cur=norm(c[fld]);var todayH=norm(TODAY);var base=(cur&&cur>todayH)?cur:todayH;var nu=addYear365(base);
+ var cur=norm(c[fld]);var todayH=norm(TODAY);var base=cur||todayH;var nu=addYear365(base);/* دائماً 365 يوم من تاريخ الانتهاء الحالي، والرجوع لتاريخ اليوم فقط إن لم يوجد تاريخ انتهاء */
  if(field==='insurance'){
    var opts=insCompanies().map(function(x){return '<option '+(x===c.ins_co?'selected':'')+'>'+e(x)+'</option>';}).join('');
    g('modalIn').innerHTML='<div class="modal-head"><h2>🔄 تجديد التأمين — '+e(c.brand)+' '+e(c.model)+'</h2><button class="x" onclick="openDetail('+i+')">×</button></div>'+
