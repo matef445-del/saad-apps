@@ -881,18 +881,20 @@ function renderAcc(){
   }
   var cv=['var(--gold2)','#8fdca0','#f0a8a8','var(--cream)'];
   var acc=['#b8921a','#3a7d44','#cf5050','#7e9387'];
-  var ch='';
+  var cards=[];
   for(var i=0;i<4;i++){
     if(lbls[i]==='—'){continue;}
     var isCount=(i===3);
-    ch+='<div class="card" style="--accent:'+acc[i]+'"><div class="lbl">'+esc(lbls[i])+'</div><div class="val" style="--cv:'+cv[i]+'">'+(isCount?vals[i]:fmt(vals[i])+' <span class="u">ر.س</span>')+'</div></div>';
+    cards.push('<div class="card" style="--accent:'+acc[i]+'"><div class="lbl">'+esc(lbls[i])+'</div><div class="val" style="--cv:'+cv[i]+'">'+(isCount?vals[i]:fmt(vals[i])+' <span class="u">ر.س</span>')+'</div></div>');
   }
   if(!m.simple){
     var _fr=null; for(var _pi=0;_pi<filtered.length;_pi++){ if(!filtered[_pi]._ref){_fr=filtered[_pi];break;} }
     var _po=_fr? ((+_fr._bal||0)-((_fr._dir||0)*(+_fr.amount||0))) : ((STATE.accounts[CUR]&&STATE.accounts[CUR].opening)||0);
-    ch='<div class="card" style="--accent:#2f6db3"><div class="lbl">رصيد أول الفترة</div><div class="val" style="--cv:#9cc3ef">'+fmt(_po)+' <span class="u">ر.س</span></div></div>'+ch;
+    var _oc='<div class="card" style="--accent:#2f6db3"><div class="lbl">رصيد أول الفترة</div><div class="val" style="--cv:#9cc3ef">'+fmt(_po)+' <span class="u">ر.س</span></div></div>';
+    /* الرصيد الحالي أولاً ثم رصيد أول الفترة بعده مباشرة */
+    cards.splice(1,0,_oc);
   }
-  g('acc-cards').innerHTML=ch;
+  g('acc-cards').innerHTML=cards.join('');
   var rows=filtered.reverse(); /* الأحدث أولاً في العرض — الرصيد التراكمي محسوب زمنياً ويبقى صحيحاً */
   var tbl=g('acc-tbl');
   if(!rows.length){tbl.innerHTML='';g('acc-empty').style.display='block';return;}
