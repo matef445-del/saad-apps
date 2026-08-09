@@ -209,6 +209,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         <button class="btn gold sm" id="acc-btn-pe" onclick="openPropInv()" style="display:none">＋ فاتورة عقار</button>
         <button class="btn ghost sm" id="acc-btn-import" onclick="document.getElementById('xl-in').click()">📥 استيراد Excel</button>
         <button class="btn ghost sm" onclick="exportAcc()">📤 تصدير Excel</button>
+        <button class="btn ghost sm" id="acc-btn-sort" onclick="sortAccByDate()">↕️ ترتيب حسب التاريخ</button>
         <button class="btn ghost sm" onclick="printAcc()">🖨️ طباعة</button>
       </div>
     </div>
@@ -698,6 +699,17 @@ function persist(){
   saveLocal();
   if(fbReady){setSync('sv'); clearTimeout(saveTimer); saveTimer=setTimeout(pushCloud,1400);}
 }
+function sortAccByDate(){
+  var m=ACCMETA[CUR]; if(m && m.readonly){ toast('هذا الحساب للعرض فقط'); return; }
+  var acc=STATE.accounts[CUR];
+  if(!acc || !acc.rows || !acc.rows.length){ toast('لا توجد قيود للترتيب'); return; }
+  if(!confirm('إعادة ترتيب القيود تصاعدياً حسب التاريخ.\nأي قيد أُدخل متأخراً سيأخذ مكانه الزمني الصحيح.\nلا يُحذف أو يتغيّر أي مبلغ أو بيان — إعادة ترتيب فقط، ويمكن التراجع بـ Ctrl+Z.\n\nمتابعة؟')) return;
+  pushUndo();
+  acc.rows.sort(function(a,b){ var da=normDate(a.date)||String(a.date||''); var db=normDate(b.date)||String(b.date||''); if(da<db)return -1; if(da>db)return 1; return 0; });
+  persist();
+  try{ if(typeof refreshUI==='function')refreshUI(); else renderAcc(); }catch(e){ renderAcc(); }
+  toast('تم ترتيب القيود حسب التاريخ ✓');
+}
 
 /* ============ UNDO / REDO ============ */
 /* مكدّس لقطات للحالة (نسخة عميقة) — يلتقط الحالة قبل كل تعديل، بحد أقصى 30 خطوة.
@@ -837,6 +849,7 @@ function openAccPage(){
   var roAcc=!!m.readonly;
   if(g('acc-btn-add'))g('acc-btn-add').style.display=roAcc?'none':'';
   if(g('acc-btn-import'))g('acc-btn-import').style.display=(roAcc && CUR!=='bank')?'none':'';
+  if(g('acc-btn-sort'))g('acc-btn-sort').style.display=roAcc?'none':'';
   if(g('acc-btn-pe'))g('acc-btn-pe').style.display=(CUR==='propexp')?'':'none';
   renderAcc();
 }
