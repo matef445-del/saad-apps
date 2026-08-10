@@ -2120,7 +2120,11 @@ function monthOverlapDays(from,to,y,m0){
   if(isNaN(f)||isNaN(t))return 0;
   var a=f>start?f:start, b=t<end?t:end;
   if(b<a)return 0;
-  return Math.round((b-a)/(24*3600*1000))+1;
+  /* الشهر يُحتسب على 30 يوماً دائماً (وليس 31 أو 28):
+     تغطية الشهر بالكامل = 30 يوماً، وإلا العدد الفعلي بحد أقصى 30 */
+  if(a.getTime()<=start.getTime() && b.getTime()>=end.getTime()) return BASE_DAYS;
+  var days=Math.round((b-a)/(24*3600*1000))+1;
+  return Math.min(days,BASE_DAYS);
 }
 /* الإجازة تُخفّض الراتب إذا كانت «بدون راتب» أو مؤشّرة يدوياً للخصم */
 function leaveReducesSalary(r){return !!(r&&r.st==='approved'&&(r.type==='unpaid'||r.deduct===true));}
