@@ -598,9 +598,21 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
             <option value="unpaid">إجازة بدون راتب</option>
           </select>
         </div>
-        <div class="fm"><label>من تاريخ</label><input type="date" id="lv-from" onchange="calcLvDays()"></div>
-        <div class="fm"><label>إلى تاريخ</label><input type="date" id="lv-to" onchange="calcLvDays()"></div>
+        <div class="fm"><label>من تاريخ</label><input type="date" id="lv-from" onchange="onLvFromChange()"></div>
+        <div class="fm"><label>إلى تاريخ</label><input type="date" id="lv-to" onchange="onLvToChange()"></div>
         <div class="fm"><label>عدد الأيام</label><input type="number" id="lv-days" readonly style="background:#f0f0e8"></div>
+        <div class="fm"><label><i class="ti ti-plane-departure" style="font-size:13px;color:var(--gd)"></i> ✈️ تأشيرة خروج وعودة</label>
+          <select id="lv-visa" onchange="onVisaChange()">
+            <option value="">— بدون / يدوي</option>
+            <option value="30">30 يوم</option>
+            <option value="60">60 يوم</option>
+            <option value="90">90 يوم</option>
+            <option value="180">180 يوم</option>
+            <option value="365">365 يوم</option>
+            <option value="custom">مخصص…</option>
+          </select>
+        </div>
+        <div class="fm" id="lv-visa-custom-wrap" style="display:none"><label>مدة التأشيرة (أيام)</label><input type="number" id="lv-visa-custom" min="1" placeholder="مثال: 45" oninput="onVisaCustomInput()"></div>
         <div class="fm"><label>الحالة</label>
           <select id="lv-st"><option value="approved">موافق عليها</option><option value="pending">قيد المراجعة</option><option value="rejected">مرفوضة</option></select>
         </div>
@@ -1278,7 +1290,7 @@ function renderLeaves(){
     return`<tr><td><span class="ea">${av2(e.name)}</span>${e.name}</td>
       <td>${r.from}</td><td>${r.to}</td>
       <td style="font-weight:600">${r.days} يوم</td>
-      <td><span class="bge bgo">${tMap[r.type]||r.type}</span></td>
+      <td><span class="bge bgo">${tMap[r.type]||r.type}</span>${r.visa?` <span class="bge bgi" title="تأشيرة خروج وعودة">✈️ ${r.visa} يوم</span>`:''}</td>
       <td><span class="bge ${sMap[r.st]||'bgw'}">${sTxt[r.st]||r.st}</span></td>
       <td style="display:flex;gap:3px">
         <button class="btn bed sm" onclick="editLv(${i})"><i class="ti ti-edit"></i></button>
@@ -1291,6 +1303,44 @@ function calcLvDays(){
   const t=document.getElementById('lv-to').value;
   if(f&&t){const d=Math.round((new Date(t)-new Date(f))/(24*3600*1000))+1;document.getElementById('lv-days').value=d>0?d:0;}
 }
+/* ── تأشيرة الخروج والعودة: تحدّد مدة الإجازة تلقائياً ── */
+function currentVisaDays(){
+  const v=document.getElementById('lv-visa').value;
+  if(v==='custom'){const c=+document.getElementById('lv-visa-custom').value;return c>0?c:0;}
+  const n=+v;return n>0?n:0;
+}
+function applyVisaDuration(){
+  const days=currentVisaDays();
+  if(!days)return;
+  const fromEl=document.getElementById('lv-from');
+  if(!fromEl.value)fromEl.value=new Date().toISOString().split('T')[0];
+  const from=new Date(fromEl.value);
+  const to=new Date(from.getTime()+(days-1)*24*3600*1000);
+  document.getElementById('lv-to').value=to.toISOString().split('T')[0];
+  document.getElementById('lv-days').value=days;
+}
+function onVisaChange(){
+  const v=document.getElementById('lv-visa').value;
+  const wrap=document.getElementById('lv-visa-custom-wrap');
+  wrap.style.display=(v==='custom')?'':'none';
+  if(v==='custom'){const c=document.getElementById('lv-visa-custom');c.focus();}
+  applyVisaDuration();
+}
+function onVisaCustomInput(){applyVisaDuration();}
+function onLvFromChange(){ if(currentVisaDays()>0)applyVisaDuration(); else calcLvDays(); }
+function onLvToChange(){
+  /* تعديل تاريخ الانتهاء يدوياً يُلغي التأشيرة ويحسب الأيام من التواريخ */
+  document.getElementById('lv-visa').value='';
+  document.getElementById('lv-visa-custom-wrap').style.display='none';
+  calcLvDays();
+}
+function setVisaUI(v){
+  const sel=document.getElementById('lv-visa'),wrap=document.getElementById('lv-visa-custom-wrap'),cust=document.getElementById('lv-visa-custom');
+  const presets=['30','60','90','180','365'];
+  if(v&&presets.indexOf(String(v))>=0){sel.value=String(v);wrap.style.display='none';cust.value='';}
+  else if(v&&+v>0){sel.value='custom';wrap.style.display='';cust.value=v;}
+  else{sel.value='';wrap.style.display='none';cust.value='';}
+}
 function pfLvEmp(selVal=null){
   document.getElementById('lv-emp').innerHTML=emps.map(e=>`<option value="${e.id}" ${selVal==e.id?'selected':''}>${e.name} (${e.code})</option>`).join('');
 }
@@ -1298,8 +1348,8 @@ function openLeaveModal(idx=-1,empId=null){
   document.getElementById('lv-idx').value=idx;
   document.getElementById('lv-modal-title').textContent=idx>=0?'تعديل طلب الإجازة':'تسجيل إجازة جديدة';
   pfLvEmp(empId);
-  if(idx>=0){const r=lvReqs[idx];document.getElementById('lv-emp').value=r.eid;document.getElementById('lv-type').value=r.type;document.getElementById('lv-from').value=r.from;document.getElementById('lv-to').value=r.to;document.getElementById('lv-days').value=r.days;document.getElementById('lv-st').value=r.st;document.getElementById('lv-note').value=r.note||'';}
-  else{document.getElementById('lv-from').value='';document.getElementById('lv-to').value='';document.getElementById('lv-days').value='';document.getElementById('lv-st').value='approved';document.getElementById('lv-note').value='';}
+  if(idx>=0){const r=lvReqs[idx];document.getElementById('lv-emp').value=r.eid;document.getElementById('lv-type').value=r.type;document.getElementById('lv-from').value=r.from;document.getElementById('lv-to').value=r.to;document.getElementById('lv-days').value=r.days;document.getElementById('lv-st').value=r.st;document.getElementById('lv-note').value=r.note||'';setVisaUI(r.visa||0);}
+  else{document.getElementById('lv-from').value='';document.getElementById('lv-to').value='';document.getElementById('lv-days').value='';document.getElementById('lv-st').value='approved';document.getElementById('lv-note').value='';setVisaUI(0);}
   document.getElementById('mlv').classList.add('open');
 }
 function editLv(i){openLeaveModal(i);}
@@ -1312,10 +1362,11 @@ function saveLv(){
   const days=+document.getElementById('lv-days').value;
   const st=document.getElementById('lv-st').value;
   const note=document.getElementById('lv-note').value;
+  const visa=currentVisaDays();
   const idx=+document.getElementById('lv-idx').value;
   if(!from||!to||!days){tk('يرجى تحديد التواريخ','var(--err)');return;}
-  if(idx>=0)lvReqs[idx]={eid,type,from,to,days,st,note};
-  else lvReqs.push({eid,type,from,to,days,st,note});
+  if(idx>=0)lvReqs[idx]={eid,type,from,to,days,st,note,visa};
+  else lvReqs.push({eid,type,from,to,days,st,note,visa});
   document.getElementById('mlv').classList.remove('open');
   renderLeaves();saveToLocal();tk('✅ تم حفظ طلب الإجازة');
 }
