@@ -257,29 +257,22 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <div class="pg active" id="pg-dashboard">
       <div id="dash-alerts"></div>
       <div class="sg">
-        <div class="sc"><div class="sl">إجمالي الموظفين</div><div class="sv" id="s-emp">9</div><div class="ss" style="color:var(--ok)">موظف نشط</div><i class="ti ti-users si"></i></div>
+        <div class="sc" style="cursor:pointer" onclick="goTo('employees')" title="عرض الموظفين"><div class="sl">إجمالي الموظفين</div><div class="sv" id="s-emp">9</div><div class="ss" id="s-emp-sub" style="color:var(--ok)">—</div><i class="ti ti-users si"></i></div>
         <div class="sc"><div class="sl">إجمالي الرواتب قبل الخصم</div><div class="sv" id="s-gross">—</div><div class="ss" style="color:#8A7A50">ريال سعودي</div><i class="ti ti-report-money si"></i></div>
-        <div class="sc"><div class="sl">صافي الرواتب</div><div class="sv" id="s-net">—</div><div class="ss" id="s-di" style="color:var(--err)">—</div><i class="ti ti-wallet si"></i></div>
-        <div class="sc"><div class="sl">إجراءات تأديبية</div><div class="sv" id="s-disc">1</div><div class="ss" style="color:var(--err)">خصم مطبق</div><i class="ti ti-shield-exclamation si"></i></div>
+        <div class="sc" style="cursor:pointer" onclick="goTo('payroll')" title="كشف الرواتب"><div class="sl">صافي الرواتب الشهرية</div><div class="sv" id="s-net">—</div><div class="ss" id="s-di" style="color:var(--err)">—</div><i class="ti ti-wallet si"></i></div>
+        <div class="sc" style="cursor:pointer" onclick="goTo('disciplinary')" title="الجزاءات والخصومات"><div class="sl">إجراءات تأديبية</div><div class="sv" id="s-disc">1</div><div class="ss" id="s-disc-sub" style="color:var(--err)">—</div><i class="ti ti-shield-exclamation si"></i></div>
+      </div>
+      <div class="sg">
+        <div class="sc" style="cursor:pointer" onclick="goTo('loans')" title="السلف والخصومات المجدولة"><div class="sl">سلف/خصومات نشطة</div><div class="sv" id="s-loans">—</div><div class="ss" id="s-loans-sub" style="color:#8A7A50">—</div><i class="ti ti-cash-banknote si"></i></div>
+        <div class="sc" style="cursor:pointer" onclick="goTo('leaves')" title="الإجازات"><div class="sl">موظفون في إجازة</div><div class="sv" id="s-onleave">—</div><div class="ss" style="color:#8A7A50">الحالة الحالية</div><i class="ti ti-beach si"></i></div>
+        <div class="sc" style="cursor:pointer" onclick="goTo('leaves')" title="الإجازات"><div class="sl">رصيد إجازات منخفض</div><div class="sv" id="s-lowlv">—</div><div class="ss" style="color:#7A5A00">أقل من 7 أيام</div><i class="ti ti-calendar-stats si"></i></div>
+        <div class="sc" style="cursor:pointer" onclick="goTo('empProfile')" title="ملفات الموظفين"><div class="sl">وثائق قرب الانتهاء</div><div class="sv" id="s-docs">—</div><div class="ss" id="s-docs-sub" style="color:var(--err)">خلال 90 يوم</div><i class="ti ti-file-alert si"></i></div>
       </div>
       <div class="cr2">
-        <div class="cc"><div class="st" style="margin-bottom:11px">الرواتب الشهرية (ألف ريال) - 2025</div><div class="ba" id="bc"></div></div>
+        <div class="cc"><div class="st" style="margin-bottom:11px">صافي رواتب الموظفين (بالألف ر.س)</div><div class="ba" id="bc"></div></div>
         <div class="cc">
-          <div class="st" style="margin-bottom:9px">توزيع المسميات</div>
-          <div class="da">
-            <svg width="88" height="88" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="36" fill="none" stroke="#EAE5D5" stroke-width="15"/>
-              <circle cx="50" cy="50" r="36" fill="none" stroke="#163A22" stroke-width="15" stroke-dasharray="100 147" stroke-dashoffset="-22" transform="rotate(-90 50 50)"/>
-              <circle cx="50" cy="50" r="36" fill="none" stroke="#C9A84C" stroke-width="15" stroke-dasharray="27 147" stroke-dashoffset="-122" transform="rotate(-90 50 50)"/>
-              <circle cx="50" cy="50" r="36" fill="none" stroke="#8A6A20" stroke-width="15" stroke-dasharray="20 147" stroke-dashoffset="-149" transform="rotate(-90 50 50)"/>
-              <text x="50" y="54" text-anchor="middle" font-family="Tajawal" font-size="13" font-weight="700" fill="#163A22" id="dc">9</text>
-            </svg>
-            <div style="width:100%;margin-top:8px">
-              <div class="li"><span>سائق (7)</span><span><span class="ld2" style="background:var(--gm)"></span>78%</span></div>
-              <div class="li"><span>خاص (1)</span><span><span class="ld2" style="background:var(--gold)"></span>11%</span></div>
-              <div class="li"><span>حارس+حافز</span><span><span class="ld2" style="background:var(--gdm)"></span>11%</span></div>
-            </div>
-          </div>
+          <div class="st" style="margin-bottom:9px">توزيع المسميات الوظيفية</div>
+          <div class="da" id="job-dist"></div>
         </div>
       </div>
       <div class="sh"><div class="st">آخر المعاملات</div><button class="btn bo sm" onclick="go('payroll',document.querySelectorAll('.ni')[2])">عرض الكل</button></div>
@@ -428,7 +421,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       </div>
       <div class="fc">
         <div class="fg">
-          <div class="fm"><label>اختر الموظف</label><select id="eos-emp" onchange="calcEOS()"><option value="">-- اختر --</option></select></div>
+          <div class="fm"><label>اختر الموظف</label><select id="eos-emp" onchange="onEosEmpChange()"><option value="">-- اختر --</option></select></div>
           <div class="fm"><label>تاريخ بداية الخدمة</label><input type="date" id="eos-start" onchange="calcEOS()"></div>
           <div class="fm"><label>تاريخ نهاية الخدمة</label><input type="date" id="eos-end" onchange="calcEOS()"></div>
           <div class="fm"><label>سبب إنهاء الخدمة</label>
@@ -960,26 +953,88 @@ function go(id,el){
   if(id==='disciplinary')renderDisc();
   if(id==='loans')renderLoans();
   if(id==='archive')renderArchive();
-  if(id==='dashboard')upDash();
+  if(id==='dashboard'){upDash();checkAllExpiries();}
 }
 
 function tk(msg,c='var(--ok)'){const t=document.getElementById('tk');t.textContent=msg;t.style.background=c;t.style.display='block';setTimeout(()=>t.style.display='none',3000);}
 
 /* ════════════════════════════ DASHBOARD ════════════════════════════ */
+/* التنقل مع تفعيل عنصر القائمة الصحيح تلقائياً */
+function goTo(id){
+  var ni=[].slice.call(document.querySelectorAll('.ni')).find(function(n){return (n.getAttribute('onclick')||'').indexOf("'"+id+"'")>=0;});
+  go(id,ni||null);
+}
 function upDash(){
-  const g=emps.reduce((s,e)=>s+gross(e),0);
-  const n=emps.reduce((s,e)=>s+net(e),0);
-  const d=emps.reduce((s,e)=>s+totalDed(e),0);
-  document.getElementById('s-emp').textContent=emps.length;
-  document.getElementById('s-gross').textContent=fmt(g);
-  document.getElementById('s-net').textContent=fmt(n);
-  document.getElementById('s-disc').textContent=disc.length;
-  document.getElementById('s-di').textContent=d?`▼ خصم ${fmt(d)} ر.س`:'لا توجد خصومات';
-  document.getElementById('dc').textContent=emps.length;
-  document.getElementById('re').textContent=emps.length;
-  document.getElementById('rg').textContent=fmt(g);
-  document.getElementById('rn').textContent=fmt(n);
-  document.getElementById('dr').innerHTML=emps.slice(0,5).map(e=>`<tr><td><span class="ea">${av2(e.name)}</span>${e.name}</td><td>راتب يناير 2025</td><td>${fmt(net(e))} ر.س</td><td>يناير 2025</td><td><span class="bge ${e.ded?'bgd':'bgs'}">${e.ded?'خصم مطبق':'مكتمل'}</span></td></tr>`).join('');
+  var _y=(typeof selY==='function')?selY():(typeof CY!=='undefined'?CY:new Date().getFullYear());
+  var _m=(typeof selM==='function')?selM():new Date().getMonth();
+  var S=function(id,v){var el=document.getElementById(id); if(el)el.textContent=v;};
+  var g=emps.reduce(function(s,e){return s+gross(e);},0);
+  var loanMonth=emps.reduce(function(s,e){return s+loanDedFor(e.id,_y,_m);},0);
+  var dApplied=emps.reduce(function(s,e){return s+totalDed(e);},0)+loanMonth;
+  var n=emps.reduce(function(s,e){return s+net(e);},0)-loanMonth;
+  var active=emps.filter(function(e){return e.st==='active';}).length;
+  var onLeave=emps.filter(function(e){return e.st==='leave';}).length;
+  /* البطاقات — الصف الأول */
+  S('s-emp',emps.length);
+  S('s-emp-sub',active+' نشط · '+onLeave+' في إجازة');
+  S('s-gross',fmt(g));
+  S('s-net',fmt(n));
+  S('s-di',dApplied?('▼ خصومات '+fmt(dApplied)+' ر.س'):'لا توجد خصومات');
+  var discSum=(typeof disc!=='undefined'?disc:[]).reduce(function(s,d){return s+(+d.amt||0);},0);
+  S('s-disc',(typeof disc!=='undefined'?disc.length:0));
+  S('s-disc-sub',discSum?('بمبلغ '+fmt(discSum)+' ر.س'):'لا يوجد');
+  /* البطاقات — الصف الثاني (ربط الأقسام) */
+  var activeLoans=(typeof loans!=='undefined'?loans:[]).filter(function(l){return (l.status||'active')==='active';});
+  S('s-loans',activeLoans.length);
+  S('s-loans-sub','أقساط الشهر '+fmt(loanMonth)+' ر.س');
+  S('s-onleave',onLeave);
+  var lowlv=0;
+  emps.forEach(function(e){
+    var ent=lvEntitlement(e);
+    var used=lvReqs.filter(function(r){return r.eid===e.id&&r.type==='annual'&&r.st==='approved';}).reduce(function(s,r){return s+r.days;},0)+(e.lvUsed||0);
+    if(Math.max(0,ent-used)<7)lowlv++;
+  });
+  S('s-lowlv',lowlv);
+  var docs=0;
+  var P=(typeof profiles!=='undefined')?profiles:{};
+  emps.forEach(function(e){var p=P[e.id]||{};[p.idExp,p.passExp,p.contractEnd].forEach(function(d){if(d){var du=daysUntil(d);if(du<=90)docs++;}});});
+  S('s-docs',docs);
+  /* مرايا صفحة التقارير */
+  S('re',emps.length); S('rg',fmt(g)); S('rn',fmt(n)); S('dc',emps.length);
+  /* الرسوم */
+  renderJobDist();
+  renderNetBars(_y,_m);
+  /* آخر المعاملات */
+  var dr=document.getElementById('dr');
+  if(dr) dr.innerHTML=emps.slice(0,6).map(function(e){
+    var ln=loanDedFor(e.id,_y,_m); var nn=net(e)-ln;
+    var issue=(absentDays(e)>0)||(e.ded||0)>0||ln>0;
+    return '<tr><td><span class="ea">'+av2(e.name)+'</span>'+e.name+'</td><td>راتب '+MONTHS[_m]+' '+_y+'</td><td>'+fmt(nn)+' ر.س</td><td>'+MONTHS[_m]+' '+_y+'</td><td><span class="bge '+(issue?'bgd':'bgs')+'">'+(issue?'خصم مطبق':'مكتمل')+'</span></td></tr>';
+  }).join('');
+}
+function renderJobDist(){
+  var box=document.getElementById('job-dist'); if(!box)return;
+  var counts={}; emps.forEach(function(e){counts[e.job]=(counts[e.job]||0)+1;});
+  var entries=Object.keys(counts).map(function(k){return {job:k,n:counts[k]};}).sort(function(a,b){return b.n-a.n;});
+  var total=emps.length||1;
+  var pal=['#163A22','#C9A84C','#8A6A20','#2E7D4F','#185FA5','#A32D2D','#6b5b95','#b8921a'];
+  var acc=0, segs=[];
+  entries.forEach(function(it,i){var start=acc/total*100; acc+=it.n; var end=acc/total*100; segs.push(pal[i%pal.length]+' '+start+'% '+end+'%');});
+  var grad=segs.length?('conic-gradient('+segs.join(',')+')'):'#EAE5D5';
+  var legend=entries.map(function(it,i){return '<div class="li"><span>'+it.job+' ('+it.n+')</span><span><span class="ld2" style="background:'+pal[i%pal.length]+'"></span>'+Math.round(it.n/total*100)+'%</span></div>';}).join('');
+  box.innerHTML='<div style="width:96px;height:96px;border-radius:50%;background:'+grad+';position:relative;flex-shrink:0">'
+    +'<div style="position:absolute;inset:15px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gd);font-size:16px">'+emps.length+'</div></div>'
+    +'<div style="width:100%;margin-top:10px">'+legend+'</div>';
+}
+function renderNetBars(_y,_m){
+  var box=document.getElementById('bc'); if(!box)return;
+  var data=emps.map(function(e){return {name:e.name,val:Math.max(0,net(e)-loanDedFor(e.id,_y,_m))};});
+  var max=Math.max.apply(null,[1].concat(data.map(function(d){return d.val;})));
+  box.innerHTML=data.map(function(d){
+    var h=Math.max(4,Math.round(d.val/max*78));
+    var lbl=d.name.length>6?d.name.slice(0,6):d.name;
+    return '<div class="bw" title="'+d.name+': '+fmt(d.val)+' ر.س"><div class="bv">'+(d.val/1000).toFixed(1)+'</div><div class="br" style="height:'+h+'px"></div><div class="bl">'+lbl+'</div></div>';
+  }).join('');
 }
 
 /* ════════════════════════════ INLINE EDIT ════════════════════════════ */
@@ -1376,6 +1431,19 @@ function initEOS(){
   document.getElementById('eos-emp').innerHTML='<option value="">-- اختر موظفاً --</option>'+emps.map(e=>`<option value="${e.id}">${e.name} (${e.code})</option>`).join('');
   document.getElementById('eos-end').value=new Date().toISOString().split('T')[0];
   document.getElementById('eos-result-box').style.display='none';
+}
+/* ربط: عند اختيار الموظف يُملأ الراتب وبداية الخدمة ورصيد الإجازات المتبقي تلقائياً (قابل للتعديل) */
+function onEosEmpChange(){
+  const empId=+document.getElementById('eos-emp').value;
+  const e=empId?bid(empId):null;
+  if(e){
+    document.getElementById('eos-sal').value=e.sal;
+    if(e.hire)document.getElementById('eos-start').value=e.hire;
+    const ent=lvEntitlement(e);
+    const used=lvReqs.filter(function(r){return r.eid===e.id&&r.type==='annual'&&r.st==='approved';}).reduce(function(s,r){return s+r.days;},0)+(e.lvUsed||0);
+    document.getElementById('eos-lv').value=Math.max(0,ent-used);
+  }
+  calcEOS();
 }
 function calcEOS(){
   const empId=document.getElementById('eos-emp').value;
