@@ -400,6 +400,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="hint"><i class="ti ti-info-circle" style="font-size:14px;color:var(--gdm)"></i>
         وفق نظام العمل السعودي: <b>21 يوم</b> سنوياً لمن أمضى أقل من 5 سنوات · <b>30 يوم</b> لمن أمضى 5 سنوات فأكثر
       </div>
+      <div id="lv-return"></div>
       <div class="lv-card">
         <div class="lv-head">
           <span>الموظف</span><span>الرصيد المستحق</span><span>المأخوذ</span><span>المتبقي</span><span>الحالة</span><span>نسبة الاستهلاك</span><span>إجراء</span>
@@ -584,7 +585,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="fg">
         <div class="fm ff"><label>الموظف</label><select id="lv-emp" style="width:100%"></select></div>
         <div class="fm"><label>نوع الإجازة</label>
-          <select id="lv-type">
+          <select id="lv-type" onchange="onLvTypeChange()">
             <option value="annual">إجازة سنوية</option>
             <option value="sick">إجازة مرضية</option>
             <option value="emergency">إجازة طارئة</option>
@@ -610,6 +611,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
           <select id="lv-st"><option value="approved">موافق عليها</option><option value="pending">قيد المراجعة</option><option value="rejected">مرفوضة</option></select>
         </div>
         <div class="fm ff"><label>ملاحظات</label><input type="text" id="lv-note" placeholder="اختياري..."></div>
+        <div class="fm ff"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin:0"><input type="checkbox" id="lv-deduct" style="width:auto;transform:scale(1.2)"> <span>يُخصم من الراتب — احتساب أيام العمل فقط</span></label><div id="lv-deduct-hint" style="font-size:10.5px;color:#8A7A50;margin-top:4px">الإجازة «بدون راتب» تُخصم تلقائياً. فعّل الخيار يدوياً لخصم أي نوع آخر.</div></div>
       </div>
       <div style="margin-top:13px;display:flex;gap:8px">
         <button class="btn bg" onclick="saveLv()"><i class="ti ti-check"></i> حفظ الإجازة</button>
@@ -968,11 +970,11 @@ function upDash(){
   var _y=(typeof selY==='function')?selY():(typeof CY!=='undefined'?CY:new Date().getFullYear());
   var _m=(typeof selM==='function')?selM():new Date().getMonth();
   var S=function(id,v){var el=document.getElementById(id); if(el)el.textContent=v;};
+  if(typeof applyAutoWorkDays==='function')applyAutoWorkDays(_y,_m);
   var g=emps.reduce(function(s,e){return s+gross(e);},0);
   var loanMonth=emps.reduce(function(s,e){return s+loanDedFor(e.id,_y,_m);},0);
-  var unpaidMonth=emps.reduce(function(s,e){return s+unpaidLvDedFor(e.id,_y,_m);},0);
-  var dApplied=emps.reduce(function(s,e){return s+totalDed(e);},0)+loanMonth+unpaidMonth;
-  var n=emps.reduce(function(s,e){return s+net(e);},0)-loanMonth-unpaidMonth;
+  var dApplied=emps.reduce(function(s,e){return s+totalDed(e);},0)+loanMonth;
+  var n=emps.reduce(function(s,e){return s+net(e);},0)-loanMonth;
   var active=emps.filter(function(e){return e.st==='active';}).length;
   var onLeave=emps.filter(function(e){return e.st==='leave';}).length;
   /* البطاقات — الصف الأول */
@@ -1008,8 +1010,8 @@ function upDash(){
   /* آخر المعاملات */
   var dr=document.getElementById('dr');
   if(dr) dr.innerHTML=emps.slice(0,6).map(function(e){
-    var ln=loanDedFor(e.id,_y,_m); var ulx=unpaidLvDedFor(e.id,_y,_m); var nn=net(e)-ln-ulx;
-    var issue=(absentDays(e)>0)||(e.ded||0)>0||ln>0||ulx>0;
+    var ln=loanDedFor(e.id,_y,_m); var nn=net(e)-ln;
+    var issue=(absentDays(e)>0)||(e.ded||0)>0||ln>0;
     return '<tr><td><span class="ea">'+av2(e.name)+'</span>'+e.name+'</td><td>راتب '+MONTHS[_m]+' '+_y+'</td><td>'+fmt(nn)+' ر.س</td><td>'+MONTHS[_m]+' '+_y+'</td><td><span class="bge '+(issue?'bgd':'bgs')+'">'+(issue?'خصم مطبق':'مكتمل')+'</span></td></tr>';
   }).join('');
 }
@@ -1029,7 +1031,7 @@ function renderJobDist(){
 }
 function renderNetBars(_y,_m){
   var box=document.getElementById('bc'); if(!box)return;
-  var data=emps.map(function(e){return {name:e.name,val:Math.max(0,net(e)-loanDedFor(e.id,_y,_m)-unpaidLvDedFor(e.id,_y,_m))};});
+  var data=emps.map(function(e){return {name:e.name,val:Math.max(0,net(e)-loanDedFor(e.id,_y,_m))};});
   var max=Math.max.apply(null,[1].concat(data.map(function(d){return d.val;})));
   box.innerHTML=data.map(function(d){
     var h=Math.max(4,Math.round(d.val/max*78));
@@ -1120,6 +1122,7 @@ function demp(id){const e=bid(id);if(!confirm(`حذف الموظف: ${e.name}؟`
 
 /* ════════════════════════════ PAYROLL ════════════════════════════ */
 function renderPayroll(){
+  applyAutoWorkDays(selY(),selM());
   document.getElementById('pb').innerHTML=emps.map(e=>`<tr id="pr-${e.id}">
     <td><div style="display:flex;align-items:center"><span class="ea">${av2(e.name)}</span><div><div>${e.name}</div><div style="font-size:10px;color:#8A7A50">${e.code}</div></div></div></td>
     <td>${fmt(e.sal)}</td>
@@ -1143,9 +1146,9 @@ function sprow(e){
   const wdTd=document.querySelector(`.pwd-${e.id}`);
   if(wdTd) attEd(wdTd,(e.workDays??BASE_DAYS),'number',(v)=>{
     const wd=Math.min(+v,BASE_DAYS);
-    e.workDays=wd;
+    e.workDays=wd; e.workDaysAuto=false; /* تثبيت يدوي — لن يتغيّر تلقائياً بالإجازات */
     rprow(e);upPay();upDash();saveToLocal();
-    tk(`تم تحديث أيام حضور ${e.name}: ${wd} يوم — غياب: ${absentDays(e)} يوم — خصم: ${fmt(absenceDed(e))} ر.س`);
+    tk(`تم تثبيت أيام حضور ${e.name} يدوياً: ${wd} يوم — غياب: ${absentDays(e)} يوم — خصم: ${fmt(absenceDed(e))} ر.س`);
   });
   // ساعات إضافية
   const otTd=document.querySelector(`.pot-${e.id}`);
@@ -1166,9 +1169,8 @@ function rprow(e){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
-  const ul=unpaidLvDedFor(e.id,selY(),selM());
-  const ulDays=unpaidLvDays(e.id,selY(),selM());
-  const n=net(e)-ln-ul;
+  const lvDays=salaryReducingLeaveDays(e.id,selY(),selM());
+  const n=net(e)-ln;
   const dr=dailyRate(e);
   const hasIssue=absent>0||(e.ded||0)>0;
 
@@ -1193,15 +1195,13 @@ function rprow(e){
   if(pn) pn.textContent=fmt(n)+' ر.س';
 
   const pln=document.querySelector(`.pln-${e.id}`);
-  if(pln){
-    const combo=ln+ul;
-    pln.textContent=combo?`-${fmt(combo)} ر.س`:'-';
-    pln.title=(ln?`قسط سلفة/خصم: ${fmt(ln)} ر.س`:'')+(ln&&ul?' · ':'')+(ul?`إجازة بدون راتب: ${fmt(ul)} ر.س (${ulDays}ي)`:'');
-  }
+  if(pln){ pln.textContent=ln?`-${fmt(ln)} ر.س`:'-'; pln.title=ln?`قسط سلفة/خصم: ${fmt(ln)} ر.س`:''; }
 
   const ps=document.getElementById(`pst-${e.id}`);
   if(ps){
-    if(ul>0){ps.className='bge bgw';ps.textContent=`بدون راتب ${ulDays}ي`;}
+    const plainAbsent=Math.max(0,absent-lvDays);
+    if(lvDays>0&&plainAbsent>0){ps.className='bge bgd';ps.textContent=`إجازة+غياب`;}
+    else if(lvDays>0){ps.className='bge bgi';ps.textContent=`بدون راتب ${lvDays}ي`;}
     else if(absent>0&&(e.ded||0)>0){ps.className='bge bgd';ps.textContent='غياب+خصم';}
     else if(absent>0){ps.className='bge bgw';ps.textContent=`غياب ${absent}ي`;}
     else if((e.ded||0)>0){ps.className='bge bgd';ps.textContent='خصم آخر';}
@@ -1212,10 +1212,9 @@ function rprow(e){
 function upPay(){
   const _y=selY(),_m=selM();
   const _ln=emps.reduce((s,e)=>s+loanDedFor(e.id,_y,_m),0);
-  const _ul=emps.reduce((s,e)=>s+unpaidLvDedFor(e.id,_y,_m),0);
   const g=emps.reduce((s,e)=>s+gross(e),0);
-  const d=emps.reduce((s,e)=>s+totalDed(e),0)+_ln+_ul;
-  const n=emps.reduce((s,e)=>s+net(e),0)-_ln-_ul;
+  const d=emps.reduce((s,e)=>s+totalDed(e),0)+_ln;
+  const n=emps.reduce((s,e)=>s+net(e),0)-_ln;
   document.getElementById('pg2').textContent=fmt(g)+' ر.س';
   document.getElementById('pd2').textContent=fmt(d)+' ر.س';
   document.getElementById('pn2').textContent=fmt(n)+' ر.س';
@@ -1224,9 +1223,11 @@ function runPayroll(){
   const y=selY(),m=selM(),period=MONTHS[m]+' '+y;
   const ex=payrollArchive.find(r=>r.year===y&&r.month===m);
   if(ex){ if(!confirm('يوجد كشف محفوظ لشهر '+period+'. استبداله بالحالي؟'))return; payrollArchive=payrollArchive.filter(r=>!(r.year===y&&r.month===m)); }
-  const rows=emps.map(e=>{const ln=loanDedFor(e.id,y,m);const ul=unpaidLvDedFor(e.id,y,m);const ded=(e.ded||0);const n=net(e)-ln-ul;
-    const rsn=(e.dedReason||'')+(ul?((e.dedReason?' + ':'')+'إجازة بدون راتب'):'');
-    return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:ln+ul,ded:ded,dedReason:rsn,net:n};});
+  applyAutoWorkDays(y,m);
+  const rows=emps.map(e=>{const ln=loanDedFor(e.id,y,m);const ded=(e.ded||0);const n=net(e)-ln;
+    const lvD=salaryReducingLeaveDays(e.id,y,m);
+    const rsn=(e.dedReason||'')+(lvD?((e.dedReason?' + ':'')+'إجازة بدون راتب ('+lvD+'ي)'):'');
+    return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:ln,ded:ded,dedReason:rsn,net:n};});
   const T={sal:rows.reduce((s,r)=>s+r.sal,0),loan:rows.reduce((s,r)=>s+r.loanInst,0),ded:rows.reduce((s,r)=>s+r.ded,0),net:rows.reduce((s,r)=>s+r.net,0)};
   payrollArchive.push({id:Date.now(),year:y,month:m,period:period,paidAt:new Date().toISOString(),rows:rows,totals:T});
   saveToLocal();
@@ -1271,18 +1272,19 @@ function showSlip(id){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
-  const ul=unpaidLvDedFor(e.id,selY(),selM());
-  const ulDays=unpaidLvDays(e.id,selY(),selM());
-  const n=net(e)-ln-ul;
+  const n=net(e)-ln;
   const dr=Math.round(dailyRate(e));
+  const daily=dailyRate(e);
+  const lvDays=Math.min(ab,salaryReducingLeaveDays(e.id,selY(),selM()));
+  const lvDed=Math.round(daily*lvDays);
+  const plainAbsent=Math.max(0,ab-lvDays);
+  const plainDed=abD-lvDed;
   const wdStyle=ab>0?"color:var(--err);font-weight:600":"color:var(--ok);font-weight:600";
-  const abRow=ab>0?`
-    <div class="slr"><span style="color:#8A7A50">أيام الغياب</span><span style="color:var(--err);font-weight:600">${ab} يوم</span></div>
-    <div class="slr"><span style="color:#8A7A50">خصم الغياب (${ab} x ${fmt(dr)})</span><span style="color:var(--err)">-${fmt(abD)} ر.س</span></div>`:'';
+  const lvRow=lvDays>0?`<div class="slr"><span style="color:#8A7A50">إجازة بدون راتب (${lvDays} يوم × ${fmt(dr)})</span><span style="color:var(--err)">-${fmt(lvDed)} ر.س</span></div>`:'';
+  const abRow=plainAbsent>0?`<div class="slr"><span style="color:#8A7A50">خصم غياب (${plainAbsent} يوم × ${fmt(dr)})</span><span style="color:var(--err)">-${fmt(plainDed)} ر.س</span></div>`:'';
   const otRow=op?`<div class="slr"><span style="color:#8A7A50">أجر إضافي</span><span style="color:var(--ok)">+${fmt(op)} ر.س</span></div>`:'';
   const dedRow=(e.ded||0)?`<div class="slr"><span style="color:#8A7A50">خصومات أخرى${e.dedReason?' ('+e.dedReason+')':''}</span><span style="color:var(--err)">-${fmt(e.ded)} ر.س</span></div>`:'';
   const loanRow=ln?`<div class="slr"><span style="color:#8A7A50">قسط سلفة/خصم</span><span style="color:var(--err)">-${fmt(ln)} ر.س</span></div>`:'';
-  const ulRow=ul?`<div class="slr"><span style="color:#8A7A50">إجازة بدون راتب (${ulDays} يوم)</span><span style="color:var(--err)">-${fmt(ul)} ر.س</span></div>`:'';
   document.getElementById('slb').innerHTML=`
     <div class="slh"><img class="logo-3d-img" alt="شعار" style="width:80px;height:50px;object-fit:cover;border-radius:10px;border:2px solid var(--gold);flex-shrink:0;box-shadow:0 4px 15px rgba(201,168,76,0.4);">
     <div><div class="slorg">المكتب الإداري للشيخ سعد علي آل عوضه</div>
@@ -1292,12 +1294,15 @@ function showSlip(id){
     <div class="slr"><span style="color:#8A7A50">المسمى</span><span>${e.job}</span></div>
     <hr style="border:none;border-top:1px solid #EAE5D5;margin:6px 0">
     <div class="slr"><span style="color:#8A7A50">الراتب الأساسي (30 يوم)</span><b>${fmt(e.sal)} ر.س</b></div>
+    <div class="slr"><span style="color:#8A7A50">أيام الحضور الفعلية</span><span style="${wdStyle}">${e.workDays??BASE_DAYS} / ${BASE_DAYS} يوم</span></div>
+    ${otRow}
+    ${lvRow}
+    ${abRow}
     ${dedRow}
     ${loanRow}
-    ${ulRow}
     <hr style="border:none;border-top:2px solid rgba(201,168,76,0.3);margin:6px 0">
     <div class="slr"><span style="color:#8A7A50">الإجمالي قبل الخصم</span><b>${fmt(g)} ر.س</b></div>
-    <div class="slr"><span style="color:#8A7A50">إجمالي الخصومات</span><span style="color:var(--err)">${(ab||e.ded||ln||ul)?'-'+fmt(abD+(e.ded||0)+ln+ul)+' ر.س':'لا يوجد'}</span></div>
+    <div class="slr"><span style="color:#8A7A50">إجمالي الخصومات</span><span style="color:var(--err)">${(ab||e.ded||ln)?'-'+fmt(abD+(e.ded||0)+ln)+' ر.س':'لا يوجد'}</span></div>
     <div class="slt"><span>صافي الراتب المستحق</span><span>${fmt(n)} ريال سعودي</span></div>
     <div style="text-align:center;margin-top:11px;font-size:10px;color:#8A7A50;font-family:'Amiri',serif">المكتب الإداري للشيخ سعد علي آل عوضه</div>`;
   document.getElementById('msm').classList.add('open');
@@ -1359,13 +1364,46 @@ function renderLeaves(){
     return`<tr><td><span class="ea">${av2(e.name)}</span>${e.name}</td>
       <td>${r.from}</td><td>${r.to}</td>
       <td style="font-weight:600">${r.days} يوم</td>
-      <td><span class="bge bgo">${tMap[r.type]||r.type}</span>${r.visa?` <span class="bge bgi" title="تأشيرة خروج وعودة">✈️ ${r.visa} يوم</span>`:''}</td>
+      <td><span class="bge bgo">${tMap[r.type]||r.type}</span>${r.visa?` <span class="bge bgi" title="تأشيرة خروج وعودة">✈️ ${r.visa} يوم</span>`:''}${(r.type!=='unpaid'&&r.deduct)?` <span class="bge bgd" title="يُخصم من الراتب">يُخصم</span>`:''}</td>
       <td><span class="bge ${sMap[r.st]||'bgw'}">${sTxt[r.st]||r.st}</span></td>
       <td style="display:flex;gap:3px">
         <button class="btn bed sm" onclick="editLv(${i})"><i class="ti ti-edit"></i></button>
         <button class="btn bdl sm" onclick="delLv(${i})"><i class="ti ti-trash"></i></button>
       </td></tr>`;
   }).join('');
+  renderLeaveReturns();
+}
+/* ── قسم «بانتظار العودة»: تذكير بمواعيد رجوع الموظفين ── */
+function renderLeaveReturns(){
+  const box=document.getElementById('lv-return'); if(!box)return;
+  const today=new Date(); const td=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const DAY=24*3600*1000;
+  const items=lvReqs.filter(function(r){ if(r.st!=='approved')return false; const t=new Date(r.to); if(isNaN(t))return false; return new Date(t.getFullYear(),t.getMonth(),t.getDate())>=td; })
+    .map(function(r){ const f=new Date(r.from), t=new Date(r.to); const fD=new Date(f.getFullYear(),f.getMonth(),f.getDate()), tD=new Date(t.getFullYear(),t.getMonth(),t.getDate()); const ret=new Date(tD.getTime()+DAY); const onNow=td>=fD; const daysToReturn=Math.round((ret-td)/DAY); const daysToStart=Math.round((fD-td)/DAY); return {r:r,onNow:onNow,ret:ret,daysToReturn:daysToReturn,daysToStart:daysToStart}; })
+    .sort(function(a,b){ return a.ret-b.ret; });
+  if(!items.length){ box.innerHTML=''; return; }
+  const tMap={annual:'سنوية',sick:'مرضية',emergency:'طارئة',unpaid:'بدون راتب'};
+  const rows=items.map(function(x){
+    const e=bid(x.r.eid)||{name:'-'};
+    const retStr=x.ret.toISOString().split('T')[0];
+    let badge, sub;
+    if(x.onNow){
+      const d=x.daysToReturn;
+      const color=d<=1?'#A32D2D':d<=3?'#7A5A00':'#185FA5';
+      badge=`<span class="bge" style="background:#E6F1FB;color:${color}">${d<=0?'يعود اليوم':d===1?'يعود غداً':'يعود بعد '+d+' يوم'}</span>`;
+      sub=`في إجازة ${tMap[x.r.type]||x.r.type} · تاريخ العودة ${retStr}`;
+    } else {
+      const d=x.daysToStart;
+      badge=`<span class="bge bgw">${d===0?'تبدأ اليوم':d===1?'تبدأ غداً':'تبدأ بعد '+d+' يوم'}</span>`;
+      sub=`إجازة ${tMap[x.r.type]||x.r.type} قادمة (${x.r.from}) · العودة ${retStr}`;
+    }
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #EAE5D5;border-radius:8px;padding:9px 12px">
+      <div style="display:flex;align-items:center;gap:8px"><span class="ea">${av2(e.name)}</span><div><div style="font-weight:600;font-size:12.5px">${e.name}</div><div style="font-size:10.5px;color:#8A7A50">${sub}</div></div></div>
+      ${badge}</div>`;
+  }).join('');
+  box.innerHTML=`<div style="background:#FBF9F1;border:1px solid #EAE5D5;border-radius:10px;padding:12px 14px;margin-bottom:12px">
+    <div class="st" style="margin-bottom:9px"><i class="ti ti-calendar-due" style="color:var(--gold)"></i> بانتظار العودة (${items.length})</div>
+    <div style="display:flex;flex-direction:column;gap:6px">${rows}</div></div>`;
 }
 function calcLvDays(){
   const f=document.getElementById('lv-from').value;
@@ -1417,9 +1455,18 @@ function openLeaveModal(idx=-1,empId=null){
   document.getElementById('lv-idx').value=idx;
   document.getElementById('lv-modal-title').textContent=idx>=0?'تعديل طلب الإجازة':'تسجيل إجازة جديدة';
   pfLvEmp(empId);
-  if(idx>=0){const r=lvReqs[idx];document.getElementById('lv-emp').value=r.eid;document.getElementById('lv-type').value=r.type;document.getElementById('lv-from').value=r.from;document.getElementById('lv-to').value=r.to;document.getElementById('lv-days').value=r.days;document.getElementById('lv-st').value=r.st;document.getElementById('lv-note').value=r.note||'';setVisaUI(r.visa||0);}
-  else{document.getElementById('lv-from').value='';document.getElementById('lv-to').value='';document.getElementById('lv-days').value='';document.getElementById('lv-st').value='approved';document.getElementById('lv-note').value='';setVisaUI(0);}
+  if(idx>=0){const r=lvReqs[idx];document.getElementById('lv-emp').value=r.eid;document.getElementById('lv-type').value=r.type;document.getElementById('lv-from').value=r.from;document.getElementById('lv-to').value=r.to;document.getElementById('lv-days').value=r.days;document.getElementById('lv-st').value=r.st;document.getElementById('lv-note').value=r.note||'';setVisaUI(r.visa||0);document.getElementById('lv-deduct').checked=!!(r.type==='unpaid'||r.deduct);}
+  else{document.getElementById('lv-from').value='';document.getElementById('lv-to').value='';document.getElementById('lv-days').value='';document.getElementById('lv-st').value='approved';document.getElementById('lv-note').value='';setVisaUI(0);document.getElementById('lv-deduct').checked=false;}
+  onLvTypeChange();
   document.getElementById('mlv').classList.add('open');
+}
+/* عند تغيير النوع: «بدون راتب» تُخصم إلزامياً؛ غيرها اختياري */
+function onLvTypeChange(){
+  const t=document.getElementById('lv-type').value;
+  const chk=document.getElementById('lv-deduct');
+  const hint=document.getElementById('lv-deduct-hint');
+  if(t==='unpaid'){ chk.checked=true; chk.disabled=true; if(hint)hint.textContent='الإجازة «بدون راتب» تُخصم تلقائياً (لا يمكن إلغاؤها).'; }
+  else { chk.disabled=false; if(hint)hint.textContent='فعّل الخيار لخصم هذا النوع من الراتب (احتساب أيام العمل فقط).'; }
 }
 function editLv(i){openLeaveModal(i);}
 function delLv(i){if(!confirm('حذف طلب الإجازة؟'))return;lvReqs.splice(i,1);renderLeaves();saveToLocal();tk('تم حذف طلب الإجازة','var(--err)');}
@@ -1432,12 +1479,15 @@ function saveLv(){
   const st=document.getElementById('lv-st').value;
   const note=document.getElementById('lv-note').value;
   const visa=currentVisaDays();
+  const deduct=(type==='unpaid')?true:document.getElementById('lv-deduct').checked;
   const idx=+document.getElementById('lv-idx').value;
   if(!from||!to||!days){tk('يرجى تحديد التواريخ','var(--err)');return;}
-  if(idx>=0)lvReqs[idx]={eid,type,from,to,days,st,note,visa};
-  else lvReqs.push({eid,type,from,to,days,st,note,visa});
+  if(idx>=0)lvReqs[idx]={eid,type,from,to,days,st,note,visa,deduct};
+  else lvReqs.push({eid,type,from,to,days,st,note,visa,deduct});
   document.getElementById('mlv').classList.remove('open');
-  renderLeaves();saveToLocal();tk('✅ تم حفظ طلب الإجازة');
+  renderLeaves();
+  if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
+  upDash();saveToLocal();tk('✅ تم حفظ طلب الإجازة'+(deduct?' — سيُحتسب أيام العمل فقط':''));
 }
 
 /* ════════════════════════════ EOS - نهاية الخدمة ════════════════════════════ */
@@ -2062,7 +2112,7 @@ function loanPaidThrough(l,y,m0){var s=0,n=loanCount(l),ss=loanStartSer(l),es=_m
 function loanEndLabel(l){var t=loanStartSer(l)+loanCount(l)-1;return MONTHS[t%12]+' '+Math.floor(t/12);}
 function loanStartLabel(l){var t=loanStartSer(l);return MONTHS[t%12]+' '+Math.floor(t/12);}
 function loanDedFor(eid,y,m0){return loans.filter(function(l){return l.eid===eid;}).reduce(function(s,l){return s+loanInstallment(l,y,m0);},0);}
-/* ── ربط الإجازات بالرواتب: خصم الإجازة بدون راتب ── */
+/* ── ربط الإجازات بالرواتب: خصم أيام الإجازة (بدون راتب أو المؤشّرة للخصم) عبر أيام الحضور ── */
 function monthOverlapDays(from,to,y,m0){
   if(!from||!to)return 0;
   var start=new Date(y,m0,1), end=new Date(y,m0+1,0);
@@ -2072,20 +2122,33 @@ function monthOverlapDays(from,to,y,m0){
   if(b<a)return 0;
   return Math.round((b-a)/(24*3600*1000))+1;
 }
-function unpaidLvDays(eid,y,m0){
-  return lvReqs.filter(function(r){return r.eid===eid&&r.type==='unpaid'&&r.st==='approved';})
+/* الإجازة تُخفّض الراتب إذا كانت «بدون راتب» أو مؤشّرة يدوياً للخصم */
+function leaveReducesSalary(r){return !!(r&&r.st==='approved'&&(r.type==='unpaid'||r.deduct===true));}
+function salaryReducingLeaveDays(eid,y,m0){
+  return lvReqs.filter(function(r){return r.eid===eid&&leaveReducesSalary(r);})
     .reduce(function(s,r){return s+monthOverlapDays(r.from,r.to,y,m0);},0);
 }
-function unpaidLvDedFor(eid,y,m0){var e=bid(eid); if(!e)return 0; return Math.round(dailyRate(e)*unpaidLvDays(eid,y,m0));}
-/* هل الموظف في إجازة معتمدة تغطي تاريخ اليوم؟ (للإشارة في الحضور) */
-function onApprovedLeaveToday(eid){
-  var today=new Date(); today.setHours(0,0,0,0);
-  return lvReqs.some(function(r){
-    if(r.eid!==eid||r.st!=='approved')return false;
-    var f=new Date(r.from), t=new Date(r.to);
-    return !isNaN(f)&&!isNaN(t)&&today>=new Date(f.getFullYear(),f.getMonth(),f.getDate())&&today<=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+/* ضبط أيام الحضور تلقائياً = أساس الشهر ناقص أيام الإجازة الخاصمة (ما لم يُثبّتها المستخدم يدوياً) */
+function applyAutoWorkDays(y,m0){
+  emps.forEach(function(e){
+    if(e.workDaysAuto===false)return;
+    var lv=salaryReducingLeaveDays(e.id,y,m0);
+    e.workDays=Math.max(0,BASE_DAYS-lv);
   });
 }
+/* هل الموظف في إجازة معتمدة تغطي تاريخ اليوم؟ (للإشارة في الحضور) */
+function leaveCoveringToday(eid){
+  var today=new Date(); var td=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  return lvReqs.find(function(r){
+    if(r.eid!==eid||r.st!=='approved')return false;
+    var f=new Date(r.from), t=new Date(r.to);
+    if(isNaN(f)||isNaN(t))return false;
+    return td>=new Date(f.getFullYear(),f.getMonth(),f.getDate())&&td<=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  })||null;
+}
+function onApprovedLeaveToday(eid){return !!leaveCoveringToday(eid);}
+/* تاريخ العودة المتوقع = اليوم التالي لانتهاء الإجازة */
+function leaveReturnDate(r){var t=new Date(r.to); if(isNaN(t))return null; t.setDate(t.getDate()+1); return t;}
 function fillLoanForm(){
   var es=document.getElementById('ln-emp'); if(es)es.innerHTML=emps.map(function(e){return '<option value="'+e.id+'">'+e.name+' — '+e.code+'</option>';}).join('');
   var sm=document.getElementById('ln-sm'); if(sm)sm.innerHTML=MONTHS.map(function(m,i){return '<option value="'+i+'"'+(i===selM()?' selected':'')+'>'+m+'</option>';}).join('');
@@ -2373,10 +2436,13 @@ function buildSlipHTML(e){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
-  const ul=unpaidLvDedFor(e.id,selY(),selM());
-  const ulDays=unpaidLvDays(e.id,selY(),selM());
-  const n=net(e)-ln-ul;
+  const n=net(e)-ln;
   const dr=Math.round(dailyRate(e));
+  const daily=dailyRate(e);
+  const lvDays=Math.min(ab,salaryReducingLeaveDays(e.id,selY(),selM()));
+  const lvDed=Math.round(daily*lvDays);
+  const plainAbsent=Math.max(0,ab-lvDays);
+  const plainDed=abD-lvDed;
   const period=getSelPeriod('pm','py');
   const periodEN=getPeriodEN();
 
@@ -2410,7 +2476,7 @@ function buildSlipHTML(e){
   let extraRows='';
   if(otherDed>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">خصم آخر${e.dedReason?' — '+e.dedReason:''}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Other Deduction</div></td><td><div style="font-size:11.5px;color:#444">${e.dedReason||'خصم'}</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(otherDed)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
   if(ln>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">قسط سلفة/خصم</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Loan / Scheduled Installment</div></td><td><div style="font-size:11.5px;color:#444">قسط الشهر</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(ln)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
-  if(ul>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">إجازة بدون راتب (${ulDays} يوم)</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Unpaid Leave</div></td><td><div style="font-size:11.5px;color:#444">${ulDays} يوم × ${fmt(dr)} ر.س</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(ul)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
+  if(lvDays>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">إجازة بدون راتب (${lvDays} يوم)</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Unpaid Leave</div></td><td><div style="font-size:11.5px;color:#444">${lvDays} يوم × ${fmt(dr)} ر.س</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(lvDed)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
 
   return`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -2512,16 +2578,16 @@ function buildSlipHTML(e){
     </div>
 
     <!-- Section 2: Deductions (only if any) -->
-    ${(ab>0||empDisc.length>0||ln>0||ul>0||otherDed>0)?`
+    ${(ab>0||empDisc.length>0||ln>0||otherDed>0)?`
     <div class="section">
       <div class="sec-title">
         <div><div class="sec-title-ar">الخصومات والاستقطاعات</div><div class="sec-title-en">DEDUCTIONS & WITHHELD AMOUNTS</div></div>
       </div>
-      ${ab>0?`<div class="alert-box">
-        <div class="alert-ar">⚠️ خصم غياب: ${ab} يوم × ${fmt(dr)} ر.س/يوم (${fmt(e.sal)} ر.س ÷ 30) = <b>${fmt(abD)} ر.س</b></div>
-        <div class="alert-en">Absence Deduction: ${ab} absent day(s) × ${fmt(dr)} SAR/day (Basic: ${fmt(e.sal)} SAR ÷ 30 days) = <b>${fmt(abD)} SAR</b></div>
+      ${plainAbsent>0?`<div class="alert-box">
+        <div class="alert-ar">⚠️ خصم غياب: ${plainAbsent} يوم × ${fmt(dr)} ر.س/يوم (${fmt(e.sal)} ر.س ÷ 30) = <b>${fmt(plainDed)} ر.س</b></div>
+        <div class="alert-en">Absence Deduction: ${plainAbsent} absent day(s) × ${fmt(dr)} SAR/day (Basic: ${fmt(e.sal)} SAR ÷ 30 days) = <b>${fmt(plainDed)} SAR</b></div>
       </div>`:''}
-      ${(empDisc.length>0||ln>0||ul>0||otherDed>0)?`
+      ${(empDisc.length>0||ln>0||lvDays>0||otherDed>0)?`
       <table class="ded-table">
         <thead>
           <tr>
@@ -2540,7 +2606,7 @@ function buildSlipHTML(e){
         <div><div class="sec-title-ar">الملخص المالي</div><div class="sec-title-en">FINANCIAL SUMMARY</div></div>
       </div>
       <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الراتب قبل الخصم</span><span class="row-en">Gross Salary (before deductions)</span></div><div class="row-val">${fmt(g)} ر.س</div></div>
-      <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الخصومات</span><span class="row-en">Total Deductions</span></div><div class="row-val neg">-${fmt(totalDed(e)+ln+ul)} ر.س</div></div>
+      <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الخصومات</span><span class="row-en">Total Deductions</span></div><div class="row-val neg">-${fmt(totalDed(e)+ln)} ر.س</div></div>
     </div>
 
     <!-- Net Total -->
