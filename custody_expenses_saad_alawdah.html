@@ -209,7 +209,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         <button class="btn gold sm" id="acc-btn-pe" onclick="openPropInv()" style="display:none">＋ فاتورة عقار</button>
         <button class="btn ghost sm" id="acc-btn-import" onclick="document.getElementById('xl-in').click()">📥 استيراد Excel</button>
         <button class="btn ghost sm" onclick="exportAcc()">📤 تصدير Excel</button>
-        <button class="btn ghost sm" id="acc-btn-sort" onclick="sortAccByDate()">↕️ ترتيب حسب التاريخ</button>
+        <button class="btn ghost sm" id="acc-btn-sort" onclick="sortAccByDate()">↕️ ترتيب حسب التاريخ ثم الفاتورة</button>
         <button class="btn ghost sm" onclick="printAcc()">🖨️ طباعة</button>
       </div>
     </div>
@@ -703,12 +703,20 @@ function sortAccByDate(){
   var m=ACCMETA[CUR]; if(m && m.readonly){ toast('هذا الحساب للعرض فقط'); return; }
   var acc=STATE.accounts[CUR];
   if(!acc || !acc.rows || !acc.rows.length){ toast('لا توجد قيود للترتيب'); return; }
-  if(!confirm('إعادة ترتيب القيود تصاعدياً حسب التاريخ.\nأي قيد أُدخل متأخراً سيأخذ مكانه الزمني الصحيح.\nلا يُحذف أو يتغيّر أي مبلغ أو بيان — إعادة ترتيب فقط، ويمكن التراجع بـ Ctrl+Z.\n\nمتابعة؟')) return;
+  if(!confirm('إعادة ترتيب القيود تصاعدياً حسب التاريخ ثم رقم الفاتورة.\nأي قيد أُدخل متأخراً سيأخذ مكانه الزمني الصحيح، والقيود بنفس التاريخ تُرتَّب برقم الفاتورة تصاعدياً.\nلا يُحذف أو يتغيّر أي مبلغ أو بيان — إعادة ترتيب فقط، ويمكن التراجع بـ Ctrl+Z.\n\nمتابعة؟')) return;
   pushUndo();
-  acc.rows.sort(function(a,b){ var da=normDate(a.date)||String(a.date||''); var db=normDate(b.date)||String(b.date||''); if(da<db)return -1; if(da>db)return 1; return 0; });
+  var _inv=function(v){return String(v==null?'':v).trim();};
+  acc.rows.sort(function(a,b){
+    var da=normDate(a.date)||String(a.date||''); var db=normDate(b.date)||String(b.date||'');
+    if(da<db)return -1; if(da>db)return 1;
+    /* نفس التاريخ: ترتيب برقم الفاتورة تصاعدياً (رقمياً)، والقيود بدون رقم فاتورة تأتي أخيراً */
+    var ia=_inv(a.inv), ib=_inv(b.inv);
+    if(ia&&!ib)return -1; if(!ia&&ib)return 1; if(!ia&&!ib)return 0;
+    return ia.localeCompare(ib,undefined,{numeric:true,sensitivity:'base'});
+  });
   persist();
   try{ if(typeof refreshUI==='function')refreshUI(); else renderAcc(); }catch(e){ renderAcc(); }
-  toast('تم ترتيب القيود حسب التاريخ ✓');
+  toast('تم ترتيب القيود حسب التاريخ ثم رقم الفاتورة ✓');
 }
 
 /* ============ UNDO / REDO ============ */
