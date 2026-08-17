@@ -301,6 +301,41 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 <style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
 @media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
+<style>
+.dash-head{margin:6px 2px 14px}.dash-title{font-size:20px;font-weight:800;color:#e9c46a}.dash-sub{font-size:12.5px;color:#9db3a3;margin-top:3px}
+.dtiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.dtile{background:linear-gradient(160deg,#0e2c1c,#0a2416);border:1px solid #1d4a2c;border-radius:14px;padding:14px 16px}
+.dtile-v{font-size:22px;font-weight:800}.dtile-l{font-size:12px;color:#bcd8c8;margin-top:4px}.dtile-s{font-size:11px;color:#9db3a3;margin-top:3px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.dcard{background:#0e2c1c;border:1px solid #1d4a2c;border-radius:16px;padding:16px 18px}
+.dcard-wide{grid-column:1/-1}
+.dcard-h{font-size:14px;font-weight:800;color:#e9c46a;margin-bottom:14px}
+.dbars{display:flex;flex-direction:column;gap:9px}
+.dbar-row{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:10px;font-size:12.5px}
+.dbar-row:hover{filter:brightness(1.12)}
+.dbar-lbl{color:#cfe3d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dbar-track{height:12px;background:rgba(255,255,255,.06);border-radius:20px;overflow:hidden}
+.dbar-fill{height:100%;border-radius:20px;min-width:3px}
+.dbar-val{color:#fff;font-weight:700;white-space:nowrap}
+.ddonut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ddonut{width:150px;height:150px;flex-shrink:0}
+.dd-num{fill:#fff;font-size:26px;font-weight:800}.dd-lbl{fill:#9db3a3;font-size:11px}
+.dleg{display:flex;flex-direction:column;gap:7px;flex:1;min-width:140px}
+.dleg-i{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.dleg-i:hover{filter:brightness(1.15)}
+.dleg-c{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.dleg-l{color:#cfe3d8;flex:1}.dleg-v{color:#fff;font-weight:700}
+.dtl{display:flex;align-items:flex-end;gap:8px;height:150px;overflow-x:auto;padding-top:8px}
+.dtl-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:44px}
+.dtl-bar{width:24px;background:linear-gradient(#e9c46a,#c9a227);border-radius:6px 6px 0 0;transition:.2s}
+.dtl-col:hover .dtl-bar{filter:brightness(1.15)}
+.dtl-x{font-size:9.5px;color:#9db3a3;margin-top:5px;transform:rotate(-45deg);white-space:nowrap}
+.dtab{width:100%;border-collapse:collapse;font-size:12.5px}
+.dtab th{background:#123524;color:#e9c46a;padding:8px;text-align:right}
+.dtab td{padding:8px;border-bottom:1px solid #1d4a2c;color:#cfe3d8}
+.dtab tr:hover td{background:#123524}
+.dempty{color:#9db3a3;text-align:center;padding:20px}
+</style>
 </head>
 <body>
 <script>
@@ -392,11 +427,12 @@ const LOGO="logo_green.png?v=4";
   <!-- شريط التبويب -->
   <div class="viewtabs">
     <button id="tabCards" class="vtab active" onclick="switchView('cards')">🗂️ عرض البطاقات</button>
-    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button>
+    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button>
   </div>
 
   <!-- شبكة العقارات -->
   <div id="grid" class="grid"></div>
+  <div id="dashView" style="display:none"></div>
   <div id="emptyState" class="empty" style="display:none">
     <div class="big">🏘️</div>
     <h3>لا توجد عقارات مطابقة</h3>
@@ -652,12 +688,77 @@ function applyFilters(){
 }
 
 var _curView='cards';
+/* ===== لوحة التقارير (داش بورد) ===== */
+var DASH_CAT=['#3987e5','#d95926','#199e70','#c98500','#d55181','#9085e9','#e66767','#008300'];
+function _dnum(n){return (Math.round((+n||0)*100)/100).toLocaleString('en-US');}
+function _dGroup(list,f){var m={},ks=[];list.forEach(function(p){var k=(p[f]||'—');if(m[k]==null){m[k]=[];ks.push(k);}m[k].push(p);});
+  return ks.map(function(k){return{label:k,items:m[k],val:m[k].length,buy:calcTotals(m[k]).buy};}).sort(function(a,b){return b.val-a.val;});}
+function _dAttCount(p){var n=(p.deedFile?1:0)+(p.pageFile?1:0);if(ATTACH_CACHE[p.realtyNo])n+=ATTACH_CACHE[p.realtyNo].length;return n;}
+function _dLoc(p){return [p.district,p.city].filter(Boolean).join(' — ')||'—';}
+function dashFilter(field,val){var map={city:'fCity',district:'fDistrict',propType:'fType'};var id=map[field];if(!id)return;var sel=g(id);if(!sel)return;sel.value=(sel.value===val)?'':val;render();}
+function _dTile(v,l,sub,accent){return '<div class="dtile"><div class="dtile-v" style="color:'+(accent||'#e9c46a')+'">'+v+'</div><div class="dtile-l">'+l+'</div>'+(sub?'<div class="dtile-s">'+sub+'</div>':'')+'</div>';}
+function _dBars(items,opts){opts=opts||{};var max=Math.max.apply(null,items.map(function(x){return x.val;}).concat([1]));
+  return '<div class="dbars">'+items.map(function(x){var pct=Math.max(3,x.val/max*100);var v=opts.money?_dnum(x.val)+' ﷼':x.val;
+    var clk=opts.field?(' onclick="dashFilter(\''+opts.field+'\',\''+(''+x.label).replace(/'/g,"")+'\')" style="cursor:pointer"'):'';
+    return '<div class="dbar-row"'+clk+' title="'+x.label+': '+v+'"><div class="dbar-lbl">'+x.label+'</div><div class="dbar-track"><div class="dbar-fill" style="width:'+pct+'%;background:'+(opts.color||'#c9a227')+'"></div></div><div class="dbar-val">'+v+'</div></div>';}).join('')+'</div>';}
+function _dDonut(items,field){var tot=items.reduce(function(s,x){return s+x.val;},0)||1;var r=54,c=2*Math.PI*r,off=0;
+  var segs=items.map(function(x,i){var len=x.val/tot*c;var col=DASH_CAT[i%DASH_CAT.length];
+    var s='<circle cx="70" cy="70" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="22" stroke-dasharray="'+len+' '+(c-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 70 70)" style="cursor:pointer" onclick="dashFilter(\''+field+'\',\''+(''+x.label).replace(/'/g,"")+'\')"><title>'+x.label+': '+x.val+'</title></circle>';off+=len;return s;}).join('');
+  var leg=items.map(function(x,i){return '<div class="dleg-i" onclick="dashFilter(\''+field+'\',\''+(''+x.label).replace(/'/g,"")+'\')" style="cursor:pointer"><span class="dleg-c" style="background:'+DASH_CAT[i%DASH_CAT.length]+'"></span><span class="dleg-l">'+x.label+'</span><span class="dleg-v">'+x.val+'</span></div>';}).join('');
+  return '<div class="ddonut-wrap"><svg viewBox="0 0 140 140" class="ddonut"><circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="22"/>'+segs+'<text x="70" y="66" text-anchor="middle" class="dd-num">'+tot+'</text><text x="70" y="86" text-anchor="middle" class="dd-lbl">عقار</text></svg><div class="dleg">'+leg+'</div></div>';}
+function _dTimeline(list){var m={};list.forEach(function(p){var d=(p.purchaseDate||'').slice(0,7);if(d)m[d]=(m[d]||0)+1;});
+  var ks=Object.keys(m).sort();if(!ks.length)return '<div class="dempty">لا توجد تواريخ شراء</div>';
+  var max=Math.max.apply(null,ks.map(function(k){return m[k];}));
+  return '<div class="dtl">'+ks.map(function(k){var h=Math.max(6,m[k]/max*100);return '<div class="dtl-col" title="'+k+': '+m[k]+' عقار"><div class="dtl-bar" style="height:'+h+'%"></div><div class="dtl-x">'+k+'</div></div>';}).join('')+'</div>';}
+function renderDash(list){
+  if(!list)list=applyFilters();
+  var host=g('dashView');if(!host)return;
+  var tot=calcTotals(list);
+  var area=list.reduce(function(s,p){return s+(p.area||0);},0);
+  var cities={},dists={};list.forEach(function(p){if(p.city)cities[p.city]=1;if(p.district)dists[p.district]=1;});
+  var legalN=list.filter(function(p){return p.legal&&p.legal.trim();}).length;
+  var noPrice=list.filter(function(p){return !((p.purchasePrice||0)>0||p.mergedValue);}).length;
+  var att=list.reduce(function(s,p){return s+_dAttCount(p);},0);
+  var ppm=area>0?tot.buy/area:0;
+  var byCity=_dGroup(list,'city'),byType=_dGroup(list,'propType'),byDist=_dGroup(list,'district'),byCityBuy=byCity.slice().sort(function(a,b){return b.buy-a.buy;}).map(function(x){return{label:x.label,val:x.buy};});
+  var h='';
+  h+='<div class="dash-head"><div class="dash-title">📈 لوحة تقارير حالة العقارات</div><div class="dash-sub">اللوحة تعكس التصفية الحالية — اضغط أي شريحة للتصفية. (عدد العقارات: '+list.length+')</div></div>';
+  h+='<div class="dtiles">'
+    +_dTile(_dnum(list.length),'عدد العقارات','','#e9c46a')
+    +_dTile(_dnum(Math.round(area)),'إجمالي المساحة (م²)','','#7fd1b9')
+    +_dTile(_dnum(tot.buy),'إجمالي قيمة الشراء (﷼)','','#e9c46a')
+    +_dTile(_dnum(Math.round(ppm)),'متوسط سعر المتر (﷼)','','#7fd1b9')
+    +_dTile(Object.keys(cities).length,'عدد المدن','','#8ab6f0')
+    +_dTile(Object.keys(dists).length,'عدد الأحياء','','#8ab6f0')
+    +_dTile(_dnum(Math.round(area/(list.length||1))),'متوسط مساحة العقار (م²)','','#7fd1b9')
+    +_dTile(att,'إجمالي المرفقات','','#c9a227')
+    +_dTile(legalN,'تحتاج متابعة',legalN?'⚠ راجع القائمة أدناه':'لا يوجد',legalN?'#e66767':'#7fd1b9')
+    +_dTile(noPrice,'بدون قيمة شراء','',noPrice?'#e0a82e':'#7fd1b9')
+    +'</div>';
+  h+='<div class="dgrid">';
+  h+='<div class="dcard"><div class="dcard-h">العقارات حسب المدينة</div>'+_dBars(byCity,{field:'city',color:'#c9a227'})+'</div>';
+  h+='<div class="dcard"><div class="dcard-h">توزيع حسب نوع العقار</div>'+_dDonut(byType,'propType')+'</div>';
+  h+='<div class="dcard"><div class="dcard-h">أعلى الأحياء (عدد العقارات)</div>'+_dBars(byDist.slice(0,8),{field:'district',color:'#199e70'})+'</div>';
+  h+='<div class="dcard"><div class="dcard-h">قيمة الشراء حسب المدينة (﷼)</div>'+_dBars(byCityBuy,{color:'#3987e5',money:true})+'</div>';
+  h+='<div class="dcard dcard-wide"><div class="dcard-h">المشتريات عبر الزمن (عدد العقارات/شهر)</div>'+_dTimeline(list)+'</div>';
+  h+='</div>';
+  var legal=list.filter(function(p){return p.legal&&p.legal.trim();});
+  if(legal.length){
+    h+='<div class="dcard dcard-wide"><div class="dcard-h">⚠ عقارات تحتاج متابعة ('+legal.length+')</div><table class="dtab"><tr><th>الموقع</th><th>رقم الصك</th><th>رقم الصحيفة</th><th>الملاحظة</th></tr>'
+      +legal.map(function(p){return '<tr onclick="openDetail(\''+p.id+'\')" style="cursor:pointer"><td>'+_dLoc(p)+'</td><td>'+(p.deedNo||'—')+'</td><td>'+(p.realtyNo||'—')+'</td><td>'+esc(p.legal)+'</td></tr>';}).join('')
+      +'</table></div>';
+  }
+  host.innerHTML=h;
+}
+
 function switchView(v){
   _curView=v;
   g('tabCards').classList.toggle('active', v==='cards');
   g('tabTable').classList.toggle('active', v==='table');
+  var td=g('tabDash'); if(td) td.classList.toggle('active', v==='dash');
   g('grid').style.display = (v==='cards')?'':'none';
   g('tableView').style.display = (v==='table')?'':'none';
+  var dv=g('dashView'); if(dv) dv.style.display = (v==='dash')?'':'none';
   render();
 }
 function money(n){ return (n&&n>0)? fmt(n)+' ر.س' : '—'; }
@@ -761,6 +862,7 @@ function render(){
   empty.style.display='none';
   grid.innerHTML=list.map(cardHTML).join('');
   if(_curView==='table'){ renderTable(list); }
+  if(_curView==='dash' && typeof renderDash==='function'){ renderDash(list); }
 }
 
 function cardHTML(p){
