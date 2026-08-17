@@ -335,6 +335,11 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 .dtab td{padding:8px;border-bottom:1px solid #1d4a2c;color:#cfe3d8}
 .dtab tr:hover td{background:#123524}
 .dempty{color:#9db3a3;text-align:center;padding:20px}
+
+.utab{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}
+.utab th{background:rgba(15,122,79,.14);color:#bfe6d2;padding:5px 7px;text-align:right;font-weight:700;white-space:nowrap}
+.utab td{padding:5px 7px;border-top:1px solid rgba(255,255,255,.06);text-align:right}
+.util-dot{background:rgba(201,162,39,.18);color:#e8c766;border:1px solid rgba(201,162,39,.4);border-radius:20px;padding:2px 10px;font-size:12px;font-weight:700;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -427,7 +432,7 @@ const LOGO="logo_green.png?v=4";
   <!-- شريط التبويب -->
   <div class="viewtabs">
     <button id="tabCards" class="vtab active" onclick="switchView('cards')">🗂️ عرض البطاقات</button>
-    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button>
+    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button><button id="tabUtil" class="vtab" onclick="openUtilOverview()">🔌 المرافق (كهرباء/مياه)</button>
   </div>
 
   <!-- شبكة العقارات -->
@@ -513,6 +518,18 @@ const LOGO="logo_green.png?v=4";
       <button class="btn btn-ghost" onclick="closeModal('editModal')">إلغاء</button>
       <button class="btn btn-gold" onclick="saveProperty()">حفظ</button>
     </div>
+  </div>
+</div>
+
+<!-- نافذة المرافق (الكهرباء والمياه) -->
+<div class="modal-bg" id="utilModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>🔌 المرافق — عدادات الكهرباء والمياه</h3>
+      <button class="x" onclick="closeModal('utilModal')">×</button>
+    </div>
+    <div class="modal-body" id="utilBody"></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('utilModal')">إغلاق</button></div>
   </div>
 </div>
 
@@ -865,6 +882,40 @@ function render(){
   if(_curView==='dash' && typeof renderDash==='function'){ renderDash(list); }
 }
 
+var UTIL_MAP = {"LOC": {"LBN": {"label": "عمارة لبن — ظهرة لبن", "elec": [{"acc": "30100925327", "meter": "ECC2420831027985", "alias": "عمارة لبن 1", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100925962", "meter": "ECC2420831027989", "alias": "عمارة لبن 2", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934012", "meter": "ECC2420831027992", "alias": "عمارة لبن 3", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934031", "meter": "ECC2420831027986", "alias": "عمارة لبن 4", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934068", "meter": "ECC2420831027988", "alias": "عمارة لبن 5", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934101", "meter": "ECC2420831027987", "alias": "عمارة لبن 6", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934120", "meter": "ECC2420841095982", "alias": "عمارة لبن 7", "status": "نشط", "addr": "الرياض حي ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934175", "meter": "ECC2420841095986", "alias": "عمارة لبن 8", "status": "نشط", "addr": "الرياض حي ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30100934219", "meter": "ECC2420841095984", "alias": "عمارة لبن 9", "status": "نشط", "addr": "الرياض حي ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30101004019", "meter": "ECC2420831029137", "alias": "عمارة لبن 10", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30101358947", "meter": "ECC2420831027991", "alias": "عمارة لبن 11", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30105678381", "meter": "SMR2420868100444", "alias": "عمارة لبن 12", "status": "نشط", "addr": "الرياض حي ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30105678354", "meter": "ECC2420831027990", "alias": "عمارة لبن 13", "status": "نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}, {"acc": "30105678345", "meter": "ECC2420831027990", "alias": "عمارة لبن 13", "status": "غير نشط", "addr": "ظهرة لبن ظهرة لبن الرياض"}], "water": [{"acc": "0495295640", "status": "لا يعمل", "last": "2026-08-16", "alias": "عمارة لبن", "due": "2467.23", "unbilled": "37.08 م3 (الشريحة الثالثة)"}]}, "MONISIA": {"label": "المونسية", "elec": [{"acc": "30062667221", "meter": "AEC2020830171485", "alias": "شقة المونسية 6 ابعاد", "status": "نشط", "addr": "الرياض المونسية)أرضي( الرياض"}, {"acc": "30085290658", "meter": "KFM2020760051155", "alias": "ديوانية الرياض المونسية", "status": "نشط", "addr": "تسوير وملا حق المونسية المونسية)أرضي( الرياض 000000000"}], "water": []}, "YARMOUK": {"label": "اليرموك (قطع مدمجة + فيلا)", "elec": [{"acc": "30082897578", "meter": "KFM2020766094818", "alias": "فيلا ابو اسامة اليرموك", "status": "نشط", "addr": "اليرموك مدينةالرياض"}, {"acc": "30070324114", "meter": "KFM2020766064476", "alias": "أرض اليرموك", "status": "نشط", "addr": "اليرموك مدينةالرياض"}], "water": []}, "RAYAN_JEDDAH": {"label": "مجمّع الريان — جدة (4 وحدات)", "elec": [{"acc": "30059782409", "meter": "LYE2020830069942", "alias": "شقة جدة رقم 10 بريمان", "status": "نشط", "addr": "جده الريان بريمان جدة"}, {"acc": "30059783120", "meter": "LYE2020830069943", "alias": "شقة جدة رقم 11 بريمان", "status": "نشط", "addr": "جده الريان بريمان جدة"}, {"acc": "30072795618", "meter": "ECC2320830518349", "alias": "شقة جدة حي الريان سكن ابو اسامه 2", "status": "نشط", "addr": "حي الريان ابي الحسن المبارك بريمان جدة"}, {"acc": "30072800333", "meter": "ECC2320830518350", "alias": "شقة جدة حي الريان سكن ابو اسامة 1", "status": "نشط", "addr": "حي الريان ابي الحسن المبارك بريمان جدة"}], "water": [{"acc": "2303639818", "status": "يعمل", "last": "2026-08-16", "alias": "AL RAYAAN, جدة", "due": "", "unbilled": ""}, {"acc": "2963941242", "status": "يعمل", "last": "2026-08-16", "alias": "الريان, جدة", "due": "", "unbilled": ""}]}, "BATHA": {"label": "بطحاء قريش", "elec": [{"acc": "30115396501", "meter": "GTR2320890705197", "alias": "بطحاء الدور الأرضي 1 مؤجر", "status": "نشط", "addr": "بطحاء قريش خلف هايبر بنده بطحاء قريش"}, {"acc": "30115394373", "meter": "GTR2320890704003", "alias": "بطحاء قديم الدور الارضي 2 مؤجر", "status": "غير نشط", "addr": "بطحاء قريش خلف هايبر بنده بطحاء قريش"}], "water": []}, "MADINA": {"label": "فيلا الاسكان — المدينة المنورة", "elec": [{"acc": "30052970659", "meter": "SMR2020825000874", "alias": "فيلا الاسكان المدينة المنورة", "status": "نشط", "addr": "الا سكان السكان المدينةالمنورة"}], "water": [{"acc": "1669772300", "status": "يعمل", "last": "2026-08-17", "alias": "حي وادي مهزور, المدينة", "due": "", "unbilled": ""}]}, "ABHA_ROWABI": {"label": "الروابي — أبها", "elec": [{"acc": "30162182044", "meter": "SMR2520828084822", "alias": "شقة الروابي المحالة أبها", "status": "نشط", "addr": "مدينة سلطان حي الروابي مدينة سلطان أبها"}], "water": []}, "SHUHADA": {"label": "الشهداء — الرياض", "elec": [{"acc": "30088100532", "meter": "ECC2320831012477", "alias": "شقة حي الشهداء الرياض", "status": "نشط", "addr": "غرناطة الرياض"}], "water": []}}, "PROP2LOC": {"p29": "LBN", "p15": "MONISIA", "p24": "YARMOUK", "p31": "YARMOUK", "p37": "YARMOUK", "p38": "YARMOUK", "p21": "RAYAN_JEDDAH", "p22": "RAYAN_JEDDAH", "p26": "RAYAN_JEDDAH", "p33": "RAYAN_JEDDAH", "p01": "BATHA", "p02": "BATHA", "p32": "MADINA", "p34": "ABHA_ROWABI", "p40": "SHUHADA"}, "UNASSIGNED": {"label": "عدادات غير منسوبة (عقارات أخرى / خارج السجل)", "elec": [{"acc": "30025571862", "meter": "ECC2020807154260", "alias": "شالية الدرب عداد رقم 3", "status": "نشط", "addr": "538083 - 38 - 21 - القائم مكتب الدرب"}, {"acc": "30043529651", "meter": "SMR2220821021963", "alias": "شالية الدرب عداد رقم 2", "status": "نشط", "addr": "القايم القائم الأسفل الدرب"}, {"acc": "30043529661", "meter": "SMR2220821021039", "alias": "شالية الدرب عداد رقم 1", "status": "نشط", "addr": "القايم القائم الأسفل الدرب"}, {"acc": "30066466623", "meter": "SMR2120725009253", "alias": "ديوانية الجنوب أبها طريق المطار", "status": "نشط", "addr": "ابها ال سرحان ال سرحان أبها"}, {"acc": "30122833535", "meter": "LYE2020809609563", "alias": "رفيدة", "status": "نشط", "addr": "رفيدة مكتب أحد رفيدة"}, {"acc": "30122833590", "meter": "LYE2020809609570", "alias": "الفرعين", "status": "نشط", "addr": "الفرعين المكر مكتب أحد رفيدة"}, {"acc": "30122833661", "meter": "LYE2020809609521", "alias": "الفرعين", "status": "نشط", "addr": "ال مكر الفرعين مكتب أحد رفيدة"}, {"acc": "30122833704", "meter": "SMR2420828450125", "alias": "الفرعين", "status": "نشط", "addr": "الفرعين ال مكر مكتب أحد رفيدة"}, {"acc": "30155132445", "meter": "SMR2420828122127", "alias": "كهرباء الاسكان 3", "status": "نشط", "addr": "خميس مسيط حي الا سكان الجزيرة ٢ السكان خميس مشيط"}, {"acc": "30155132866", "meter": "SMR2420828155892", "alias": "حي الاسكان خميس 1 مالك", "status": "نشط", "addr": "خميس مسيط حي الا سكان الجزيرة ٢ السكان خميس مشيط"}, {"acc": "30122833526", "meter": "LYE2020809609563", "alias": "", "status": "غير نشط", "addr": "رفيدة مكتب أحد رفيدة"}, {"acc": "30122833581", "meter": "LYE2020809609570", "alias": "", "status": "غير نشط", "addr": "الفرعين المكر مكتب أحد رفيدة"}, {"acc": "30122833651", "meter": "LYE2020809609521", "alias": "", "status": "غير نشط", "addr": "ال مكر الفرعين مكتب أحد رفيدة"}, {"acc": "30122833698", "meter": "SMR2420828450125", "alias": "", "status": "غير نشط", "addr": "الفرعين ال مكر مكتب أحد رفيدة"}], "water": [{"acc": "1732733333", "status": "يعمل", "last": "2026-08-12", "alias": "N/A, جيزان", "due": "", "unbilled": "", "note": "موسوم N/A"}, {"acc": "8757010002", "status": "يعمل", "last": "2026-08-17", "alias": "الدمام لا يخصنا", "due": "", "unbilled": "", "note": "موسوم: لا يخصنا"}]}, "generated": "من بوابتي السعودية للطاقة وشركة المياه الوطنية"};
+window._UTIL_UNPLACED_NOTE = 'عدادات لا تطابق أي عقار في السجل (شاليه الدرب، رفيدة/الفرعين، خميس مشيط، أبها السرحان) أو موسومة "لا يخصنا" (جيزان/الدمام).';
+function _utLoc(p){ var k=UTIL_MAP.PROP2LOC[p.id]; return k?UTIL_MAP.LOC[k]:null; }
+function utilCounts(p){ var L=_utLoc(p); if(!L)return null; return {e:L.elec.length,w:L.water.length,label:L.label}; }
+function _eStat(st){ return st==='نشط'?'<span style="color:#199e70;font-weight:700">نشط</span>':'<span style="color:#d95926">'+esc(st)+'</span>'; }
+function utilSectionHTML(p){
+  var L=_utLoc(p); if(!L) return '';
+  var eh=L.elec.map(function(m){return '<tr><td>'+esc(m.alias||'—')+'</td><td style="direction:ltr">'+esc(m.meter)+'</td><td style="direction:ltr">'+esc(m.acc)+'</td><td>'+_eStat(m.status)+'</td></tr>';}).join('');
+  var h='<div class="di full"><div class="dk">⚡ عدادات الكهرباء ('+L.elec.length+') — '+esc(L.label)+'</div><div class="dv" style="overflow-x:auto"><table class="utab"><tr><th>الوحدة</th><th>رقم العداد</th><th>رقم الحساب</th><th>الحالة</th></tr>'+eh+'</table></div></div>';
+  if(L.water.length){
+    var wh=L.water.map(function(m){return '<tr><td>'+esc(m.alias||'—')+'</td><td style="direction:ltr">'+esc(m.acc)+'</td><td>'+esc(m.status)+'</td><td style="direction:ltr">'+esc(m.last||'—')+'</td><td>'+(m.due?esc(m.due)+' ﷼':'—')+'</td></tr>';}).join('');
+    h+='<div class="di full"><div class="dk">💧 عدادات المياه ('+L.water.length+')</div><div class="dv" style="overflow-x:auto"><table class="utab"><tr><th>الموقع</th><th>رقم الحساب</th><th>الحالة</th><th>آخر قراءة</th><th>المستحق</th></tr>'+wh+'</table></div></div>';
+  }
+  h+='<div class="di full"><div class="dv" style="font-size:11px;color:#8aa0b5">المصدر: بوابة «السعودية للطاقة» + «المياه الوطنية» — منسوبة حسب الموقع الجغرافي.</div></div>';
+  return h;
+}
+function openUtilOverview(){
+  var h='<div class="detail-grid">';
+  Object.keys(UTIL_MAP.LOC).forEach(function(k){
+    var L=UTIL_MAP.LOC[k];
+    h+='<div class="di full"><div class="dk">'+esc(L.label)+' — ⚡'+L.elec.length+(L.water.length?' · 💧'+L.water.length:'')+'</div><div class="dv" style="overflow-x:auto"><table class="utab"><tr><th>النوع</th><th>الاسم/الوحدة</th><th>العداد/الحساب</th><th>الحالة</th></tr>'+
+      L.elec.map(function(m){return '<tr><td>⚡</td><td>'+esc(m.alias||'—')+'</td><td style="direction:ltr">'+esc(m.meter)+'</td><td>'+_eStat(m.status)+'</td></tr>';}).join('')+
+      L.water.map(function(m){return '<tr><td>💧</td><td>'+esc(m.alias||'—')+'</td><td style="direction:ltr">'+esc(m.acc)+'</td><td>'+esc(m.status)+'</td></tr>';}).join('')+
+    '</table></div></div>';
+  });
+  var U=UTIL_MAP.UNASSIGNED;
+  h+='<div class="di full"><div class="dk" style="color:var(--danger)">🔻 '+esc(U.label)+' — ⚡'+U.elec.length+(U.water.length?' · 💧'+U.water.length:'')+'</div><div class="dv" style="overflow-x:auto"><table class="utab"><tr><th>النوع</th><th>الاسم</th><th>العداد/الحساب</th><th>العنوان/ملاحظة</th></tr>'+
+    U.elec.map(function(m){return '<tr><td>⚡</td><td>'+esc(m.alias||'—')+'</td><td style="direction:ltr">'+esc(m.meter)+'</td><td>'+esc(m.addr||'')+'</td></tr>';}).join('')+
+    U.water.map(function(m){return '<tr><td>💧</td><td>'+esc(m.alias||'—')+'</td><td style="direction:ltr">'+esc(m.acc)+'</td><td>'+esc(m.note||'')+'</td></tr>';}).join('')+
+  '</table></div></div>';
+  h+='<div class="di full"><div class="dv" style="font-size:11px;color:#8aa0b5">'+esc(window._UTIL_UNPLACED_NOTE)+'</div></div>';
+  h+='</div>';
+  g('utilBody').innerHTML=h; openModal('utilModal');
+}
 function cardHTML(p){
   var nDocs=(p.deedFile?1:0)+(p.pageFile?1:0);
   var nAtt=(ATTACH_CACHE[p.realtyNo]&&ATTACH_CACHE[p.realtyNo].length)?ATTACH_CACHE[p.realtyNo].length:0;
@@ -887,7 +938,7 @@ function cardHTML(p){
       '<div class="prow"><span class="k">المساحة</span><span class="v">'+fmt(p.area)+' م²</span></div>'+
       '<div class="prow"><span class="k">قيمة الشراء</span><span class="v '+(p.purchasePrice>0?'price':'zero')+'">'+(p.purchasePrice>0?fmt(p.purchasePrice)+' ريال':'غير مذكورة')+'</span></div>'+
       '<div class="prow"><span class="k">تاريخ الشراء</span><span class="v">'+esc(p.purchaseDate||'—')+'</span></div>'+
-      '<div class="prow"><span class="k">المرفقات</span><span class="v"><span class="att-dot '+(hasAtt?'has':'')+'">'+(hasAtt?'📎 '+totAtt+' ملف':'لا يوجد')+'</span></span></div>'+
+      '<div class="prow"><span class="k">المرفقات</span><span class="v"><span class="att-dot '+(hasAtt?'has':'')+'">'+(hasAtt?'📎 '+totAtt+' ملف':'لا يوجد')+'</span></span></div>'+'<div class="prow"><span class="k">المرافق</span><span class="v">'+(function(){var u=utilCounts(p);return u?'<span class="util-dot">⚡ '+u.e+(u.w?' · 💧 '+u.w:'')+'</span>':'<span class="att-dot">—</span>';})()+'</span></div>'+
     '</div>'+
     (legal?'<div class="legal-flag"><b>⚠ تحتاج متابعة:</b> '+esc(p.legal)+'</div>':'')+
     '<div class="pcard-foot">'+
@@ -950,6 +1001,7 @@ function openDetail(id){
     (p.address?'<div class="di full">'+di('العنوان الوطني',p.address).replace('<div class="di">','').replace(/<\/div>$/,'')+'</div>':'')+
     (p.legal&&p.legal.trim()?'<div class="di full"><div class="dk" style="color:var(--danger)">⚠ الحالة النظامية</div><div class="dv" style="color:#e8a087">'+esc(p.legal)+'</div></div>':'')+
     (p.note?'<div class="di full"><div class="dk">ملاحظات</div><div class="dv">'+esc(p.note)+'</div></div>':'')+
+    utilSectionHTML(p)+
     officialDocsHTML(p)+
     attHTML+
   '</div>';
@@ -1095,7 +1147,7 @@ function importJSON(file){
 function openModal(id){ g(id).classList.add('show'); }
 function closeModal(id){ g(id).classList.remove('show'); }
 window.addEventListener('click',function(e){
-  ['editModal','detailModal'].forEach(function(id){
+  ['editModal','detailModal','utilModal'].forEach(function(id){
     if(e.target===g(id)) closeModal(id);
   });
 });
