@@ -100,29 +100,45 @@ var DATA=[{"property": "عمارة سعد القحطاني", "units": ["1"], "te
 var TODAY='2026-08-16';
 var MO=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 window._links={}; // {contractId:{dueNo:{date,amount,receipt,manual}}}
+window._term={};  // {contractId:{date,reason}} إنهاء يدوي
 var fmt=function(n){return (Number(n)||0).toLocaleString('en-US');};
 var el=function(id){return document.getElementById(id);};
 function byDate(a,b){return (a.date||'')<(b.date||'')?-1:1;}
 
+function termInfo(c){
+  var man=window._term[c.id];
+  if(man) return {date:man.date,reason:man.reason||'إخلاء يدوي',src:'يدوي'};
+  if(c.ejarStatus==='تم الإنهاء') return {date:c.termDate||c.end,reason:'إنهاء في منصة إيجار',src:'إيجار'};
+  return null;
+}
+function totalReceived(c){
+  var t=(c.payments||[]).filter(function(p){return p.status==='success';}).reduce(function(s,p){return s+(p.amount||0);},0);
+  var lk=window._links[c.id]||{};Object.keys(lk).forEach(function(k){t+=lk[k].amount||0;});
+  return t;
+}
 function reconcile(c){
-  var links=window._links[c.id]||{};
-  var dues=(c.dues||[]).map(function(d){return {no:d.no,date:d.date,amount:d.amount};});
-  var autoPays=((c.payments||[]).filter(function(p){return p.status==='success';})).slice().sort(byDate);
-  var ai=0;
-  dues.forEach(function(d){ if(links[d.no]){d.status='مدفوعة';d.pay=links[d.no];d.manual=true;} });
+  var ti=termInfo(c); var effEnd=ti?ti.date:c.end;
+  var dues=(c.dues||[]).filter(function(d){return !d.date||!effEnd||d.date<=effEnd;}).map(function(d){return {no:d.no,date:d.date,amount:d.amount};});
+  var recv=totalReceived(c); var run=0;
   dues.forEach(function(d){
-    if(d.status) return;
-    if(ai<autoPays.length){d.status='مدفوعة';d.pay=autoPays[ai++];}
-    else if(d.date&&d.date<=TODAY) d.status='متأخرة';
-    else if(!d.date) d.status='مستحقة';
+    run+=d.amount;
+    if(recv>=run){d.status='مدفوعة';}
+    else if(recv>run-d.amount){d.status='مسددة جزئياً';d.part=recv-(run-d.amount);}
+    else if(!d.date||d.date<=TODAY){d.status='متأخرة';}
     else d.status='قادمة';
   });
   return dues;
 }
 function resStats(c){
-  var d=reconcile(c),paid=0,late=0,up=0,paidA=0,lateA=0;
-  d.forEach(function(x){if(x.status==='مدفوعة'){paid++;paidA+=x.amount;}else if(x.status==='متأخرة'||x.status==='مستحقة'){late++;lateA+=x.amount;}else up++;});
-  return {paid:paid,late:late,up:up,paidA:paidA,lateA:lateA};
+  var d=reconcile(c),paid=0,late=0,up=0,dueToDate=0,run=0;
+  var recv=totalReceived(c);
+  d.forEach(function(x){
+    run+=x.amount;
+    if(!x.date||x.date<=TODAY) dueToDate+=x.amount;
+    if(x.status==='مدفوعة')paid++; else if(x.status==='قادمة')up++; else late++;
+  });
+  var arrears=Math.max(0,dueToDate-recv);
+  return {paid:paid,late:late,up:up,paidA:Math.min(recv,dueToDate),lateA:arrears,recv:recv,dueToDate:dueToDate,term:termInfo(c)};
 }
 function lateInfo(c){ // returns {amt,count} of overdue for any contract
   if(c.kind==='تجاري') return {amt:c.lateAmt||0,count:c.lateCount||0};
@@ -284,7 +300,7 @@ function openC(id){
   var li=lateInfo(c);var pills='';
   if(li.amt>0)pills+='<span class="pill late">متأخر: '+fmt(li.amt)+' ﷼ ('+li.count+')</span> ';
   if(c.kind==='تجاري'){if(c.upAmt>0)pills+='<span class="pill up">قادم: '+fmt(c.upAmt)+' ﷼ ('+c.upCount+')</span> ';if(c.paidAmt>0)pills+='<span class="pill ok">مدفوع: '+fmt(c.paidAmt)+' ﷼ ('+c.paidCount+')</span> ';}
-  else if(c.occupied){var s=resStats(c);if(s.up>0)pills+='<span class="pill up">قادم: '+fmt(0)+' ﷼ ('+s.up+')</span> ';if(s.paidA>0)pills+='<span class="pill ok">محصّل: '+fmt(s.paidA)+' ﷼ ('+s.paid+')</span> ';}
+  else if(c.occupied){var s=resStats(c);if(s.paidA>0)pills+='<span class="pill ok">محصّل: '+fmt(s.paidA)+' ﷼</span> ';if(s.term)pills+='<span class="pill st-d">مُنهى '+s.term.date+'</span> ';}
   if(c.occupied&&!pills)pills+='<span class="pill ok">نشط</span>';
   if(pills)h+='<div class="sec" style="border:none;padding:0">'+pills+'</div>';
   h+='<div class="sec"><h3>معلومات العقد</h3><div class="rows">'+row('الحالة',c.occupied?'مشغول':'شاغر')+row('النوع',c.kind)+(c.contractNo?row('رقم العقد',c.contractNo):'')+row('نوع السداد',c.type||c.freq||'-')+(c.start?row('تاريخ البدء',c.start):'')+(c.end?row('تاريخ الانتهاء',c.end):'')+(c.unitType?row('نوع الوحدة',c.unitType):'')+(c.floor!=null?row('الطابق',c.floor):'')+(c.area?row('المساحة',c.area+' م²'):'')+'</div></div>';
@@ -296,18 +312,23 @@ function openC(id){
     c.schedule.forEach(function(s){var cl=s.status==='مدفوعة'?'st-p':s.status==='متأخرة'?'st-l':'st-u';h+='<tr><td>'+s.no+'</td><td>'+s.date+'</td><td>'+fmt(s.amount)+' ﷼</td><td><span class="st '+cl+'">'+s.status+'</span></td></tr>';});
     h+='</table><div class="note">المصدر: منصة إيجار (حالة الدفع عبر المنصة).</div></div>';
   }
-  // RESIDENTIAL: reconciliation (dues vs received) + link
+  // RESIDENTIAL: balance-based reconciliation + termination
   if(c.kind==='سكني'&&c.occupied&&c.dues&&c.dues.length){
-    var d=reconcile(c);
-    h+='<div class="sec"><h3>تسوية الحوالات (استحقاق ↔ مُستلم)</h3><table class="sch"><tr><th>#</th><th>الاستحقاق</th><th>المبلغ</th><th>الحالة</th><th>الحوالة / الإجراء</th></tr>';
+    var st=resStats(c),ti=st.term,d=reconcile(c);
+    h+='<div class="sec"><h3>حالة العقد</h3>';
+    if(ti){h+='<div class="note" style="background:#fdeeee;border-color:#f0c8c8;color:#a3352f">⛔ العقد مُنهى ('+ti.src+') بتاريخ '+ti.date+(ti.reason?' — '+ti.reason:'')+'. تُحتسب الاستحقاقات حتى هذا التاريخ فقط.'+(ti.src==='يدوي'?' <button class="linkbtn" onclick="undoTerminate('+c.id+')">تراجع</button>':'')+'</div>';}
+    else{h+='<div id="termbox_'+c.id+'"><button class="linkbtn" style="background:var(--red)" onclick="askTerminate('+c.id+')">⛔ إنهاء / إخلاء العقد</button> <span class="note" style="display:inline-block;margin:0">لإيقاف احتساب الاستحقاقات من تاريخ الإخلاء (للحالات غير الموثّقة في إيجار).</span></div>';}
+    h+='</div>';
+    h+='<div class="sec"><h3>تسوية الحوالات (الرصيد التراكمي)</h3>';
+    h+='<div class="rows" style="margin-bottom:10px">'+row('إجمالي المستحق حتى اليوم',fmt(st.dueToDate)+' ﷼')+row('إجمالي المُستلم',fmt(st.recv)+' ﷼')+row('الرصيد المتأخر',fmt(st.lateA)+' ﷼')+row('أشهر غير مُغطّاة',st.late)+'</div>';
+    h+='<table class="sch"><tr><th>#</th><th>الاستحقاق</th><th>المبلغ</th><th>الحالة</th><th>الإجراء</th></tr>';
     d.forEach(function(x){
       var cl=x.status==='مدفوعة'?'st-p':(x.status==='متأخرة'?'st-l':(x.status==='قادمة'?'st-u':'st-d'));
-      var act='';
-      if(x.status==='مدفوعة'&&x.pay){act=(x.manual?'🔗 ':'')+'حوالة '+(x.pay.date||'')+' · '+fmt(x.pay.amount)+' ﷼'+(x.pay.receipt?' · '+x.pay.receipt:'');}
-      else if(x.status==='متأخرة'||x.status==='مستحقة'){act='<button class="linkbtn" onclick="showLink('+c.id+','+x.no+','+x.amount+')">🔗 ربط تحويل بنكي</button>';}
-      h+='<tr><td>'+x.no+'</td><td>'+(x.date||'الشهر '+x.no)+'</td><td>'+fmt(x.amount)+' ﷼</td><td><span class="st '+cl+'">'+x.status+'</span></td><td id="act_'+c.id+'_'+x.no+'">'+act+'</td></tr>';
+      var act=(x.status==='متأخرة'||x.status==='مسددة جزئياً')?'<button class="linkbtn" onclick="showLink('+c.id+','+x.no+','+x.amount+')">🔗 ربط تحويل بنكي</button>':(x.status==='مدفوعة'?'✔ مُغطّاة':'');
+      var amt=fmt(x.amount)+' ﷼'+(x.status==='مسددة جزئياً'?' <small>(سُدّد '+fmt(x.part)+')</small>':'');
+      h+='<tr><td>'+x.no+'</td><td>'+(x.date||'الشهر '+x.no)+'</td><td>'+amt+'</td><td><span class="st '+cl+'">'+x.status+'</span></td><td id="act_'+c.id+'_'+x.no+'">'+act+'</td></tr>';
     });
-    h+='</table><div class="note">الاستحقاق من العقد، والمُستلم من الحوالات الفعلية. إن ظهرت دفعة «متأخرة» راجع الحساب البنكي واربط التحويل المباشر بالزر.</div></div>';
+    h+='</table><div class="note">التأخير = (إجمالي المستحق حتى اليوم − إجمالي المُستلم)، لا لكل شهر على حدة — فتختفي التأخيرات الوهمية عند وجود حوالات كافية. الاستحقاق يتوقف عند تاريخ الإنهاء. راجع الحساب البنكي واربط التحويل المباشر عند وجوده.</div></div>';
     if(c.payments&&c.payments.length){
       h+='<div class="sec"><h3>سجل الحوالات الفعلية (المُستلمة)</h3><table class="sch"><tr><th>#</th><th>التاريخ</th><th>المبلغ</th><th>الإيصال</th><th>المصدر</th></tr>';
       c.payments.forEach(function(p,i){h+='<tr><td>'+(i+1)+'</td><td>'+(p.date||'-')+'</td><td>'+fmt(p.amount)+' ﷼</td><td>'+(p.receipt||'-')+'</td><td>'+(p.src||'-')+'</td></tr>';});
@@ -327,6 +348,9 @@ function doLink(cid,dueNo){
   window._links[cid][dueNo]={date:dt,amount:am,receipt:'تحويل بنكي مباشر',manual:true};
   openC(cid); // re-render
 }
+function askTerminate(cid){var cell=el('termbox_'+cid);if(!cell)return;cell.innerHTML='<div class="lf"><span>تاريخ الإخلاء:</span><input type="date" id="td_'+cid+'"><input id="tr_'+cid+'" placeholder="السبب (اختياري)" style="width:150px"><button class="linkbtn" style="background:var(--red)" onclick="doTerminate('+cid+')">تأكيد الإنهاء</button></div>';}
+function doTerminate(cid){var dt=el('td_'+cid).value;if(!dt){alert('اختر تاريخ الإخلاء');return;}window._term[cid]={date:dt,reason:(el('tr_'+cid).value||'إخلاء يدوي')};openC(cid);}
+function undoTerminate(cid){delete window._term[cid];openC(cid);}
 function row(k,v){return '<div class="rw"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
 function closeC(){el('ov').classList.remove('on');}
 el('ov').addEventListener('click',function(e){if(e.target===el('ov'))closeC();});
