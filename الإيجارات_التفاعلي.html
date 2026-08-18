@@ -512,7 +512,7 @@ function finView(){
 }
 
 function openC(id){
-  closeC();var c=DATA.filter(function(x){return x.id===id;})[0];if(!c)return;
+  closeC();var c=DATA.filter(function(x){return x.id===id;})[0];if(!c)return;window._curC=c;
   var h='<div class="mh"><div><h2>'+(c.occupied?c.tenant:'وحدة شاغرة')+'</h2><div class="sub">'+c.property+(c.propertyLabel?' · '+c.propertyLabel:'')+' · وحدة '+(c.units||[]).join('، ')+'</div></div><button class="x" onclick="closeC()">×</button></div><div class="mb">';
   var li=lateInfo(c);var pills='';
   if(li.amt>0)pills+='<span class="pill late">متأخر: '+fmt(li.amt)+' ﷼ ('+li.count+')</span> ';
@@ -578,6 +578,15 @@ var STINFO={
  'قادمة':{c:'#2563a8',d:'دفعة لم يحن موعد استحقاقها بعد — ضمن جدول العقد المستقبلي.'},
  'مستحق':{c:'#c8860a',d:'دفعة شهرية مستحقة على العقد (بلا تاريخ محدّد بعد) — تُغطّى تلقائياً عند ربط حوالة.'}
 };
+function contractAnnual(c){var per={'شهري':12,'ربع سنوي':4,'نصف سنوي':2,'دفعة واحدة':1};if(c.kind==='تجاري')return c.annual||0;if(c.monthlyReal>0&&per[c.freq])return c.monthlyReal*per[c.freq];if(c.monthlyReal>0)return c.monthlyReal*12;return c.annual||0;}
+function contractPaidPct(c){
+  var sched=(c.kind==='تجاري')?(c.schedule||[]):(c.dues||[]);
+  var totalDue=sched.reduce(function(s,d){return s+(d.amount||0);},0);
+  if(!totalDue)totalDue=contractAnnual(c);
+  var recv=totalReceived(c);if(!recv&&c.paidReal)recv=c.paidReal;if(!recv&&c.paidAmt)recv=c.paidAmt;
+  var pct=totalDue>0?Math.min(100,Math.round(recv/totalDue*100)):0;
+  return {pct:pct,recv:recv,totalDue:totalDue};
+}
 function explain(key,amount,paid,date,src,payDate,payRef){
  var i=STINFO[key]||{c:'#6b7a8d',d:'حالة الدفعة.'};
  amount=Number(amount)||0;paid=Number(paid)||0;
@@ -587,6 +596,7 @@ function explain(key,amount,paid,date,src,payDate,payRef){
    +(payDate?row('تاريخ السداد',payDate):(paid>0?'':row('تاريخ السداد','لم يُسدَّد بعد')))
    +(payRef?row('مرجع/إيصال الحوالة',payRef):'')
    +(src?row('المصدر',src):'');
+ var _cc=window._curC;if(_cc){var _an=contractAnnual(_cc);var _pp=contractPaidPct(_cc);rows+=row('إجمالي الإيجار السنوي',fmt(_an)+' ﷼')+row('نسبة السداد على مدى العقد',_pp.pct+'% ('+fmt(_pp.recv)+' من '+fmt(_pp.totalDue)+' ﷼)');}
  el('mini').innerHTML='<div class="mh2" style="background:'+i.c+'"><span>'+key+'</span><button class="x" onclick="closeMini()">×</button></div><div class="mb2"><p>'+i.d+'</p><div class="rows" style="grid-template-columns:1fr">'+rows+'</div></div>';
  el('ov2').classList.add('on');
 }
