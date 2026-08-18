@@ -96,7 +96,7 @@ table.sch td{padding:8px;border-bottom:1px solid var(--line)}
 .note{font-size:11.5px;color:var(--mut);background:#fffdf5;border:1px solid #f0e6c8;padding:6px 10px;border-radius:8px;margin-top:8px}
 .empty{text-align:center;color:var(--mut);padding:40px}
 @media(max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}.fcards{grid-template-columns:1fr}.rows{grid-template-columns:1fr}}
-.nitem.nvac{flex-wrap:wrap;background:rgba(217,89,38,.08);border:1px solid rgba(217,89,38,.28)}.vbtn{margin-right:auto;margin-top:6px;background:#d95926;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.vbtn:hover{background:#c14a1e}.vacts{display:flex;gap:8px;margin-top:8px;width:100%}.vbtn.vkeep{background:#2a3f52}.vbtn.vkeep:hover{background:#35506a}</style></head>
+.nitem.nvac{flex-wrap:wrap;background:rgba(217,89,38,.08);border:1px solid rgba(217,89,38,.28)}.vbtn{margin-right:auto;margin-top:6px;background:#d95926;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.vbtn:hover{background:#c14a1e}.vacts{display:flex;gap:8px;margin-top:8px;width:100%}.vbtn.vkeep{background:#2a3f52}.vbtn.vkeep:hover{background:#35506a}.vbtn.vbank{background:#1f6f8b}.vbtn.vbank:hover{background:#27829f}</style></head>
 <body>
 <header><div class="wrap">
   <div class="brand" onclick="goHome()"><div class="logo">🏢</div>
@@ -234,6 +234,11 @@ function keepActive(id){
   window._dismissVacate[id]=true; // إبقاؤه نشطاً — يظهر كتأخير عادي دون اقتراح الأرشفة
   saveState();goHome();
 }
+function checkDirect(id){
+  var c=DATA.filter(function(x){return x.id===id;})[0];if(!c)return;
+  try{bkYear='';bkMonth='';bkSrc='';bkQ=(c.tenant||'').trim();}catch(e){}
+  bankView();
+}
 function lateInfo(c){ // returns {amt,count} of overdue for any contract
   if(c.kind==='تجاري') return {amt:c.lateAmt||0,count:c.lateCount||0};
   if(c.occupied){var s=resStats(c);return {amt:s.lateA,count:s.late};}
@@ -278,7 +283,7 @@ function goHome(){
   h+='<div class="notif"><h3>🔔 الإشعارات <span class="badge-n">'+lateN+' متأخر</span></h3>';
   h+=n.slice(0,12).map(function(x){
     if(x.vacate){
-      return '<div class="nitem nvac"><span class="dot '+x.dot+'"></span><span class="txt" onclick="openC('+x.id+')" style="cursor:pointer">'+x.txt+'</span><span class="val">'+x.val+'</span><div class="vacts"><button class="vbtn" onclick="event.stopPropagation();archiveFormer('+x.id+')">📦 أرشفة كمستأجر سابق</button><button class="vbtn vkeep" onclick="event.stopPropagation();keepActive('+x.id+')">↩︎ إبقاؤه نشطاً</button></div></div>';
+      return '<div class="nitem nvac"><span class="dot '+x.dot+'"></span><span class="txt" onclick="openC('+x.id+')" style="cursor:pointer">'+x.txt+' <span style="color:#7fb3e6">· قد يكون حوّل مباشرةً للحساب</span></span><span class="val">'+x.val+'</span><div class="vacts"><button class="vbtn vbank" onclick="event.stopPropagation();checkDirect('+x.id+')">💳 راجع تحويلاً مباشراً</button><button class="vbtn" onclick="event.stopPropagation();archiveFormer('+x.id+')">📦 أرشفة كمستأجر سابق</button><button class="vbtn vkeep" onclick="event.stopPropagation();keepActive('+x.id+')">↩︎ إبقاؤه نشطاً</button></div></div>';
     }
     return '<div class="nitem" onclick="openC('+x.id+')"><span class="dot '+x.dot+'"></span><span class="txt">'+x.txt+'</span><span class="val">'+x.val+'</span></div>';
   }).join('');
