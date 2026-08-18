@@ -96,7 +96,7 @@ table.sch td{padding:8px;border-bottom:1px solid var(--line)}
 .note{font-size:11.5px;color:var(--mut);background:#fffdf5;border:1px solid #f0e6c8;padding:6px 10px;border-radius:8px;margin-top:8px}
 .empty{text-align:center;color:var(--mut);padding:40px}
 @media(max-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}.fcards{grid-template-columns:1fr}.rows{grid-template-columns:1fr}}
-</style></head>
+.nitem.nvac{flex-wrap:wrap;background:rgba(217,89,38,.08);border:1px solid rgba(217,89,38,.28)}.vbtn{margin-right:auto;margin-top:6px;background:#d95926;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}.vbtn:hover{background:#c14a1e}.vacts{display:flex;gap:8px;margin-top:8px;width:100%}.vbtn.vkeep{background:#2a3f52}.vbtn.vkeep:hover{background:#35506a}</style></head>
 <body>
 <header><div class="wrap">
   <div class="brand" onclick="goHome()"><div class="logo">🏢</div>
@@ -208,6 +208,32 @@ function resStats(c){
   var arrears=Math.max(0,dueToDate-recv);
   return {paid:paid,late:late,up:up,paidA:Math.min(recv,dueToDate),lateA:arrears,recv:recv,dueToDate:dueToDate,term:termInfo(c)};
 }
+var VACATE_THRESHOLD=3; // عدد الدفعات المتأخرة المتتالية التي تشير لاحتمال ترك السكن
+function trailLate(c){
+  if(c.kind==='تجاري'||!c.occupied) return {n:0,date:null};
+  if(termInfo(c)) return {n:0,date:null};
+  var d=reconcile(c).filter(function(x){return !x.date||x.date<=TODAY;});
+  var n=0,firstDate=null;
+  for(var i=d.length-1;i>=0;i--){
+    if(d[i].status==='متأخرة'){n++;firstDate=d[i].date;}
+    else break;
+  }
+  return {n:n,date:firstDate};
+}
+if(!window._dismissVacate)window._dismissVacate={}; // {id:true} مستأجرون قرّر الإبقاء عليهم رغم التأخر
+function archiveFormer(id){
+  var c=DATA.filter(function(x){return x.id===id;})[0];if(!c)return;
+  var tl=trailLate(c);
+  var leave=tl.date? (function(dt){var t=new Date(dt);t.setDate(t.getDate()-1);return t.toISOString().slice(0,10);})(tl.date) : TODAY;
+  if(typeof confirm==='function' && !confirm('أرشفة «'+c.tenant+'» كمستأجر سابق (ترك السكن)؟\n\nتاريخ الإخلاء المقترح: '+leave+'\nسيخرج من الإشعارات ويُوسم كمستأجر سابق. يمكنك التراجع من بطاقة العقد.')) return;
+  window._term[id]={date:leave,reason:'مستأجر سابق (ترك السكن)'};
+  if(window._dismissVacate[id])delete window._dismissVacate[id];
+  saveState();goHome();
+}
+function keepActive(id){
+  window._dismissVacate[id]=true; // إبقاؤه نشطاً — يظهر كتأخير عادي دون اقتراح الأرشفة
+  saveState();goHome();
+}
 function lateInfo(c){ // returns {amt,count} of overdue for any contract
   if(c.kind==='تجاري') return {amt:c.lateAmt||0,count:c.lateCount||0};
   if(c.occupied){var s=resStats(c);return {amt:s.lateA,count:s.late};}
@@ -223,8 +249,17 @@ function daysTo(d){if(!d)return 9999;return Math.round((new Date(d)-new Date(TOD
 
 function notifications(){
   var out=[];
-  DATA.forEach(function(c){var li=lateInfo(c);if(li.amt>0)out.push({dot:'d-red',pri:1,txt:'<b>'+c.tenant+'</b> — دفعات متأخرة ('+li.count+') — راجع الحساب البنكي',val:fmt(li.amt)+' ﷼',id:c.id});});
-  DATA.forEach(function(c){if(c.occupied&&c.end){var d=daysTo(c.end);if(d>=0&&d<=120)out.push({dot:'d-amber',pri:2,txt:'<b>'+c.tenant+'</b> — عقد ينتهي خلال '+d+' يوم ('+c.end+')',val:'',id:c.id});}});
+  DATA.forEach(function(c){
+    if(termInfo(c)) return; // تم تسجيل الإخلاء/الإنهاء — لا إشعارات تأخير
+    var li=lateInfo(c);if(li.amt<=0) return;
+    var tl=trailLate(c);
+    if(tl.n>=VACATE_THRESHOLD && !(window._dismissVacate&&window._dismissVacate[c.id])){
+      out.push({dot:'d-red',pri:0,vacate:true,txt:'<b>'+c.tenant+'</b> — متأخر '+tl.n+' دفعات متتالية · <span style="color:#e8c766">يُحتمل ترك السكن</span> — '+c.property,val:fmt(li.amt)+' ﷼',id:c.id});
+    } else {
+      out.push({dot:'d-red',pri:1,txt:'<b>'+c.tenant+'</b> — دفعات متأخرة ('+li.count+') — راجع الحساب البنكي',val:fmt(li.amt)+' ﷼',id:c.id});
+    }
+  });
+  DATA.forEach(function(c){if(termInfo(c))return;if(c.occupied&&c.end){var d=daysTo(c.end);if(d>=0&&d<=120)out.push({dot:'d-amber',pri:2,txt:'<b>'+c.tenant+'</b> — عقد ينتهي خلال '+d+' يوم ('+c.end+')',val:'',id:c.id});}});
   DATA.forEach(function(c){if(!c.occupied)out.push({dot:'d-mut',pri:4,txt:'وحدة شاغرة — <b>'+c.property+'</b> · وحدة '+c.units.join('، '),val:fmt(c.annual)+' ﷼',id:c.id});});
   out.sort(function(a,b){return a.pri-b.pri;});return out;
 }
@@ -241,7 +276,12 @@ function goHome(){
   h+='</div>';
   h+='<div class="tiles" style="grid-template-columns:1fr 1fr;margin-top:0"><div class="tile t-fin" onclick="bankView()"><div class="ic">🏦</div><h3>كشف الحساب البنكي</h3><div class="s">مراجعة التحويلات حسب الشهر</div></div><div class="tile" onclick="updateView()"><div class="ic">🔄</div><h3>تحديث البيانات</h3><div class="s">استيراد تقرير إيجار وكشف البنك</div></div></div>';
   h+='<div class="notif"><h3>🔔 الإشعارات <span class="badge-n">'+lateN+' متأخر</span></h3>';
-  h+=n.slice(0,12).map(function(x){return '<div class="nitem" onclick="openC('+x.id+')"><span class="dot '+x.dot+'"></span><span class="txt">'+x.txt+'</span><span class="val">'+x.val+'</span></div>';}).join('');
+  h+=n.slice(0,12).map(function(x){
+    if(x.vacate){
+      return '<div class="nitem nvac"><span class="dot '+x.dot+'"></span><span class="txt" onclick="openC('+x.id+')" style="cursor:pointer">'+x.txt+'</span><span class="val">'+x.val+'</span><div class="vacts"><button class="vbtn" onclick="event.stopPropagation();archiveFormer('+x.id+')">📦 أرشفة كمستأجر سابق</button><button class="vbtn vkeep" onclick="event.stopPropagation();keepActive('+x.id+')">↩︎ إبقاؤه نشطاً</button></div></div>';
+    }
+    return '<div class="nitem" onclick="openC('+x.id+')"><span class="dot '+x.dot+'"></span><span class="txt">'+x.txt+'</span><span class="val">'+x.val+'</span></div>';
+  }).join('');
   h+='</div>';
   el('app').innerHTML=h;window.scrollTo(0,0);
 }
@@ -598,12 +638,12 @@ function fbInit(){try{if(window.firebase&&firebase.initializeApp){if(!firebase.a
 function nowISO(){try{return new Date().toISOString();}catch(e){return '';}}
 function saveState(){
   META.ts=nowISO();
-  var st={data:DATA,bank:BANK,links:window._links,term:window._term,propmeta:window._propmeta,meta:META,ts:META.ts};
+  var st={data:DATA,bank:BANK,links:window._links,term:window._term,dismissVacate:window._dismissVacate,propmeta:window._propmeta,meta:META,ts:META.ts};
   try{localStorage.setItem('rental_interactive_state',JSON.stringify(st));}catch(e){}
   if(db){try{db.collection(FB_COLL).doc(FB_DOC).set(st).then(function(){setSync('تمت المزامنة السحابية ✓');}).catch(function(){setSync('حُفظ محلياً (تعذّرت السحابة)');});}catch(e){setSync('حُفظ محلياً');}}
   else setSync('حُفظ محلياً (بلا سحابة)');
 }
-function applyState(st){if(!st)return false;if(st.data&&st.data.length)DATA=st.data;if(st.bank&&st.bank.length)BANK=st.bank;window._links=st.links||{};window._term=st.term||{};if(st.propmeta)window._propmeta=st.propmeta;if(st.meta)META=st.meta;return true;}
+function applyState(st){if(!st)return false;if(st.data&&st.data.length)DATA=st.data;if(st.bank&&st.bank.length)BANK=st.bank;window._links=st.links||{};window._term=st.term||{};if(st.propmeta)window._propmeta=st.propmeta;if(st.dismissVacate)window._dismissVacate=st.dismissVacate;if(st.meta)META=st.meta;return true;}
 function setSync(msg){var e=document.getElementById('syncmsg');if(e)e.textContent=msg;}
 function loadState(cb){
   var local=null;try{local=JSON.parse(localStorage.getItem('rental_interactive_state'));}catch(e){}
