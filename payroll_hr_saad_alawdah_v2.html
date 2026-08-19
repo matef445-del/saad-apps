@@ -594,7 +594,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         </div>
         <div class="fm"><label>من تاريخ</label><input type="date" id="lv-from" onchange="onLvFromChange()"></div>
         <div class="fm"><label>إلى تاريخ</label><input type="date" id="lv-to" onchange="onLvToChange()"></div>
-        <div class="fm"><label>عدد الأيام</label><input type="number" id="lv-days" readonly style="background:#f0f0e8"></div>
+        <div class="fm"><label>عدد الأيام</label><input type="number" id="lv-days" readonly style="background:#f0f0e8"></div><div class="fm"><label>🛑 آخر يوم عمل (مرجع أيام العمل)</label><input type="date" id="lv-lastwork"><div style="font-size:10.5px;color:#8a7a55;margin-top:3px">يُحتسب راتب الموظف على أساس أيام عمله حتى هذا اليوم (وليس حتى اليوم الحالي).</div></div><div class="fm"><label>↩️ تاريخ العودة للعمل (لمن عاد من إجازة)</label><input type="date" id="lv-return"><div style="font-size:10.5px;color:#8a7a55;margin-top:3px">تُحتسب أيام العمل من هذا اليوم حتى نهاية الشهر (ما قبله إجازة).</div></div>
         <div class="fm"><label><i class="ti ti-plane-departure" style="font-size:13px;color:var(--gd)"></i> ✈️ تأشيرة خروج وعودة</label>
           <select id="lv-visa" onchange="onVisaChange()">
             <option value="">— بدون / يدوي</option>
@@ -1364,7 +1364,7 @@ function renderLeaves(){
     return`<tr><td><span class="ea">${av2(e.name)}</span>${e.name}</td>
       <td>${r.from}</td><td>${r.to}</td>
       <td style="font-weight:600">${r.days} يوم</td>
-      <td><span class="bge bgo">${tMap[r.type]||r.type}</span>${r.visa?` <span class="bge bgi" title="تأشيرة خروج وعودة">✈️ ${r.visa} يوم</span>`:''}${(r.type!=='unpaid'&&r.deduct)?` <span class="bge bgd" title="يُخصم من الراتب">يُخصم</span>`:''}</td>
+      <td><span class="bge bgo">${tMap[r.type]||r.type}</span>${r.visa?` <span class="bge bgi" title="تأشيرة خروج وعودة">✈️ ${r.visa} يوم</span>`:''}${(r.type!=='unpaid'&&r.deduct)?` <span class="bge bgd" title="يُخصم من الراتب">يُخصم</span>`:''}${r.lastWork?` <span class="bge bgd" title="آخر يوم عمل — مرجع أيام العمل">🛑 آخر عمل ${r.lastWork}</span>`:''}${r.returnWork?` <span class="bge bgs" title="تاريخ العودة للعمل">↩️ عودة ${r.returnWork}</span>`:''}</td>
       <td><span class="bge ${sMap[r.st]||'bgw'}">${sTxt[r.st]||r.st}</span></td>
       <td style="display:flex;gap:3px">
         <button class="btn bed sm" onclick="editLv(${i})"><i class="ti ti-edit"></i></button>
@@ -1434,7 +1434,8 @@ function onVisaChange(){
   applyVisaDuration();
 }
 function onVisaCustomInput(){applyVisaDuration();}
-function onLvFromChange(){ if(currentVisaDays()>0)applyVisaDuration(); else calcLvDays(); }
+function onLvFromChange(){ if(currentVisaDays()>0)applyVisaDuration(); else calcLvDays(); suggestLastWork(); }
+function suggestLastWork(){var lw=document.getElementById('lv-lastwork');if(!lw||lw.value)return;var f=document.getElementById('lv-from').value;if(!f)return;var d=new Date(f);if(isNaN(d))return;d.setDate(d.getDate()-1);lw.value=d.toISOString().slice(0,10);}
 function onLvToChange(){
   /* تعديل تاريخ الانتهاء يدوياً يُلغي التأشيرة ويحسب الأيام من التواريخ */
   document.getElementById('lv-visa').value='';
@@ -1455,8 +1456,8 @@ function openLeaveModal(idx=-1,empId=null){
   document.getElementById('lv-idx').value=idx;
   document.getElementById('lv-modal-title').textContent=idx>=0?'تعديل طلب الإجازة':'تسجيل إجازة جديدة';
   pfLvEmp(empId);
-  if(idx>=0){const r=lvReqs[idx];document.getElementById('lv-emp').value=r.eid;document.getElementById('lv-type').value=r.type;document.getElementById('lv-from').value=r.from;document.getElementById('lv-to').value=r.to;document.getElementById('lv-days').value=r.days;document.getElementById('lv-st').value=r.st;document.getElementById('lv-note').value=r.note||'';setVisaUI(r.visa||0);document.getElementById('lv-deduct').checked=!!(r.type==='unpaid'||r.deduct);}
-  else{document.getElementById('lv-from').value='';document.getElementById('lv-to').value='';document.getElementById('lv-days').value='';document.getElementById('lv-st').value='approved';document.getElementById('lv-note').value='';setVisaUI(0);document.getElementById('lv-deduct').checked=false;}
+  if(idx>=0){const r=lvReqs[idx];document.getElementById('lv-emp').value=r.eid;document.getElementById('lv-type').value=r.type;document.getElementById('lv-from').value=r.from;document.getElementById('lv-to').value=r.to;document.getElementById('lv-days').value=r.days;document.getElementById('lv-st').value=r.st;document.getElementById('lv-note').value=r.note||'';setVisaUI(r.visa||0);document.getElementById('lv-deduct').checked=!!(r.type==='unpaid'||r.deduct);document.getElementById('lv-lastwork').value=r.lastWork||'';document.getElementById('lv-return').value=r.returnWork||'';}
+  else{document.getElementById('lv-from').value='';document.getElementById('lv-to').value='';document.getElementById('lv-days').value='';document.getElementById('lv-st').value='approved';document.getElementById('lv-note').value='';setVisaUI(0);document.getElementById('lv-deduct').checked=false;document.getElementById('lv-lastwork').value='';document.getElementById('lv-return').value='';}
   onLvTypeChange();
   document.getElementById('mlv').classList.add('open');
 }
@@ -1480,10 +1481,12 @@ function saveLv(){
   const note=document.getElementById('lv-note').value;
   const visa=currentVisaDays();
   const deduct=(type==='unpaid')?true:document.getElementById('lv-deduct').checked;
+  const lastWork=document.getElementById('lv-lastwork').value||'';
+  const returnWork=document.getElementById('lv-return').value||'';
   const idx=+document.getElementById('lv-idx').value;
-  if(!from||!to||!days){tk('يرجى تحديد التواريخ','var(--err)');return;}
-  if(idx>=0)lvReqs[idx]={eid,type,from,to,days,st,note,visa,deduct};
-  else lvReqs.push({eid,type,from,to,days,st,note,visa,deduct});
+  if((!from||!to||!days)&&!lastWork&&!returnWork){tk('يرجى تحديد التواريخ أو «آخر يوم عمل»/«تاريخ العودة»','var(--err)');return;}
+  if(idx>=0)lvReqs[idx]={eid,type,from,to,days,st,note,visa,deduct,lastWork,returnWork};
+  else lvReqs.push({eid,type,from,to,days,st,note,visa,deduct,lastWork,returnWork});
   document.getElementById('mlv').classList.remove('open');
   renderLeaves();
   if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
@@ -2133,9 +2136,32 @@ function salaryReducingLeaveDays(eid,y,m0){
     .reduce(function(s,r){return s+monthOverlapDays(r.from,r.to,y,m0);},0);
 }
 /* ضبط أيام الحضور تلقائياً = أساس الشهر ناقص أيام الإجازة الخاصمة (ما لم يُثبّتها المستخدم يدوياً) */
+/* أيام العمل الفعلية في الشهر بناءً على حدّي فترة الغياب: آخر يوم عمل + تاريخ العودة (أساس 30 يوماً) */
+function workedDaysInMonth(eid,y,m0){
+  var any=false; var off={};
+  lvReqs.forEach(function(r){
+    if(r.eid!==eid||r.st!=='approved')return;
+    if(!r.lastWork&&!r.returnWork)return; // نتعامل فقط مع الإجازات المحدِّدة لفترة العمل
+    any=true;
+    var L=r.lastWork?new Date(r.lastWork):null; var R=r.returnWork?new Date(r.returnWork):null;
+    var Ld=L&&!isNaN(L)?new Date(L.getFullYear(),L.getMonth(),L.getDate()):null;
+    var Rd=R&&!isNaN(R)?new Date(R.getFullYear(),R.getMonth(),R.getDate()):null;
+    for(var d=1;d<=BASE_DAYS;d++){
+      var cur=new Date(y,m0,d);
+      var afterL = Ld? (cur>Ld) : true;   // بلا «آخر يوم عمل» ⇒ الإجازة بدأت قبل ذلك
+      var beforeR = Rd? (cur<Rd) : true;  // بلا «تاريخ عودة» ⇒ ما زال غائباً (مفتوحة)
+      if(afterL&&beforeR) off[d]=true;
+    }
+  });
+  if(!any) return null;
+  var w=0; for(var d=1;d<=BASE_DAYS;d++) if(!off[d]) w++;
+  return w;
+}
 function applyAutoWorkDays(y,m0){
   emps.forEach(function(e){
     if(e.workDaysAuto===false)return;
+    var w=workedDaysInMonth(e.id,y,m0);
+    if(w!==null){ e.workDays=Math.max(0,Math.min(BASE_DAYS,w)); return; }
     var lv=salaryReducingLeaveDays(e.id,y,m0);
     e.workDays=Math.max(0,BASE_DAYS-lv);
   });
