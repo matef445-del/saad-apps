@@ -574,8 +574,8 @@ function doLink(cid,dueNo){
   openC(cid); // re-render
 }
 function askTerminate(cid,sr,hint){var cell=el('termbox_'+cid);if(!cell)return;cell.innerHTML='<div class="lf" style="flex-wrap:wrap"><span>تاريخ الإخلاء (يُدخَل يدوياً):</span><input type="date" id="td_'+cid+'"><input id="tr_'+cid+'" placeholder="السبب (اختياري)" value="'+(sr||'')+'" style="width:170px"><button class="linkbtn" style="background:var(--red)" onclick="doTerminate('+cid+')">تأكيد الإنهاء</button>'+(hint?'<div style="width:100%;font-size:11px;color:#8aa0b5;margin-top:5px">'+hint+'</div>':'')+'</div>';var _i=el('td_'+cid);if(_i)try{_i.focus();}catch(e){}}
-function doTerminate(cid){var dt=el('td_'+cid).value;if(!dt){alert('اختر تاريخ الإخلاء');return;}window._term[cid]={date:dt,reason:(el('tr_'+cid).value||'إخلاء يدوي')};openC(cid);}
-function undoTerminate(cid){delete window._term[cid];openC(cid);}
+function doTerminate(cid){var dt=el('td_'+cid).value;if(!dt){alert('اختر تاريخ الإخلاء');return;}window._term[cid]={date:dt,reason:(el('tr_'+cid).value||'إخلاء يدوي')};if(window._dismissVacate&&window._dismissVacate[cid])delete window._dismissVacate[cid];saveState();openC(cid);}
+function undoTerminate(cid){delete window._term[cid];saveState();openC(cid);}
 function row(k,v){return '<div class="rw"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
 var STINFO={
  'مدفوعة':{c:'#1a7a4c',d:'دفعة مُغطّاة بالكامل من الحوالات المستلمة — لا يوجد متبقٍّ عليها.'},
