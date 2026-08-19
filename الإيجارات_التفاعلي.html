@@ -59,13 +59,13 @@ table.ftab{width:100%;border-collapse:collapse;font-size:13px;background:#fff;bo
 table.ftab th{background:var(--g);color:#fff;padding:10px;text-align:right;font-weight:700}
 table.ftab td{padding:9px 10px;border-bottom:1px solid var(--line)}
 table.ftab tr:hover td{background:#fafcfe;cursor:pointer}
-.ov{position:fixed;inset:0;background:rgba(15,30,22,.55);display:none;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto;z-index:50}
+.ov{position:fixed;inset:0;background:rgba(15,30,22,.55);display:none;align-items:center;justify-content:center;padding:24px 12px;overflow:hidden;z-index:50}
 .ov.on{display:flex}
-.modal{background:#fff;max-width:780px;width:100%;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3)}
-.mh{background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.modal{background:#fff;max-width:780px;width:100%;border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:calc(100vh - 48px)}
+.mh{background:linear-gradient(135deg,var(--g),var(--g2));color:#fff;padding:18px 22px;flex:0 0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .mh h2{font-size:18px}.mh .sub{font-size:12.5px;opacity:.92;margin-top:3px}
 .mh .x{background:rgba(255,255,255,.2);border:none;color:#fff;width:34px;height:34px;border-radius:10px;font-size:20px;cursor:pointer;flex-shrink:0}
-.mb{padding:20px 22px}
+.mb{padding:20px 22px;overflow-y:auto;flex:1 1 auto;-webkit-overflow-scrolling:touch}
 .sec{margin-bottom:20px}
 .sec h3{font-size:13px;color:var(--g);font-weight:800;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--gl);display:flex;justify-content:space-between;align-items:center}
 .rows{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
@@ -81,10 +81,10 @@ table.sch td{padding:8px;border-bottom:1px solid var(--line)}
 .st-d{background:#eef1f5;color:var(--mut)}
 #ov2{position:fixed;inset:0;background:rgba(15,30,22,.5);display:none;align-items:center;justify-content:center;padding:20px;z-index:60}
 #ov2.on{display:flex}
-.mini{background:#fff;max-width:430px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35)}
-.mh2{padding:14px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:800}
+.mini{background:#fff;max-width:430px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;max-height:calc(100vh - 40px)}
+.mh2{padding:14px 18px;color:#fff;display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:800;flex:0 0 auto}
 .mh2 .x{background:rgba(255,255,255,.25);border:none;color:#fff;width:30px;height:30px;border-radius:8px;font-size:18px;cursor:pointer}
-.mb2{padding:16px 18px}
+.mb2{padding:16px 18px;overflow-y:auto;flex:1 1 auto}
 .mb2 p{font-size:13.5px;color:#3a4655;margin-bottom:12px;line-height:1.7}
 .legrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
 .st.click{cursor:pointer}.st.click:hover{filter:brightness(.95);text-decoration:underline}
@@ -101,7 +101,7 @@ table.sch td{padding:8px;border-bottom:1px solid var(--line)}
 <header><div class="wrap">
   <div class="brand" onclick="goHome()"><div class="logo">🏢</div>
     <div><h1>برنامج إدارة الإيجارات</h1><p>نسخة تفاعلية للمراجعة — بيانات محدّثة من منصة إيجار</p></div></div>
-  <button class="hbtn" id="backBtn" onclick="goBack()">🏠 الرئيسية</button>
+  <button class="hbtn" id="backBtn" onclick="goBack()">‹ رجوع</button><button class="hbtn" id="homeBtn" onclick="goHome()">🏠 الرئيسية</button>
 </div></header>
 <div class="wrap" id="app"></div>
 <div class="ov" id="ov"><div class="modal" id="modal"></div></div>
@@ -271,7 +271,7 @@ function notifications(){
 }
 
 function goHome(){
-  window.CAT='';window._view='home';el('backBtn').classList.remove('show');
+  window.CAT='';window._view='home';el('backBtn').classList.remove('show');var _hb=el('homeBtn');if(_hb)_hb.classList.remove('show');window._viewStack=[];window._navBack=false;
   var res=DATA.filter(function(c){return c.kind==='سكني';}),com=DATA.filter(function(c){return c.kind==='تجاري';});
   var rOcc=res.filter(function(c){return c.occupied;}).length,cOcc=com.filter(function(c){return c.occupied;}).length;
   var n=notifications(),lateN=n.filter(function(x){return x.dot==='d-red';}).length;
@@ -292,7 +292,7 @@ function goHome(){
   el('app').innerHTML=h;window.scrollTo(0,0);
 }
 function catView(kind){
-  window.CAT=kind;window._view='cat';el('backBtn').classList.add('show');
+  window.CAT=kind;window._view='cat';el('backBtn').classList.add('show');_recordView('cat',function(){catView(kind);});
   var arr=DATA.filter(function(c){return c.kind===kind;});
   var occ=arr.filter(function(c){return c.occupied;}).length,vac=arr.length-occ;
   var annual=arr.reduce(function(s,c){return s+(c.occupied?c.annual:0);},0);
@@ -316,7 +316,7 @@ function catView(kind){
 
 var bkYear='',bkMonth='',bkSrc='',bkQ='';
 function bankView(){
-  window.CAT='';window._view='bank';el('backBtn').classList.add('show');
+  window.CAT='';window._view='bank';el('backBtn').classList.add('show');_recordView('bank',bankView);
   var years={};BANK.forEach(function(t){if(t.date)years[t.date.slice(0,4)]=1;});
   var yopts='<option value="">كل الأعوام</option>'+Object.keys(years).sort().reverse().map(function(y){return '<option value="'+y+'"'+(y===bkYear?' selected':'')+'>'+y+'</option>';}).join('');
   var mopts='<option value="">كل الأشهر</option>'+MO.map(function(m,i){var v=('0'+(i+1)).slice(-2);return '<option value="'+v+'"'+(v===bkMonth?' selected':'')+'>'+m+'</option>';}).join('');
@@ -382,11 +382,13 @@ function parseBankCSV(text){
   }
   return out;
 }
-function goBack(){ if(window.CAT&&window._view!=='cat'){catView(window.CAT);} else {goHome();} }
+window._viewStack=[];window._navBack=false;
+function _recordView(v,thunk){var hb=el('homeBtn');if(hb)hb.classList.add('show');if(window._navBack){window._navBack=false;return;}var st=window._viewStack;if(st.length&&st[st.length-1].v===v){st[st.length-1].fn=thunk;return;}st.push({v:v,fn:thunk});}
+function goBack(){var st=window._viewStack;st.pop();if(!st.length){goHome();return;}window._navBack=true;st[st.length-1].fn();}
 
 var curFilter=null;
 function listView(title,filt){
-  window._view='list';el('backBtn').classList.add('show');curFilter=filt;
+  window._view='list';el('backBtn').classList.add('show');curFilter=filt;_recordView('list',function(){listView(title,filt);});
   el('app').innerHTML='<div class="vtitle">'+title+'</div><div class="search-row"><div class="search"><span class="ic">🔍</span><input id="q" placeholder="ابحث باسم المستأجر، رقم الوحدة، رقم العقد، المبلغ..."></div><select id="fStat"><option value="">كل الحالات</option><option value="occ">مشغول</option><option value="vac">شاغر</option></select></div><div class="count" id="count"></div><div class="grid" id="grid"></div>';
   el('q').addEventListener('input',renderList);el('fStat').addEventListener('change',renderList);renderList();window.scrollTo(0,0);
 }
@@ -415,7 +417,7 @@ function collectedInPeriod(c,y,m){
   return {amt:arr.reduce(function(s,p){return s+(p.amount||0);},0),n:arr.length};
 }
 function tenantsView(){
-  window._view='tenants';el('backBtn').classList.add('show');
+  window._view='tenants';el('backBtn').classList.add('show');_recordView('tenants',tenantsView);
   var occ=DATA.filter(function(c){return c.occupied;});
   var years={};occ.forEach(function(c){(c.payments||[]).forEach(function(p){if(p.date)years[p.date.slice(0,4)]=1;});});
   var yopts='<option value="">كل الأعوام</option>'+Object.keys(years).sort().reverse().map(function(y){return '<option value="'+y+'"'+(y===tYear?' selected':'')+'>'+y+'</option>';}).join('');
@@ -444,7 +446,7 @@ function drawTenants(){
   el('grid').innerHTML=occ.length?html:'<div class="empty">لا نتائج</div>';
 }
 function propView(){
-  window._view='prop';el('backBtn').classList.add('show');
+  window._view='prop';el('backBtn').classList.add('show');_recordView('prop',propView);
   var byp={};DATA.filter(function(c){return !window.CAT||c.kind===window.CAT;}).forEach(function(c){(byp[c.property]=byp[c.property]||[]).push(c);});
   var h='<div class="vtitle">العقارات</div><div class="grid">';
   Object.keys(byp).forEach(function(p){var arr=byp[p];var occ=arr.filter(function(c){return c.occupied;}).length;var ann=arr.reduce(function(s,c){return s+(c.occupied?c.annual:0);},0);
@@ -467,7 +469,7 @@ function allPayments(){
 }
 var finYear='',finMonth='';
 function finView(){
-  window._view='fin';el('backBtn').classList.add('show');
+  window._view='fin';el('backBtn').classList.add('show');_recordView('fin',finView);
   var com=DATA.filter(function(c){return c.kind==='تجاري'&&(!window.CAT||window.CAT==='تجاري');});
   var res=DATA.filter(function(c){return c.kind==='سكني'&&c.occupied&&(!window.CAT||window.CAT==='سكني');});
   var cAnn=com.reduce(function(s,c){return s+c.annual;},0),rAnn=res.reduce(function(s,c){return s+c.annual;},0);
@@ -807,7 +809,7 @@ function bankRowsToRecords(rows){
 function resetToSeed(){DATA=JSON.parse(JSON.stringify(SEED_DATA));BANK=JSON.parse(JSON.stringify(SEED_BANK));window._links={};window._term={};META={ejar:null,bank:null,ts:null};saveState();updateView();}
 /* ===== تبويب تحديث البيانات ===== */
 function updateView(){
-  window.CAT='';window._view='update';el('backBtn').classList.add('show');
+  window.CAT='';window._view='update';el('backBtn').classList.add('show');_recordView('update',updateView);
   var occ=DATA.filter(function(c){return c.occupied;}).length;
   var h='<div class="vtitle">تحديث البيانات</div>';
   h+='<div class="fcards"><div class="fc"><div class="n" style="color:var(--g)">'+DATA.length+'</div><div class="s">عقد/وحدة</div></div>'+
