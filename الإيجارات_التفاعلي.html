@@ -224,12 +224,12 @@ function trailLate(c){
 if(!window._dismissVacate)window._dismissVacate={}; // {id:true} مستأجرون قرّر الإبقاء عليهم رغم التأخر
 function archiveFormer(id){
   var c=DATA.filter(function(x){return x.id===id;})[0];if(!c)return;
-  var tl=trailLate(c);
-  var leave=tl.date? (function(dt){var t=new Date(dt);t.setDate(t.getDate()-1);return t.toISOString().slice(0,10);})(tl.date) : TODAY;
-  if(typeof confirm==='function' && !confirm('أرشفة «'+c.tenant+'» كمستأجر سابق (ترك السكن)؟\n\nتاريخ الإخلاء المقترح: '+leave+'\nسيخرج من الإشعارات ويُوسم كمستأجر سابق. يمكنك التراجع من بطاقة العقد.')) return;
-  window._term[id]={date:leave,reason:'مستأجر سابق (ترك السكن)'};
-  if(window._dismissVacate[id])delete window._dismissVacate[id];
-  saveState();goHome();
+  openC(id); // افتح بطاقة العقد لإدخال تاريخ الإخلاء يدوياً
+  var ps=(c.payments||[]).map(function(p){return p.date;}).filter(Boolean).sort();
+  var last=ps.length?ps[ps.length-1]:'';
+  var tl=trailLate(c);var firstUnpaid=tl.date||'';
+  var hint='أدخِل تاريخ ترك السكن يدوياً.'+(last?' آخر دفعة مستلمة: '+last+'.':'')+(firstUnpaid?' أول شهر غير مسدَّد: '+firstUnpaid+'.':'');
+  askTerminate(id,'مستأجر سابق (ترك السكن)',hint);
 }
 function keepActive(id){
   window._dismissVacate[id]=true; // إبقاؤه نشطاً — يظهر كتأخير عادي دون اقتراح الأرشفة
@@ -573,7 +573,7 @@ function doLink(cid,dueNo){
   window._links[cid][dueNo]={date:dt,amount:am,receipt:'تحويل بنكي مباشر',manual:true};
   openC(cid); // re-render
 }
-function askTerminate(cid){var cell=el('termbox_'+cid);if(!cell)return;cell.innerHTML='<div class="lf"><span>تاريخ الإخلاء:</span><input type="date" id="td_'+cid+'"><input id="tr_'+cid+'" placeholder="السبب (اختياري)" style="width:150px"><button class="linkbtn" style="background:var(--red)" onclick="doTerminate('+cid+')">تأكيد الإنهاء</button></div>';}
+function askTerminate(cid,sr,hint){var cell=el('termbox_'+cid);if(!cell)return;cell.innerHTML='<div class="lf" style="flex-wrap:wrap"><span>تاريخ الإخلاء (يُدخَل يدوياً):</span><input type="date" id="td_'+cid+'"><input id="tr_'+cid+'" placeholder="السبب (اختياري)" value="'+(sr||'')+'" style="width:170px"><button class="linkbtn" style="background:var(--red)" onclick="doTerminate('+cid+')">تأكيد الإنهاء</button>'+(hint?'<div style="width:100%;font-size:11px;color:#8aa0b5;margin-top:5px">'+hint+'</div>':'')+'</div>';var _i=el('td_'+cid);if(_i)try{_i.focus();}catch(e){}}
 function doTerminate(cid){var dt=el('td_'+cid).value;if(!dt){alert('اختر تاريخ الإخلاء');return;}window._term[cid]={date:dt,reason:(el('tr_'+cid).value||'إخلاء يدوي')};openC(cid);}
 function undoTerminate(cid){delete window._term[cid];openC(cid);}
 function row(k,v){return '<div class="rw"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
