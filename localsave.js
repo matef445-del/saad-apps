@@ -13,7 +13,7 @@
   var LS_AUTO = '_saadLS_auto';              // مفتاح تشغيل الحفظ التلقائي (مشترك)
   var LS_LAST = '_saadLS_last';              // آخر حفظ (نص)
   var DEBOUNCE_MS = 4000;
-  var MAX_SNAPSHOTS = 30;                    // عدد اللقطات المؤرخة المحفوظة
+  var MAX_SNAPSHOTS = 24;                    // عدد اللقطات المؤرخة المحفوظة (بالساعة)
 
   // معرّف التطبيق الحالي من عنوان الصفحة (لتسمية مجلدات المرفقات)
   var APP_ID = (location.pathname.split('/').pop() || 'app').replace(/\.html?$/i,'') || 'app';
@@ -187,7 +187,7 @@
 
   /* ---------------------------- الحفظ ---------------------------- */
   function pad(x){ return String(x).padStart(2,'0'); }
-  function stamp(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+pad(d.getHours())+pad(d.getMinutes()); }
+  function stamp(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'_'+pad(d.getHours())+'س'; }
   function pruneSnapshots(dir){
     if(!dir.entries) return Promise.resolve();
     var names=[];
