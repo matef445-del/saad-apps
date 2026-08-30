@@ -39,6 +39,7 @@ th.c,td.c{text-align:center}
 tbody tr{border-top:1px solid var(--line);cursor:pointer;transition:.12s}
 tbody tr:hover{background:#15281d}
 td{padding:10px}
+tbody td:nth-child(6),tbody td:nth-child(7){font-size:11.5px;line-height:1.55;letter-spacing:-.2px}
 td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-block}
 .badge{padding:3px 10px;border-radius:20px;font-size:11.5px;white-space:nowrap;font-weight:600}
 .b-ok{background:#14301c;color:var(--green)}
@@ -143,6 +144,7 @@ const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>
 function jdnToGreg(jd){var a=jd+32044,b=Math.floor((4*a+3)/146097),c=a-Math.floor(146097*b/4);var d=Math.floor((4*c+3)/1461),e2=c-Math.floor(1461*d/4),mm=Math.floor((5*e2+2)/153);return {d:e2-Math.floor((153*mm+2)/5)+1,m:mm+3-12*Math.floor(mm/10),y:100*b+d-4800+Math.floor(mm/10)};}
 function hijriToGreg(y,mo,dy){var jd=hToJDN(y,mo,dy);var g=jdnToGreg(jd);var base=Date.UTC(g.y,g.m-1,g.d);for(var off=-2;off<=2;off++){var dt=new Date(base+off*86400000);var p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'}).formatToParts(dt);var o={};for(var k=0;k<p.length;k++)o[p[k].type]=p[k].value;if(+o.year===y&&+o.month===mo&&+o.day===dy)return {y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate()};}return g;}
 function fd(s){if(!s||s==='—'||s==='None')return '—';var m=String(s).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return s;var Y=+m[1],M=+m[2],D=+m[3];if(CAL==='g'){var g=hijriToGreg(Y,M,D);return ('0'+g.d).slice(-2)+'/'+('0'+g.m).slice(-2)+'/'+g.y;}return ('0'+D).slice(-2)+'/'+('0'+M).slice(-2)+'/'+Y;}
+function fdBoth(s){if(!s||s==='—'||s==='None')return '—';var m=String(s).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return s;var Y=+m[1],M=+m[2],D=+m[3];var h=('0'+D).slice(-2)+'/'+('0'+M).slice(-2)+'/'+Y;var g=hijriToGreg(Y,M,D);var gg=('0'+g.d).slice(-2)+'/'+('0'+g.m).slice(-2)+'/'+g.y;return h+' هـ / '+gg+' م';}
 function toggleCal(){CAL=(CAL==='h')?'g':'h';idbSet('cal',CAL);idbInit(function(){idbGet('cal',function(cv){if(cv==='g'||cv==='h')CAL=cv;idbGet('cars',function(d){if(d&&d.length){try{CARS=attachImgs(d);}catch(e){}}updateCalBtn();render();});});});}
 function updateCalBtn(){var b=g('calbtn');if(b)b.innerHTML=(CAL==='h')?'🗓 عرض ميلادي':'🗓 عرض هجري';}
 function hijToday(){try{const p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const o={};p.forEach(x=>o[x.type]=x.value);return o.year+'-'+o.month+'-'+o.day;}catch(e){return '1448-00-00';}}
@@ -201,7 +203,7 @@ function render(){
   '<td>'+(c.logo?'<img src="'+c.logo+'" class="blogo">':'')+'<b>'+e(c.brand)+'</b></td><td class="muted" dir="auto">'+e(c.model)+'</td>'+
   '<td class="c muted">'+e(c.year)+'</td><td class="muted">'+e(c.color)+'</td>'+
   '<td class="c"><span class="mono" dir="auto">'+e(c.plate)+'</span></td>'+
-  '<td class="c '+cellCls(c.license_exp)+'">'+fd(c.license_exp)+'</td><td class="c '+cellCls(c.inspection_exp)+'">'+fd(c.inspection_exp)+'</td>'+
+  '<td class="c '+cellCls(c.license_exp)+'">'+fdBoth(c.license_exp)+'</td><td class="c '+cellCls(c.inspection_exp)+'">'+fdBoth(c.inspection_exp)+'</td>'+
   '<td class="'+cellCls(c.ins_exp)+'" style="font-size:12px" title="'+e(c.ins_co||'')+'">'+e(shortIns(c.ins_co))+'</td>'+
   '</tr>';}).join('')
   ||'<tr><td colspan="8" style="text-align:center;padding:24px;color:#6f8578">لا توجد نتائج</td></tr>';
@@ -239,8 +241,8 @@ function openDetail(i){
  '<div class="detail"><div class="dcol">'+
    '<div class="drow"><span>رقم اللوحة</span><b dir="auto" style="font-family:monospace;color:#d8b441">'+e(c.plate)+'</b></div>'+
    R('اللون',c.color)+R('نوع التسجيل',c.reg)+R('رقم الهيكل',c.vin)+R('الرقم التسلسلي',c.serial)+R('الوزن',(c.weight?c.weight+' كجم':'—'))+
-   R('رقم الهوية',c.hid)+renewRow('انتهاء رخصة السير',fd(c.license_exp),'license',i)+renewRow('انتهاء الفحص الدوري',fd(c.inspection_exp),'inspection',i)+
-   R('شركة التأمين',c.ins_co)+R('بداية التأمين',fd(c.ins_start))+renewRow('انتهاء التأمين',fd(c.ins_exp),'insurance',i)+R('حالة التأمين',c.ins_status)+
+   R('رقم الهوية',c.hid)+renewRow('انتهاء رخصة السير',fdBoth(c.license_exp),'license',i)+renewRow('انتهاء الفحص الدوري',fdBoth(c.inspection_exp),'inspection',i)+
+   R('شركة التأمين',c.ins_co)+R('بداية التأمين',fdBoth(c.ins_start))+renewRow('انتهاء التأمين',fdBoth(c.ins_exp),'insurance',i)+R('حالة التأمين',c.ins_status)+
    (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'<div style="margin-top:10px;color:#7bd88f;font-size:13px">✓ جميع الأوراق سارية</div>')+
  '</div><div class="formimg"><div class="lbl">رخصة السير</div>'+img+
    '<div class="field" style="margin-top:8px"><label>تحديث صورة الرخصة</label><input type="file" accept="image/*" onchange="setForm('+i+',this)"></div>'+
