@@ -214,20 +214,22 @@ function insCompanies(){var s={};CARS.forEach(function(c){if(c.ins_co&&c.ins_co!
 function renew(i,field){
  var c=CARS[i];var M={license:['license_exp','رخصة السير'],inspection:['inspection_exp','الفحص الدوري'],insurance:['ins_exp','التأمين']};
  var fld=M[field][0],nm=M[field][1];
- var cur=norm(c[fld]);var todayH=norm(TODAY);var base=cur||todayH;var nu=addYear365(base);/* دائماً 365 يوم من تاريخ الانتهاء الحالي، والرجوع لتاريخ اليوم فقط إن لم يوجد تاريخ انتهاء */
- if(field==='insurance'){
-   var opts=insCompanies().map(function(x){return '<option '+(x===c.ins_co?'selected':'')+'>'+e(x)+'</option>';}).join('');
-   g('modalIn').innerHTML='<div class="modal-head"><h2>🔄 تجديد التأمين — '+e(c.brand)+' '+e(c.model)+'</h2><button class="x" onclick="openDetail('+i+')">×</button></div>'+
-     '<div style="max-width:460px;margin:6px auto">'+
-     '<div class="field"><label>اختر شركة التأمين</label><select id="rn_co">'+opts+'</select></div>'+
-     '<div style="background:#12241a;border:1px solid #1f5233;border-radius:10px;padding:10px;color:#7bd88f;font-size:13px;margin-bottom:12px">التجديد لمدة سنة (365 يوم) — تاريخ الانتهاء الجديد: <b>'+fd(nu)+'</b></div>'+
-     '<div class="actions"><button class="btn gold" onclick="doInsRenew('+i+',\''+nu+'\')">💾 حفظ التجديد</button><button class="btn" onclick="openDetail('+i+')">إلغاء</button></div></div>';
-   return;
- }
- if(!confirm('تجديد '+nm+' لمدة سنة (365 يوم)؟\n'+c.brand+' '+c.model+'  ('+c.plate+')\nتاريخ الانتهاء الجديد: '+fd(nu)))return;
- c[fld]=nu;save();render();openDetail(i);alert('✓ تم تجديد '+nm+' لمدة سنة\nينتهي في: '+fd(nu));
+ var cur=norm(c[fld]);var base=cur||norm(TODAY);var nu=addYear365(base);
+ var extra=(field==='insurance')?('<div class="field"><label>شركة التأمين</label><select id="rn_co">'+insCompanies().map(function(x){return '<option '+(x===c.ins_co?'selected':'')+'>'+e(x)+'</option>';}).join('')+'</select></div>'):'';
+ g('modalIn').innerHTML='<div class="modal-head"><h2>🔄 تجديد '+nm+' — '+e(c.brand)+' '+e(c.model)+'</h2><button class="x" onclick="openDetail('+i+')">×</button></div>'+
+   '<div style="max-width:460px;margin:6px auto">'+extra+
+   '<div class="field"><label>تاريخ الانتهاء الجديد (هجري) — قابل للتعديل يدوياً</label><input id="rn_date" value="'+e(nu)+'" placeholder="1450-03-30"></div>'+
+   '<div style="background:#12241a;border:1px solid #1f5233;border-radius:10px;padding:10px;color:#7bd88f;font-size:12.5px;margin-bottom:12px">القيمة المقترحة سنة كاملة (365 يوم)، ويمكنك تغييرها لأي تاريخ قبل الحفظ.</div>'+
+   '<div class="actions"><button class="btn gold" onclick="doRenewSave('+i+',\''+field+'\')">💾 حفظ</button><button class="btn" onclick="openDetail('+i+')">إلغاء</button></div></div>';
+ g('modal').classList.add('open');
 }
-function doInsRenew(i,nu){var c=CARS[i];var co=(g('rn_co').value||'').trim();if(co)c.ins_co=co;c.ins_exp=nu;c.ins_status='سارية';save();render();openDetail(i);alert('✓ تم تجديد التأمين لمدة سنة\nالشركة: '+c.ins_co+'\nينتهي في: '+fd(nu));}
+function doRenewSave(i,field){
+ var c=CARS[i];var M={license:'license_exp',inspection:'inspection_exp',insurance:'ins_exp'};
+ var v=((g('rn_date')||{}).value||'').trim(); if(!v){alert('أدخل تاريخ الانتهاء');return;}
+ c[M[field]]=v;
+ if(field==='insurance'){var co=((g('rn_co')||{}).value||'').trim(); if(co)c.ins_co=co; c.ins_status='سارية';}
+ save();render();openDetail(i);alert('✓ تم حفظ التاريخ الجديد: '+fd(v));
+}
 function openDetail(i){
  const c=CARS[i];const al=carAlerts(c);
  const img=c.form?('<img src="'+c.form+'" onclick="zoom(\''+i+'\')">'):('<div class="noimg"><div style="font-size:30px">🚗</div><div>لا توجد استمارة</div></div>');
@@ -258,7 +260,7 @@ const REGS=['خاص','نقل خاص','أجرة','نقل عام','دراجة','د
 const INSCOS=['شركة التعاونية للتأمين','شركة الراجحي للتأمين التعاوني','الشركة الخليجية العامة للتأمين التعاوني','الشركة الوطنية للتأمين التعاوني (سنيك)','شركة المتوسط والخليج للتأمين التعاوني','شركة ملاذ للتأمين','شركة سلامة للتأمين'];
 function opts(arr,v){return arr.map(x=>'<option '+(x===v?'selected':'')+'>'+e(x)+'</option>').join('');}
 function openForm(i){
- const c=(i!=null)?CARS[i]:{brand:'',model:'',year:'',color:'أبيض',plate:'',reg:'خاص',serial:'',hid:'1018492759',license_exp:'',inspection_exp:'',ins_co:'',ins_start:'',ins_exp:'',ins_status:'سارية'};
+ const c=(i!=null)?CARS[i]:{brand:'',model:'',year:'',color:'أبيض',plate:'',reg:'خاص',serial:'',hid:'1018492759',license_exp:'',inspection_exp:'',ins_co:'',ins_start:'',ins_exp:'',ins_status:'سارية',vin:'',weight:''};
  const F=(l,id,v,ph)=>'<div class="field"><label>'+l+'</label><input id="f_'+id+'" value="'+e(v)+'" placeholder="'+(ph||'')+'"></div>';
  g('modalIn').innerHTML=
  '<div class="modal-head"><h2>'+(i!=null?'✎ تعديل مركبة':'+ إضافة مركبة')+'</h2><button class="x" onclick="closeModal()">×</button></div>'+
@@ -269,7 +271,7 @@ function openForm(i){
   '<div class="field"><label>اللون</label><select id="f_color">'+opts(COLORS,c.color)+'</select></div>'+
   F('رقم اللوحة','plate',c.plate,'أ ب ج 1234')+
   '<div class="field"><label>نوع التسجيل</label><select id="f_reg">'+opts(REGS,c.reg)+'</select></div>'+
-  F('الرقم التسلسلي','serial',c.serial)+
+  F('الرقم التسلسلي','serial',c.serial)+F('رقم الهيكل (VIN)','vin',c.vin)+F('الوزن (كجم)','weight',c.weight)+
   F('رقم الهوية','hid',c.hid)+
   F('انتهاء رخصة السير (هجري)','license_exp',c.license_exp,'1450-03-30')+
   F('انتهاء الفحص الدوري (هجري)','inspection_exp',c.inspection_exp,'1448-06-26')+
@@ -283,7 +285,7 @@ function openForm(i){
 }
 function saveForm(i){
  const val=id=>{const el=g('f_'+id);return el?el.value.trim():'';};
- const o={brand:val('brand'),model:val('model'),year:val('year'),color:val('color'),plate:val('plate'),reg:val('reg'),serial:val('serial'),hid:val('hid'),license_exp:val('license_exp'),inspection_exp:val('inspection_exp'),ins_co:val('ins_co'),ins_start:val('ins_start'),ins_exp:val('ins_exp'),ins_status:val('ins_status')};
+ const o={brand:val('brand'),model:val('model'),year:val('year'),color:val('color'),plate:val('plate'),reg:val('reg'),serial:val('serial'),hid:val('hid'),vin:val('vin'),weight:val('weight'),license_exp:val('license_exp'),inspection_exp:val('inspection_exp'),ins_co:val('ins_co'),ins_start:val('ins_start'),ins_exp:val('ins_exp'),ins_status:val('ins_status')};
  if(!o.brand||!o.plate){alert('الماركة ورقم اللوحة مطلوبان');return;}
  if(i>=0){Object.assign(CARS[i],o);save();openDetail(i);}
  else{o.id=String(Date.now());o.form='';CARS.push(o);save();closeModal();}
