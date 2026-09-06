@@ -533,8 +533,13 @@ function closeAllMsel(){ document.querySelectorAll('.msel.open').forEach(functio
 document.addEventListener('click', function(){ closeAllMsel(); });
 
 function sortRows(rows){
+  var _n=function(v){var x=parseInt(String(v==null?'':v).trim().replace(/[^0-9]/g,''),10);return isNaN(x)?null:x;};
+  var _d=function(r){return normDate(r.date)||String(r.date||'');};
   return rows.slice().sort(function(a,b){
-    if(a.date<b.date)return -1; if(a.date>b.date)return 1; return 0;
+    var ia=_n(a.inv), ib=_n(b.inv);
+    if(ia!=null&&ib!=null){ if(ia!==ib)return ia-ib; var d1=_d(a),d2=_d(b); return d1<d2?-1:(d1>d2?1:0); }
+    var da=_d(a),db=_d(b); if(da<db)return -1; if(da>db)return 1;
+    if(ia!=null&&ib==null)return -1; if(ia==null&&ib!=null)return 1; return 0;
   });
 }
 function withBalance(key){
@@ -911,7 +916,7 @@ function renderAcc(){
   var showActs = !ro || CUR==='propexp'; /* تبويب العقار يعرض إجراءات للفواتير اليدوية فقط */
   var head='<tr><th class="th-seq">م</th><th>التاريخ</th><th>البيان / الوصف</th>'+(simple?'':'<th>النوع</th><th>التصنيف</th>')+'<th>المبلغ</th><th>الرصيد</th>'+(simple?'':'<th>فاتورة</th>')+(showActs?'<th>إجراءات</th>':'')+'<th class="th-invno">رقم الفاتورة</th></tr>';
   var body=rows.map(function(r,idx){
-    var seq=rows.length-idx;
+    var seq=(r.inv&&String(r.inv).trim())?esc(String(r.inv).trim()):(rows.length-idx);
     var invNo=(r.inv&&String(r.inv).trim())?esc(String(r.inv).trim()):'—';
     var inCls=r._dir>0?'in':'';
     var chip= simple?'':'<td><span class="chip '+(r._dir>0?'in':'exp')+'">'+esc(r.type)+'</span></td><td>'+(r.cat?'<span class="chip">'+esc(r.cat)+'</span>':'<span class="inv-no">—</span>')+'</td>';
