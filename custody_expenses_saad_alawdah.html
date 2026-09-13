@@ -229,6 +229,22 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
   </div>
 
   <!-- MONTHLY REPORT -->
+  <!-- ADVANCES / السلف -->
+  <div class="pg" id="pg-salaf">
+    <div class="pgh"><h1>💵 السلف</h1>
+      <div class="tools">
+        <button class="btn gold sm" onclick="openSalaf()">＋ سلفة جديدة</button>
+        <button class="btn ghost sm" onclick="printSalaf()">🖨️ طباعة</button>
+      </div>
+    </div>
+    <div class="cards" id="salaf-cards"></div>
+    <div class="sec">
+      <div class="filters"><input id="salaf-search" placeholder="🔍 بحث بالاسم/الهوية/الوظيفة…" oninput="renderSalaf()"></div>
+      <div class="twrap"><table id="salaf-tbl"></table></div>
+      <div class="empty" id="salaf-empty" style="display:none">لا توجد سلف مسجّلة</div>
+    </div>
+  </div>
+
   <div class="pg" id="pg-rpt">
     <div class="pgh"><h1>📅 التقرير الشهري</h1>
       <div class="tools">
@@ -380,6 +396,55 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
   </div>
 </div>
 
+<div class="ov" id="ov-salaf">
+  <div class="modal">
+    <h3 id="sm-title">سلفة جديدة</h3>
+    <input type="hidden" id="sm-id">
+    <div class="mrow">
+      <div class="fg"><label>اسم الموظف</label><input id="sm-emp" placeholder="الاسم"></div>
+      <div class="fg"><label>رقم الهوية / الإقامة</label><input id="sm-hid" placeholder="اختياري"></div>
+    </div>
+    <div class="mrow">
+      <div class="fg"><label>الوظيفة</label><input id="sm-job" placeholder="اختياري"></div>
+      <div class="fg"><label>مبلغ السلفة (ر.س)</label><input type="number" step="0.01" id="sm-amount" placeholder="0.00" oninput="salafCalcMonthly();renderSalafPays()"></div>
+    </div>
+    <div class="mrow">
+      <div class="fg"><label>تاريخ السلفة</label><input type="date" id="sm-date"></div>
+      <div class="fg"><label>سبب السلفة</label><input id="sm-reason" placeholder="اختياري"></div>
+    </div>
+    <div class="mrow">
+      <div class="fg"><label>عدد الأقساط</label><input type="number" id="sm-inst" placeholder="مثال: 5" oninput="salafCalcMonthly()"></div>
+      <div class="fg"><label>القسط الشهري (ر.س)</label><input type="number" step="0.01" id="sm-monthly" placeholder="0.00"></div>
+    </div>
+    <div class="mrow">
+      <div class="fg"><label>تاريخ بدء الخصم</label><input type="date" id="sm-start"></div>
+      <div class="fg"><label>الحالة</label><select id="sm-status"><option value="">تلقائي (حسب المتبقّي)</option><option>جارية</option><option>مسدّدة</option><option>متعثّرة</option><option>مؤجّلة</option><option>ملغاة</option></select></div>
+    </div>
+    <div class="fg"><label>ملاحظات</label><input id="sm-note" placeholder="اختياري"></div>
+    <div class="fg">
+      <label>💰 دفعات السداد (الأقساط المسدّدة)</label>
+      <div id="sm-pays-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+      <div class="mrow">
+        <div class="fg"><label>تاريخ الدفعة</label><input type="date" id="sp-date"></div>
+        <div class="fg"><label>مبلغ الدفعة</label><input type="number" step="0.01" id="sp-amount" placeholder="0.00"></div>
+        <div class="fg"><label>ملاحظة</label><input id="sp-note" placeholder="اختياري"></div>
+      </div>
+      <button type="button" class="btn ghost sm" onclick="addSalafPay()">＋ إضافة دفعة سداد</button>
+      <span id="sm-remain" style="font-size:12.5px;color:var(--gold2);margin-inline-start:10px"></span>
+    </div>
+    <div class="fg">
+      <label>📎 مرفق نموذج/إيصال السلفة (صور / PDF)</label>
+      <div id="sm-att-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+      <button type="button" class="btn ghost sm" onclick="document.getElementById('sm-att-file').click()">＋ رفع مرفق</button>
+      <span id="sm-att-prog" style="font-size:12px;color:var(--gold2);margin-inline-start:8px"></span>
+      <input type="file" id="sm-att-file" accept="image/*,application/pdf" multiple style="display:none" onchange="uploadSalafAtt(this.files)">
+    </div>
+    <div class="mfoot">
+      <button class="btn ghost" onclick="closeSalafOv()">إلغاء</button>
+      <button class="btn gold" onclick="saveSalaf()">حفظ السلفة</button>
+    </div>
+  </div>
+</div>
 <div class="ov" id="ov-pe">
   <div class="modal">
     <h3 id="pe-title">فاتورة عقار جديدة</h3>
@@ -636,6 +701,7 @@ function effRows(key){
 function ensureAccounts(){
   if(!STATE.accounts)STATE.accounts={};
   ACCKEYS.forEach(function(k){ if(!STATE.accounts[k])STATE.accounts[k]={opening:0,rows:[]}; });
+  if(!STATE.salaf)STATE.salaf=[];
 }
 /* ترحيل لمرة واحدة: إزالة قيود «منح عهدة» المخزّنة سابقاً يدوياً في حسابَي العهدة
    متى ما كانت نسخةً مكرّرة من تحويلٍ موجود في الحساب الرئيسي (نفس التاريخ والمبلغ)،
@@ -737,6 +803,7 @@ function pushUndo(){
 function refreshUI(){
   try{ if(g('pg-acc')&&g('pg-acc').classList.contains('act'))openAccPage();
        else if(g('pg-dash')&&g('pg-dash').classList.contains('act'))renderDash();
+       else if(g('pg-salaf')&&g('pg-salaf').classList.contains('act'))renderSalaf();
        else if(g('pg-bankstmt')&&g('pg-bankstmt').classList.contains('act'))renderBankStmt();
        else if(g('pg-rpt')&&g('pg-rpt').classList.contains('act'))renderRpt();
        else if(g('pg-search')&&g('pg-search').classList.contains('act'))renderSearch();
@@ -770,7 +837,7 @@ document.addEventListener('keydown',function(e){
 function buildNav(){
   var n=g('nav'); var items=[['dash','📊 لوحة التحكم']];
   ACCKEYS.forEach(function(k){items.push(['acc:'+k, ACCMETA[k].icon+' '+ACCMETA[k].name+(ACCMETA[k].code&&!ACCMETA[k].simple&&k!=='bank'?' '+ACCMETA[k].code:'')]);});
-  items.push(['bankstmt','🏦 كشف حساب — العهدة الرئيسية']); items.push(['rpt','📅 التقرير الشهري']); items.push(['search','🔍 بحث']); items.push(['set','⚙️ الإعدادات']);
+  items.push(['salaf','💵 السلف']); items.push(['bankstmt','🏦 كشف حساب — العهدة الرئيسية']); items.push(['rpt','📅 التقرير الشهري']); items.push(['search','🔍 بحث']); items.push(['set','⚙️ الإعدادات']);
   n.innerHTML='';
   items.forEach(function(it){
     var b=document.createElement('button'); b.className='nb'; b.textContent=it[1]; b.dataset.t=it[0];
@@ -782,6 +849,7 @@ function go(t){
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('act');});
   if(t==='dash'){g('pg-dash').classList.add('act'); renderDash();}
   else if(t.indexOf('acc:')===0){CUR=t.split(':')[1]; g('pg-acc').classList.add('act'); openAccPage();}
+  else if(t==='salaf'){g('pg-salaf').classList.add('act'); renderSalaf();}
   else if(t==='bankstmt'){g('pg-bankstmt').classList.add('act'); renderBankStmt();}
   else if(t==='rpt'){g('pg-rpt').classList.add('act'); renderRpt();}
   else if(t==='search'){g('pg-search').classList.add('act'); renderSearch();}
@@ -1071,6 +1139,137 @@ function delEntry(id){
   var a=STATE.accounts[CUR]; a.rows=a.rows.filter(function(x){return x.id!==id;});
   persist(); openAccPage(); toast('تم الحذف');
 }
+
+/* ============ السلف (تبويب مستقل) ============ */
+var salafAtt=[], salafPays=[];
+function salafPaidOf(s){return (s.pays||[]).reduce(function(a,p){return a+(+p.amount||0);},0);}
+function salafRemainOf(s){return (+s.amount||0)-salafPaidOf(s);}
+function salafStatusOf(s){ if(s.status)return s.status; return salafRemainOf(s)<=0?'مسدّدة':'جارية'; }
+function salafCard(l,cv,v){return '<div class="card" style="--accent:#b8921a"><div class="lbl">'+esc(l)+'</div><div class="val" style="--cv:'+cv+'">'+v+'</div></div>';}
+function renderSalaf(){
+  var all=STATE.salaf||[];
+  var tot=0,paid=0,rem=0,active=0;
+  all.forEach(function(s){tot+=+s.amount||0; paid+=salafPaidOf(s); var r=salafRemainOf(s); if(r>0){rem+=r; active++;}});
+  g('salaf-cards').innerHTML=
+    salafCard('إجمالي السلف','var(--gold2)',fmt(tot)+' <span class="u">ر.س</span>')+
+    salafCard('إجمالي المسدّد','#8fdca0',fmt(paid)+' <span class="u">ر.س</span>')+
+    salafCard('إجمالي المتبقّي','#f0a8a8',fmt(rem)+' <span class="u">ر.س</span>')+
+    salafCard('سلف جارية','var(--cream)',active);
+  var q=(g('salaf-search').value||'').trim();
+  var list=all.slice().filter(function(s){return !q||((s.emp||'')+(s.hid||'')+(s.job||'')+(s.note||'')+(s.reason||'')).indexOf(q)>=0;});
+  list.sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+  var head='<tr><th>م</th><th>الموظف</th><th>الهوية</th><th>الوظيفة</th><th>المبلغ</th><th>التاريخ</th><th>الأقساط</th><th>القسط الشهري</th><th>المسدّد</th><th>المتبقّي</th><th>الحالة</th><th>مرفق</th><th>إجراءات</th></tr>';
+  var body=list.map(function(s,idx){
+    var r=salafRemainOf(s), p=salafPaidOf(s);
+    var stcolor=r<=0?'#8fdca0':(p>0?'#e8b84b':'#f0a8a8');
+    var att=(s.att&&s.att.length)?('<span class="inv-yes" style="cursor:pointer" onclick="openSalafAttRef(\''+s.id+'\')">📎 '+s.att.length+'</span>'):'<span class="inv-no">—</span>';
+    return '<tr>'+
+      '<td>'+(idx+1)+'</td>'+
+      '<td class="t-desc" style="text-align:start">'+esc(s.emp||'—')+(s.reason?'<br><span style="font-size:11px;color:var(--muted)">'+esc(s.reason)+'</span>':'')+'</td>'+
+      '<td>'+esc(s.hid||'—')+'</td><td>'+esc(s.job||'—')+'</td>'+
+      '<td class="t-amt">'+fmt(s.amount)+'</td>'+
+      '<td>'+dfmt(s.date)+'</td>'+
+      '<td>'+esc(s.installments||'—')+'</td>'+
+      '<td>'+(s.monthly?fmt(s.monthly):'—')+'</td>'+
+      '<td class="t-amt in">'+fmt(p)+'</td>'+
+      '<td class="t-amt" style="color:'+(r>0?'#f0a8a8':'#8fdca0')+'">'+fmt(r>0?r:0)+'</td>'+
+      '<td><span class="chip" style="color:'+stcolor+'">'+esc(salafStatusOf(s))+'</span></td>'+
+      '<td>'+att+'</td>'+
+      '<td><div class="t-act"><button class="iconb" title="تعديل" onclick="openSalaf(\''+s.id+'\')">✏️</button><button class="iconb" title="سداد قسط" onclick="openSalaf(\''+s.id+'\',true)">💰</button><button class="iconb" title="حذف" onclick="delSalaf(\''+s.id+'\')">🗑️</button></div></td>'+
+    '</tr>';
+  }).join('');
+  var tbl=g('salaf-tbl');
+  if(!list.length){tbl.innerHTML='';g('salaf-empty').style.display='block';}
+  else{tbl.innerHTML=head+body;g('salaf-empty').style.display='none';}
+}
+function salafCalcMonthly(){
+  var a=parseFloat(g('sm-amount').value)||0, n=parseInt(g('sm-inst').value,10)||0;
+  if(a>0&&n>0&&!(parseFloat(g('sm-monthly').value)>0)){ g('sm-monthly').value=Math.round(a/n*100)/100; }
+}
+function renderSalafPays(){
+  var box=g('sm-pays-list');
+  var paid=salafPays.reduce(function(x,p){return x+(+p.amount||0);},0);
+  var amt=parseFloat(g('sm-amount').value)||0;
+  g('sm-remain').textContent='المسدّد: '+fmt(paid)+' ر.س  —  المتبقّي: '+fmt(Math.max(0,amt-paid))+' ر.س';
+  if(!salafPays.length){box.innerHTML='<span style="font-size:12px;color:var(--muted)">لا توجد دفعات مسجّلة</span>';return;}
+  box.innerHTML=salafPays.map(function(p,i){
+    return '<span class="chip" style="display:inline-flex;gap:8px;align-items:center">🗓 '+dfmt(p.date)+' — '+fmt(p.amount)+' ر.س'+(p.note?(' — '+esc(p.note)):'')+' <span style="cursor:pointer;color:#f0a8a8" onclick="removeSalafPay('+i+')">✕</span></span>';
+  }).join('');
+}
+function addSalafPay(){
+  var d=normDate(g('sp-date').value), a=parseFloat(g('sp-amount').value);
+  if(!d){toast('أدخل تاريخ الدفعة');return;}
+  if(isNaN(a)||a<=0){toast('أدخل مبلغ الدفعة');return;}
+  salafPays.push({id:'sp'+Date.now(),date:d,amount:a,note:g('sp-note').value.trim()});
+  g('sp-amount').value=''; g('sp-note').value=''; renderSalafPays();
+}
+function removeSalafPay(i){salafPays.splice(i,1);renderSalafPays();}
+function openSalaf(id,focusPay){
+  g('sm-title').textContent=id?'تعديل سلفة':'سلفة جديدة';
+  g('sm-id').value=id||'';
+  var s=id?(STATE.salaf||[]).filter(function(x){return x.id===id;})[0]:null;
+  if(s){
+    g('sm-emp').value=s.emp||''; g('sm-hid').value=s.hid||''; g('sm-job').value=s.job||'';
+    g('sm-amount').value=s.amount||''; g('sm-date').value=s.date||''; g('sm-reason').value=s.reason||'';
+    g('sm-inst').value=s.installments||''; g('sm-monthly').value=s.monthly||''; g('sm-start').value=s.startDate||'';
+    g('sm-status').value=s.status||''; g('sm-note').value=s.note||'';
+    salafAtt=(s.att||[]).slice(); salafPays=(s.pays||[]).slice();
+  }else{
+    ['sm-emp','sm-hid','sm-job','sm-amount','sm-reason','sm-inst','sm-monthly','sm-note'].forEach(function(k){g(k).value='';});
+    g('sm-date').value=new Date().toISOString().slice(0,10); g('sm-start').value=''; g('sm-status').value='';
+    salafAtt=[]; salafPays=[];
+  }
+  g('sp-date').value=new Date().toISOString().slice(0,10); g('sp-amount').value=''; g('sp-note').value='';
+  g('sm-att-prog').textContent=''; renderSalafAtt(); renderSalafPays();
+  g('ov-salaf').classList.add('show');
+  if(focusPay){setTimeout(function(){try{g('sp-amount').focus();}catch(e){}},200);}
+}
+function closeSalafOv(){g('ov-salaf').classList.remove('show');}
+function saveSalaf(){
+  var emp=g('sm-emp').value.trim(), amt=parseFloat(g('sm-amount').value), date=normDate(g('sm-date').value);
+  if(!emp){toast('أدخل اسم الموظف');return;}
+  if(isNaN(amt)||amt<=0){toast('أدخل مبلغ السلفة');return;}
+  if(!date){toast('أدخل تاريخ السلفة');return;}
+  pushUndo();
+  var id=g('sm-id').value;
+  var obj={emp:emp,hid:g('sm-hid').value.trim(),job:g('sm-job').value.trim(),amount:amt,date:date,
+    reason:g('sm-reason').value.trim(),installments:g('sm-inst').value.trim(),
+    monthly:parseFloat(g('sm-monthly').value)||0,startDate:g('sm-start').value,
+    status:g('sm-status').value,note:g('sm-note').value.trim(),att:salafAtt.slice(),pays:salafPays.slice()};
+  STATE.salaf=STATE.salaf||[];
+  if(id){var s=STATE.salaf.filter(function(x){return x.id===id;})[0]; if(s)Object.assign(s,obj);}
+  else{obj.id='sf'+Date.now()+'_'+(UID++); STATE.salaf.push(obj);}
+  persist(); closeSalafOv(); renderSalaf(); toast('تم حفظ السلفة ✓');
+}
+function delSalaf(id){ if(!confirm('حذف هذه السلفة نهائياً؟'))return; pushUndo(); STATE.salaf=(STATE.salaf||[]).filter(function(x){return x.id!==id;}); persist(); renderSalaf(); toast('تم الحذف'); }
+function renderSalafAtt(){
+  var box=g('sm-att-list');
+  if(!salafAtt.length){box.innerHTML='<span style="font-size:12px;color:var(--muted)">لا توجد مرفقات</span>';return;}
+  box.innerHTML=salafAtt.map(function(a,i){var ic=(a.type&&a.type.indexOf('pdf')>=0)?'📄':'🖼️';
+    return '<span class="chip" style="display:inline-flex;gap:6px;align-items:center">'+ic+' <span style="cursor:pointer;text-decoration:underline" onclick="openSalafAtt('+i+')">'+esc((a.name||'مرفق').slice(0,20))+'</span> <span style="cursor:pointer;color:#f0a8a8" onclick="removeSalafAtt('+i+')">✕</span></span>';}).join('');
+}
+function uploadSalafAtt(files){
+  if(!files||!files.length)return;
+  var arr=Array.prototype.slice.call(files);
+  var step=function(idx){
+    if(idx>=arr.length){g('sm-att-prog').textContent='تم الحفظ ✓';setTimeout(function(){g('sm-att-prog').textContent='';},1600);return;}
+    var file=arr[idx]; g('sm-att-prog').textContent='جارٍ الحفظ… '+(idx+1)+'/'+arr.length;
+    compressToLimit(file).then(function(o){
+      if(o.dataUrl.length>950000){toast('الملف كبير جداً — صوّره بدقّة أقل');step(idx+1);return;}
+      var attId='att_'+Date.now()+'_'+Math.floor(Math.random()*1e6);
+      var ref={id:attId,name:file.name||'مرفق',type:o.type};
+      try{localStorage.setItem('SAAD_ATT_'+attId,o.dataUrl);}catch(e){}
+      var finish=function(){salafAtt.push(ref);renderSalafAtt();step(idx+1);};
+      if(db){db.collection(ATTCOL).doc(attId).set({data:o.dataUrl,name:ref.name,type:ref.type,created:Date.now()}).then(finish).catch(function(){toast('حُفظ محلياً');finish();});}
+      else{finish();}
+    }).catch(function(){toast('تعذّرت قراءة الملف');step(idx+1);});
+  };
+  step(0); g('sm-att-file').value='';
+}
+function openSalafAtt(i){var a=salafAtt[i];if(a)openAttRef(a);}
+function removeSalafAtt(i){var a=salafAtt[i];salafAtt.splice(i,1);renderSalafAtt();if(a){try{localStorage.removeItem('SAAD_ATT_'+a.id);}catch(e){}if(db)db.collection(ATTCOL).doc(a.id).delete().catch(function(){});}}
+function openSalafAttRef(id){var s=(STATE.salaf||[]).filter(function(x){return x.id===id;})[0];if(s&&s.att&&s.att.length)openAttRef(s.att[0]);}
+function printSalaf(){window.print();}
 
 /* ============ فواتير العقار اليدوية (مستقلة / مرجعية قبل القيد) ============ */
 /* تُحفظ ضمن حساب propexp فقط ولا تؤثر في الحساب الرئيسي ولا أي حساب آخر.
