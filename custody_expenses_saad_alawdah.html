@@ -257,6 +257,23 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <div class="sec"><h2>التفصيل حسب التصنيف</h2><div class="twrap"><table id="rpt-cat-tbl"></table></div></div>
   </div>
 
+  <!-- COMPREHENSIVE REPORT -->
+  <div class="pg" id="pg-crpt">
+    <div class="pgh"><h1>📈 تقرير شامل</h1>
+      <div class="tools">
+        <div class="msel" id="crpt-acc"></div>
+        <div class="msel" id="crpt-month"></div>
+        <button class="btn ghost sm" onclick="printCRpt()">🖨️ طباعة</button>
+        <button class="btn ghost sm" onclick="exportCRpt()">📤 تصدير Excel</button>
+      </div>
+    </div>
+    <div class="cards" id="crpt-cards"></div>
+    <div class="sec"><h2>الإيرادات ومصادرها</h2><div class="twrap"><table id="crpt-rev"></table></div></div>
+    <div class="sec"><h2>المصروفات حسب الجهة</h2><div class="twrap"><table id="crpt-exp"></table></div></div>
+    <div class="sec"><h2>التحويلات للحسابات الداخلية</h2><div class="twrap"><table id="crpt-trf"></table></div></div>
+    <div class="sec"><div id="crpt-note" style="font-size:12px;color:var(--muted);line-height:2"></div></div>
+  </div>
+
   <!-- BANK STATEMENT -->
   <div class="pg" id="pg-bankstmt">
     <div class="pgh"><h1>🏦 كشف حساب — العهدة الرئيسية</h1>
@@ -666,18 +683,22 @@ function derivedPropExp(){
    القيود مشتقّة تلقائياً وتُحرَّر من مصدرها (الكشف البنكي / الحساب الرئيسي). */
 var PROP_FROM='2026-05-01';
 function derivedPropAccount(){
-  var out=[];
-  var bank=STATE.accounts['bank'];
-  if(bank&&bank.rows){
-    bank.rows.forEach(function(r){
-      if(dirOf(r.type)>0 && (r.date||'')>=PROP_FROM){
-        out.push({id:'derdep_'+(r.id||(r.date+'_'+r.amount+'_'+(r.desc||'').slice(0,8))),
-          date:r.date,desc:r.desc,amount:+r.amount||0,
-          type:'إيداع',cat:r.cat||'إيراد عقار',inv:'',note:'',att:[],
-          _derived:true,_srcAcc:'bank'});
-      }
-    });
+  var out=[], seenDep={};
+  function addDep(r,src){
+    if(!(dirOf(r.type)>0) || (r.date||'')<PROP_FROM) return;
+    var k=(r.date||'')+'|'+(+r.amount||0)+'|'+((r.desc||'')+'').slice(0,12);
+    if(seenDep[k]) return; seenDep[k]=1;
+    out.push({id:'derdep_'+(r.id||(r.date+'_'+r.amount+'_'+(r.desc||'').slice(0,8))),
+      date:r.date,desc:r.desc,amount:+r.amount||0,
+      type:'إيداع',cat:r.cat||'إيراد عقار',inv:r.inv||r.invoice||'',note:r.note||'',att:[],
+      _derived:true,_srcAcc:src});
   }
+  /* (أ) الإيداعات: من الكشف البنكي، ومن أي إيداعات مخزّنة قديمة في 3003 — مع منع التكرار */
+  var bank=STATE.accounts['bank'];
+  if(bank&&bank.rows){ bank.rows.forEach(function(r){ addDep(r,'bank'); }); }
+  var st3003=STATE.accounts['3003'];
+  if(st3003&&st3003.rows){ st3003.rows.forEach(function(r){ addDep(r,'3003'); }); }
+  /* (ب) المسحوبات (تحويل للرئيسي): من قيود الحساب الرئيسي «تحويل من حساب العقار» فقط — لا من الكشف البنكي */
   var main=STATE.accounts['3000'];
   if(main&&main.rows){
     main.rows.forEach(function(r){
@@ -692,9 +713,9 @@ function derivedPropAccount(){
 }
 function effRows(key){
   if(key==='propexp'){ var pst=(STATE.accounts['propexp']&&STATE.accounts['propexp'].rows)||[]; return derivedPropExp().concat(pst); }
+  if(key==='3003'){ return derivedPropAccount(); } /* مشتقّ بالكامل — لا يضمّ القيود المخزّنة، منعاً لازدواج المسحوبات مع الكشف البنكي */
   var stored=(STATE.accounts[key]&&STATE.accounts[key].rows)||[];
-  var der= (key==='3001'||key==='3002') ? derivedGrants(key)
-         : (key==='3003') ? derivedPropAccount() : [];
+  var der= (key==='3001'||key==='3002') ? derivedGrants(key) : [];
   return der.length? der.concat(stored): stored;
 }
 /* ضمان وجود كائن لكل حساب (يحمي المستخدمين الذين حُفظت بياناتهم قبل إضافة حسابٍ جديد) */
@@ -837,7 +858,7 @@ document.addEventListener('keydown',function(e){
 function buildNav(){
   var n=g('nav'); var items=[['dash','📊 لوحة التحكم']];
   ACCKEYS.forEach(function(k){items.push(['acc:'+k, ACCMETA[k].icon+' '+ACCMETA[k].name+(ACCMETA[k].code&&!ACCMETA[k].simple&&k!=='bank'?' '+ACCMETA[k].code:'')]);});
-  items.push(['salaf','💵 السلف']); items.push(['bankstmt','🏦 كشف حساب — العهدة الرئيسية']); items.push(['rpt','📅 التقرير الشهري']); items.push(['search','🔍 بحث']); items.push(['set','⚙️ الإعدادات']);
+  items.push(['salaf','💵 السلف']); items.push(['bankstmt','🏦 كشف حساب — العهدة الرئيسية']); items.push(['rpt','📅 التقرير الشهري']); items.push(['crpt','📈 تقرير شامل']); items.push(['search','🔍 بحث']); items.push(['set','⚙️ الإعدادات']);
   n.innerHTML='';
   items.forEach(function(it){
     var b=document.createElement('button'); b.className='nb'; b.textContent=it[1]; b.dataset.t=it[0];
@@ -852,6 +873,7 @@ function go(t){
   else if(t==='salaf'){g('pg-salaf').classList.add('act'); renderSalaf();}
   else if(t==='bankstmt'){g('pg-bankstmt').classList.add('act'); renderBankStmt();}
   else if(t==='rpt'){g('pg-rpt').classList.add('act'); renderRpt();}
+  else if(t==='crpt'){g('pg-crpt').classList.add('act'); renderCRpt();}
   else if(t==='search'){g('pg-search').classList.add('act'); renderSearch();}
   else if(t==='set'){g('pg-set').classList.add('act'); renderSet();}
   window.scrollTo(0,0);
@@ -1602,6 +1624,96 @@ function exportFull(){
 /* ============ PRINT ============ */
 function printAcc(){ g('phsub').textContent='كشف حساب: '+ACCMETA[CUR].name; window.print(); }
 function printRpt(){ var s=mselValues('rpt-month'); g('phsub').textContent='التقرير: '+(s.length?s.join('، '):'كل الفترات'); window.print(); }
+
+/* ============ تقرير شامل (إيرادات/مصروفات/تحويلات داخلية) ============ */
+function crptIsTransfer(r){
+  var t=r.type||'', c=r.cat||'';
+  if(t==='تحويل عهدة'||t==='منح عهدة'||t==='منح عهدة — بنكي'||t==='تحويل للرئيسي') return true;
+  if(c.indexOf('تحويل عهدة')>=0) return true;
+  if(c==='تحويل من حساب العقار'||c==='تحويل من العقار'||c==='تغذية من العقار'||c==='تغذية الحساب من العقار') return true;
+  return false;
+}
+function crptCompute(){
+  var accs=mselValues('crpt-acc'); if(!accs.length) accs=ACCKEYS.filter(function(k){return k!=='bank';});
+  var per=mselValues('crpt-month');
+  var rev={},exp={},trf={}, tRev=0,tExp=0,tTrf=0, cnt=0;
+  accs.forEach(function(k){
+    if(k==='bank'||!STATE.accounts[k]) return;
+    sortRows(effRows(k)).forEach(function(r){
+      if(r._ref) return;
+      if(per.length && !periodMatch(r.date,per)) return;
+      var dir = ACCMETA[k].simple ? -1 : dirOf(r.type);
+      var amt=+r.amount||0, key=r.cat||r.type||'—';
+      cnt++;
+      if(dir>0){ rev[key]=(rev[key]||0)+amt; tRev+=amt; }
+      else if(crptIsTransfer(r)){ trf[key]=(trf[key]||0)+amt; tTrf+=amt; }
+      else { exp[key]=(exp[key]||0)+amt; tExp+=amt; }
+    });
+  });
+  return {rev:rev,exp:exp,trf:trf,tRev:tRev,tExp:tExp,tTrf:tTrf,cnt:cnt,accs:accs,per:per};
+}
+function crptFill(id,obj,col1){
+  var el=g(id); if(!el)return;
+  var keys=Object.keys(obj).sort(function(a,b){return obj[b]-obj[a];});
+  var tot=keys.reduce(function(s,k){return s+obj[k];},0);
+  var h='<thead><tr><th>'+col1+'</th><th style="width:32%">المبلغ (ر.س)</th></tr></thead><tbody>';
+  if(!keys.length){ h+='<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:14px">لا يوجد</td></tr>'; }
+  keys.forEach(function(k){ h+='<tr><td>'+esc(k)+'</td><td style="text-align:center;font-weight:700">'+fmt(obj[k])+'</td></tr>'; });
+  h+='<tr style="background:rgba(216,180,65,.16);font-weight:800"><td>الإجمالي</td><td style="text-align:center">'+fmt(tot)+'</td></tr></tbody>';
+  el.innerHTML=h;
+}
+function renderCRpt(){
+  if(!MSEL['crpt-acc']){
+    mselInit('crpt-acc', ACCKEYS.filter(function(k){return k!=='bank';}).map(function(k){return {value:k,label:ACCMETA[k].name};}),
+      {allLabel:'كل الحسابات', onChange:renderCRpt, selected:['3000']});
+  }
+  if(!MSEL['crpt-month']){
+    var ms=allMonths(), yrs={}; ms.forEach(function(m){yrs[m.slice(0,4)]=1;});
+    var items=[], yl=Object.keys(yrs).sort().reverse();
+    if(yl.length){items.push({head:'السنوات'}); yl.forEach(function(y){items.push({value:y,label:y});});}
+    if(ms.length){items.push({head:'الأشهر'}); ms.slice().reverse().forEach(function(m){items.push({value:m,label:m});});}
+    mselInit('crpt-month', items, {allLabel:'كل الفترات', onChange:renderCRpt, selected:[]});
+  }
+  var d=crptCompute(), net=d.tRev-d.tExp-d.tTrf;
+  function card(lb,v,col){return '<div class="card"><div class="lbl">'+lb+'</div><div class="val" style="--cv:'+col+'">'+fmt(v)+' <span style="font-size:11px">ر.س</span></div></div>';}
+  g('crpt-cards').innerHTML=
+    card('الإيرادات', d.tRev, '#3a7d44') +
+    card('المصروفات', d.tExp, '#cf5050') +
+    card('التحويلات الداخلية', d.tTrf, '#b8921a') +
+    card('صافي الحركة', net, net<0?'#cf5050':'#3a7d44');
+  crptFill('crpt-rev', d.rev, 'المصدر');
+  crptFill('crpt-exp', d.exp, 'الجهة / التصنيف');
+  crptFill('crpt-trf', d.trf, 'الحساب / الجهة');
+  var accNames=d.accs.map(function(k){return ACCMETA[k]?ACCMETA[k].name:k;}).join('، ');
+  g('crpt-note').innerHTML='النطاق: '+esc(accNames)+' · الفترة: '+(d.per.length?esc(d.per.join('، ')):'كل الفترات')+' · عدد القيود: '+d.cnt+
+    '<br>ملاحظة: قيود «تحويل عهدة» المسجّلة سهواً كنوع «مصروف» تُحتسب هنا ضمن التحويلات. وعند اختيار «كل الحسابات» تشمل الأرقام التحويلات الداخلية بين حسابات المكتب (تظهر واردةً في حسابٍ وصادرةً من آخر).';
+}
+function printCRpt(){
+  var d=crptCompute();
+  var accNames=d.accs.map(function(k){return ACCMETA[k]?ACCMETA[k].name:k;}).join('، ');
+  g('phsub').textContent='تقرير شامل — '+accNames+' — '+(d.per.length?d.per.join('، '):'كل الفترات');
+  window.print();
+}
+function exportCRpt(){
+  try{
+    var d=crptCompute();
+    var wb=new ExcelJS.Workbook(); wb.creator='نظام العهد والمصروفات';
+    var ws=wb.addWorksheet('تقرير شامل',{views:[{rightToLeft:true}]});
+    ws.columns=[{width:42},{width:20}];
+    function section(title,obj){
+      var hr=ws.addRow([title,'']); hr.font={bold:true,size:13,color:{argb:'FF06240C'}};
+      ws.addRow(['البند','المبلغ (ر.س)']).font={bold:true};
+      var keys=Object.keys(obj).sort(function(a,b){return obj[b]-obj[a];}), tot=0;
+      keys.forEach(function(k){ ws.addRow([k, obj[k]]); tot+=obj[k]; });
+      ws.addRow(['الإجمالي', tot]).font={bold:true};
+      ws.addRow(['','']);
+    }
+    section('الإيرادات ومصادرها', d.rev);
+    section('المصروفات حسب الجهة', d.exp);
+    section('التحويلات للحسابات الداخلية', d.trf);
+    saveWB(wb,'تقرير_شامل.xlsx');
+  }catch(e){ try{toast('تعذّر التصدير');}catch(_){} }
+}
 
 /* ============ كشف الحساب البنكي للعهدة الرئيسية (3000) ============ */
 /* تقرير شهري بأسلوب كشف الحساب البنكي: رصيد افتتاحي مُدوَّر، حركة مدين/دائن مع
