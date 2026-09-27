@@ -294,10 +294,27 @@ function saveForm(i){
  render();
 }
 function exportXls(){
- const H=['الماركة','الموديل','السنة','اللون','رقم اللوحة','التسجيل','الرقم التسلسلي','انتهاء الرخصة','انتهاء الفحص','شركة التأمين','بداية التأمين','انتهاء التأمين','حالة التأمين','التنبيهات'];
- const rows=CARS.map(c=>[c.brand,c.model,c.year,c.color,c.plate,c.reg,c.serial,fd(c.license_exp),fd(c.inspection_exp),c.ins_co,fd(c.ins_start),fd(c.ins_exp),c.ins_status,carAlerts(c).join(' / ')]);
- let t=H.join('\t')+'\n'+rows.map(r=>r.map(x=>x==null?'':x).join('\t')).join('\n');
- const b=new Blob(['﻿'+t],{type:'application/vnd.ms-excel;charset=utf-8'});
+ const H=['م','الماركة','الموديل','السنة','اللون','رقم اللوحة','التسجيل','الرقم التسلسلي','انتهاء الرخصة','انتهاء الفحص','شركة التأمين','بداية التأمين','انتهاء التأمين','حالة التأمين','التنبيهات'];
+ const W=[90,90,52,60,86,70,96,96,150,96,96,84,150];
+ const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ const title='المكتب الإداري للشيخ سعد علي آل عوضه — سجل المركبات';
+ const cols='<colgroup><col style="width:34px">'+W.map(w=>'<col style="width:'+w+'px">').join('')+'</colgroup>';
+ const th='<tr>'+H.map(h=>'<th style="background:#2e6e7e;color:#fff;border:1px solid #9aa9a5;padding:6px 8px;text-align:center;font-weight:bold">'+esc(h)+'</th>').join('')+'</tr>';
+ let body='';
+ CARS.forEach((c,i)=>{
+   const al=carAlerts(c).join(' / ');
+   const exp=/منته/.test(al);
+   const bg=exp?'#f8d7da':(al?'#fff3cd':(i%2?'#f2f6f6':'#ffffff'));
+   const cells=[i+1,c.brand,c.model,c.year,c.color,c.plate,c.reg,c.serial,fd(c.license_exp),fd(c.inspection_exp),c.ins_co,fd(c.ins_start),fd(c.ins_exp),c.ins_status,al];
+   body+='<tr style="background:'+bg+'">'+cells.map((x,j)=>'<td style="border:1px solid #9aa9a5;padding:4px 8px;text-align:center;'+(j>=6&&j<=12?"mso-number-format:'\\@';":'')+'">'+esc(x)+'</td>').join('')+'</tr>';
+ });
+ const tr='<tr><th colspan="'+H.length+'" style="background:#1f4e5f;color:#fff;padding:8px;text-align:center;font-size:14px">'+esc(title)+'</th></tr>';
+ const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8">'
+  +'<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>سجل المركبات</x:Name>'
+  +'<x:WorksheetOptions><x:DisplayRightToLeft/><x:FreezePanes/><x:SplitHorizontal>2</x:SplitHorizontal><x:TopRowBottomPane>2</x:TopRowBottomPane></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->'
+  +'<style>table{border-collapse:collapse;direction:rtl;font-family:Arial,sans-serif;font-size:11pt}td,th{white-space:nowrap}</style></head>'
+  +'<body><table dir="rtl" border="1">'+cols+tr+th+body+'</table></body></html>';
+ const b=new Blob(['\ufeff'+html],{type:'application/vnd.ms-excel;charset=utf-8'});
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='سجل_السيارات.xls';a.click();
 }
 g('q').oninput=render;g('fb').onchange=render;g('fs').onchange=render;
