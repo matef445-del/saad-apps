@@ -266,6 +266,12 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
   body *{visibility:hidden}
   #tableView, #tableView *{visibility:visible}
   #tableView{position:absolute;top:0;right:0;left:0;width:100%}
+  #reportView, #reportView *{visibility:visible}
+  #reportView{position:absolute;top:0;right:0;left:0;width:100%}
+  #reportView .no-print{display:none!important}
+  #reportView .dcard,#reportView .dtile{border:1px solid #999!important;background:#fff!important;break-inside:avoid}
+  #reportView .dtab th{background:#06240c!important;color:#d8b441!important}
+  #reportView .dtab td,#reportView .dcard-h,#reportView .dtile-v,#reportView .dtile-l,#reportView #rp-title{color:#000!important}
   .table-actions{display:none!important}
   .ptable{color:#000!important;min-width:0}
   .ptable th{background:#06240c!important;color:#d8b441!important}
@@ -432,12 +438,13 @@ const LOGO="logo_green.png?v=4";
   <!-- شريط التبويب -->
   <div class="viewtabs">
     <button id="tabCards" class="vtab active" onclick="switchView('cards')">🗂️ عرض البطاقات</button>
-    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button><button id="tabUtil" class="vtab" onclick="openUtilOverview()">🔌 المرافق (كهرباء/مياه)</button>
+    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button><button id="tabReport" class="vtab" onclick="switchView('report')">📋 التقرير الشامل</button><button id="tabUtil" class="vtab" onclick="openUtilOverview()">🔌 المرافق (كهرباء/مياه)</button>
   </div>
 
   <!-- شبكة العقارات -->
   <div id="grid" class="grid"></div>
   <div id="dashView" style="display:none"></div>
+  <div id="reportView" style="display:none"></div>
   <div id="emptyState" class="empty" style="display:none">
     <div class="big">🏘️</div>
     <h3>لا توجد عقارات مطابقة</h3>
@@ -773,11 +780,103 @@ function switchView(v){
   g('tabCards').classList.toggle('active', v==='cards');
   g('tabTable').classList.toggle('active', v==='table');
   var td=g('tabDash'); if(td) td.classList.toggle('active', v==='dash');
+  var tr=g('tabReport'); if(tr) tr.classList.toggle('active', v==='report');
   g('grid').style.display = (v==='cards')?'':'none';
   g('tableView').style.display = (v==='table')?'':'none';
   var dv=g('dashView'); if(dv) dv.style.display = (v==='dash')?'':'none';
+  var rv=g('reportView'); if(rv) rv.style.display = (v==='report')?'':'none';
   render();
+  if(v==='report' && typeof renderReport==='function'){ renderReport(); }
 }
+
+/* ===== التقرير الشامل — خلاصة سجل الأملاك ===== */
+function _rpPct(part,whole){ whole=whole||0; if(!whole) return '0%'; return (Math.round(part/whole*1000)/10)+'%'; }
+function _rpUtilTotals(){
+  var e=0,w=0; try{ var L=UTIL_MAP.LOC; Object.keys(L).forEach(function(k){ e+=(L[k].elec||[]).length; w+=(L[k].water||[]).length; }); }catch(x){}
+  return {e:e,w:w};
+}
+function _rpGroupTable(list,field,title){
+  var gr=_dGroup(list,field);
+  var totBuy=0,totArea=0,totN=0;
+  gr.forEach(function(x){ totBuy+=x.buy; totArea+=calcTotals(x.items).area; totN+=x.val; });
+  var rows=gr.map(function(x){
+    var a=calcTotals(x.items).area;
+    return '<tr><td style="text-align:right;font-weight:700">'+esc(x.label)+'</td>'
+      +'<td>'+fmt(x.val)+'</td>'
+      +'<td>'+fmt(Math.round(a))+'</td>'
+      +'<td>'+(x.buy>0?fmt(x.buy)+' ﷼':'—')+'</td>'
+      +'<td>'+_rpPct(x.val,totN)+'</td></tr>';
+  }).join('');
+  var foot='<tr style="font-weight:800"><td style="text-align:right">الإجمالي</td><td>'+fmt(totN)+'</td><td>'+fmt(Math.round(totArea))+'</td><td>'+(totBuy>0?fmt(totBuy)+' ﷼':'—')+'</td><td>100%</td></tr>';
+  return '<div class="dcard dcard-wide"><div class="dcard-h">'+title+'</div>'
+    +'<table class="dtab"><thead><tr><th style="text-align:right">'+(field==='city'?'المدينة':'النوع')+'</th><th>العدد</th><th>المساحة (م²)</th><th>قيمة الشراء</th><th>النسبة</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody><tfoot>'+foot+'</tfoot></table></div>';
+}
+function renderReport(){
+  var host=g('reportView'); if(!host) return;
+  var list=(STATE.props||[]).slice();
+  var tot=calcTotals(list);
+  var area=list.reduce(function(s,p){return s+(p.area||0);},0);
+  var cities={},dists={}; list.forEach(function(p){ if(p.city)cities[p.city]=1; if(p.district)dists[p.district]=1; });
+  var deeds=list.filter(function(p){return p.deedNo&&(''+p.deedNo).trim();}).length;
+  var noDeed=list.length-deeds;
+  var legalN=list.filter(function(p){return p.legal&&p.legal.trim();}).length;
+  var merged={}; list.forEach(function(p){ if(p.mergedGroup)merged[p.mergedGroup]=1; });
+  var mergedGroups=Object.keys(merged).length;
+  var sold=list.filter(function(p){return (p.salePrice||0)>0;});
+  var soldVal=sold.reduce(function(s,p){return s+(p.salePrice||0);},0);
+  var att=0; try{ list.forEach(function(p){ att+=_dAttCount(p); }); }catch(x){}
+  var ppm=area>0?tot.buy/area:0;
+  var ut=_rpUtilTotals();
+  var today=new Date().toLocaleDateString('ar-EG-u-nu-latn',{year:'numeric',month:'long',day:'numeric'});
+
+  var h='';
+  h+='<div style="text-align:center;border-bottom:2px solid var(--gold);padding-bottom:14px;margin-bottom:18px">'
+    +'<div style="color:var(--gold2);font-size:13px;font-weight:700;letter-spacing:.5px">المكتب الإداري للشيخ سعد علي آل عوضة</div>'
+    +'<div id="rp-title" style="font-size:22px;font-weight:800;color:var(--cream);margin-top:6px">📋 التقرير الشامل — سجل الأملاك العقارية</div>'
+    +'<div id="rp-sub" style="font-size:12.5px;color:var(--muted);margin-top:6px">خلاصة كاملة للسجل · '+fmt(list.length)+' عقار · صادر بتاريخ '+today+'</div>'
+    +'</div>';
+
+  h+='<div class="table-actions no-print"><button class="btn btn-gold" onclick="printReport()">🖨️ طباعة التقرير</button></div>';
+
+  h+='<div class="dtiles">'
+    +_dTile(fmt(list.length),'عدد العقارات','','#e9c46a')
+    +_dTile(fmt(Math.round(area)),'إجمالي المساحة (م²)','','#7fd1b9')
+    +_dTile(fmt(tot.buy),'إجمالي قيمة الشراء (﷼)','','#e9c46a')
+    +_dTile(fmt(Math.round(ppm)),'متوسط سعر المتر (﷼)','','#7fd1b9')
+    +_dTile(Object.keys(cities).length,'عدد المدن','','#8ab6f0')
+    +_dTile(Object.keys(dists).length,'عدد الأحياء','','#8ab6f0')
+    +_dTile(fmt(deeds),'صكوك مسجّلة',noDeed?('بدون صك: '+noDeed):'الكل موثّق','#e9c46a')
+    +_dTile(fmt(att),'إجمالي المرفقات','','#c9a227')
+    +_dTile(fmt(sold.length),'عقارات مباعة',soldVal>0?(fmt(soldVal)+' ﷼'):'—',sold.length?'#e0a82e':'#7fd1b9')
+    +_dTile(fmt(legalN),'تحتاج متابعة',legalN?'⚠ راجع القائمة':'لا يوجد',legalN?'#e66767':'#7fd1b9')
+    +_dTile((ut.e+ut.w),'عدادات مربوطة','⚡'+ut.e+' · 💧'+ut.w,'#8ab6f0')
+    +_dTile(fmt(mergedGroups),'مجموعات مدمجة',mergedGroups?'بصكٍّ واحد':'—','#c9a227')
+    +'</div>';
+
+  h+='<div class="dgrid">';
+  h+=_rpGroupTable(list,'propType','التوزيع حسب نوع العقار');
+  h+=_rpGroupTable(list,'city','التوزيع حسب المدينة');
+  h+='</div>';
+
+  var legal=list.filter(function(p){return p.legal&&p.legal.trim();});
+  if(legal.length){
+    h+='<div class="dcard dcard-wide"><div class="dcard-h">⚠ عقارات تحتاج متابعة قانونية/توثيقية ('+legal.length+')</div>'
+      +'<table class="dtab"><thead><tr><th style="text-align:right">الموقع</th><th>رقم الصك</th><th>رقم العقار</th><th style="text-align:right">الملاحظة</th></tr></thead><tbody>'
+      +legal.map(function(p){ return '<tr><td style="text-align:right">'+_dLoc(p)+'</td><td>'+esc(p.deedNo||'—')+'</td><td>'+esc(p.realtyNo||'—')+'</td><td style="text-align:right">'+esc(p.legal)+'</td></tr>'; }).join('')
+      +'</tbody></table></div>';
+  }
+
+  var notes=[];
+  if(mergedGroups) notes.push('▪ العقارات المدمجة (مثل قطع اليرموك) مسجّلة بصكٍّ واحد وقيمة إجمالية مشتركة، وتُحتسب مرة واحدة في الإجماليات.');
+  notes.push('▪ متوسط سعر المتر محسوب على إجمالي قيمة الشراء ÷ إجمالي المساحة (تقديري).');
+  notes.push('▪ العدادات المربوطة تُنسب جغرافيًّا للعقارات، وقد توجد عدادات إضافية غير منسوبة تظهر في تبويب «المرافق».');
+  h+='<div class="dcard dcard-wide" style="background:transparent;border-style:dashed">'
+    +'<div style="color:var(--muted);font-size:12px;line-height:2">'+notes.join('<br>')+'</div></div>';
+
+  host.innerHTML=h;
+}
+function printReport(){ window.print(); }
 function money(n){ return (n&&n>0)? fmt(n)+' ر.س' : '—'; }
 function renderTable(list){
   var cols=['#','المدينة','الحي','المخطط','البلك','القطعة','المساحة (م²)','النوع','رقم الصك','رقم العقار','تاريخ الصك','سعر الشراء','القيمة السوقية','الفرق','الوثائق'];
