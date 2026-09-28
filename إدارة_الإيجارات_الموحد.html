@@ -477,7 +477,7 @@ function rFinance(){
   if(yk2.length){
     h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:12px">';
     h+='<tr><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">السنة</th><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">منصة إيجار</th><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">تحويلات مباشرة</th><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">الإجمالي</th></tr>';
-    yk2.forEach(function(y){var o=byY[y];h+='<tr><td style="padding:7px;border-bottom:1px solid #163a22">'+y+'</td><td style="padding:7px;border-bottom:1px solid #163a22;color:#2563eb">'+_money(o.e)+'</td><td style="padding:7px;border-bottom:1px solid #163a22;color:#059669">'+_money(o.d)+'</td><td style="padding:7px;border-bottom:1px solid #163a22;font-weight:700">'+_money(o.e+o.d)+'</td></tr>';});
+    yk2.forEach(function(y){var o=byY[y];h+='<tr><td style="padding:7px;border-bottom:1px solid #294669">'+y+'</td><td style="padding:7px;border-bottom:1px solid #294669;color:#2563eb">'+_money(o.e)+'</td><td style="padding:7px;border-bottom:1px solid #294669;color:#059669">'+_money(o.d)+'</td><td style="padding:7px;border-bottom:1px solid #294669;font-weight:700">'+_money(o.e+o.d)+'</td></tr>';});
     h+='<tr style="font-weight:800"><td style="padding:7px">الإجمالي</td><td style="padding:7px;color:#2563eb">'+_money(ej)+'</td><td style="padding:7px;color:#059669">'+_money(dr)+'</td><td style="padding:7px">'+_money(tot)+'</td></tr>';
     h+='</table></div>';
   }
@@ -496,7 +496,7 @@ function rBank(){
   var st=g('bank-stats'); if(st){ st.innerHTML=
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">عدد الإيداعات</div><div style="font-size:18px;font-weight:800">'+list.length+'</div></div>'+
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">الإجمالي</div><div style="font-size:18px;font-weight:800;color:#b8921a">'+_money(tot)+'</div></div>'+
-    '<div class="sc"><div style="font-size:11px;color:#9db3a3">عبر إيجار</div><div style="font-size:18px;font-weight:800;color:#2e7d32">'+cEj+'</div></div>'+
+    '<div class="sc"><div style="font-size:11px;color:#9db3a3">عبر إيجار</div><div style="font-size:18px;font-weight:800;color:#5bd07a">'+cEj+'</div></div>'+
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">مباشر مؤكَّد</div><div style="font-size:18px;font-weight:800;color:#2563eb">'+cDir+'</div></div>'+
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">مطابقة تلقائية</div><div style="font-size:18px;font-weight:800;color:#d97706">'+cAuto+'</div></div>'+
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">يحتاج تحديد</div><div style="font-size:18px;font-weight:800;color:#dc2626">'+cUn+'</div></div>'; }
@@ -611,9 +611,9 @@ function rDash(){
   fh+='<button type="button" onclick="dashPropOpen=!dashPropOpen;rDash()" style="padding:5px 10px;font-size:12px;border-radius:6px;background:#14294d;color:#f3ead0;border:1px solid '+(dashProps.length?'#b8921a':'#294669')+';min-width:160px;text-align:right;cursor:pointer">'+_plbl+' <span style="color:#9db3a3">▾</span></button>';
   if(dashPropOpen){
     fh+='<div style="position:absolute;top:calc(100% + 4px);right:0;z-index:60;background:#14294d;border:1px solid #294669;border-radius:8px;padding:6px;min-width:210px;max-height:300px;overflow:auto;box-shadow:0 10px 28px rgba(0,0,0,.45)">';
-    fh+='<label style="display:flex;align-items:center;gap:7px;padding:5px 6px;cursor:pointer;font-size:12px;color:#9db3a3;border-bottom:1px solid #163a22;margin-bottom:3px"><input type="checkbox" '+(dashProps.length===0?'checked':'')+' onchange="dashProps=[];rDash()"> كل العقارات</label>';
-    fh+=pk.map(function(p,i){return '<label style="display:flex;align-items:center;gap:7px;padding:5px 6px;cursor:pointer;font-size:12px;border-radius:5px"><input type="checkbox" '+(dashProps.indexOf(p)>=0?'checked':'')+' onchange="togP('+i+')"> '+e(p)+'</label>';}).join('');
-    fh+='<div style="text-align:left;border-top:1px solid #163a22;margin-top:3px;padding-top:4px"><button class="nb" style="font-size:11px;padding:3px 10px" onclick="dashPropOpen=false;rDash()">تم</button></div>';
+    fh+='<label style="display:flex;align-items:center;gap:7px;padding:6px 6px;cursor:pointer;font-size:12.5px;color:#f3ead0;font-weight:700;border-bottom:1px solid #294669;margin-bottom:3px"><input type="checkbox" accent-color="#b8921a" '+(dashProps.length===0?'checked':'')+' onchange="dashProps=[];rDash()"> كل العقارات</label>';
+    fh+=pk.map(function(p,i){return '<label style="display:flex;align-items:center;gap:7px;padding:6px 6px;cursor:pointer;font-size:12.5px;color:#f3ead0;font-weight:600;border-radius:5px"><input type="checkbox" accent-color="#b8921a" '+(dashProps.indexOf(p)>=0?'checked':'')+' onchange="togP('+i+')"> '+e(p)+'</label>';}).join('');
+    fh+='<div style="text-align:left;border-top:1px solid #294669;margin-top:3px;padding-top:4px"><button class="nb" style="font-size:11px;padding:3px 10px" onclick="dashPropOpen=false;rDash()">تم</button></div>';
     fh+='</div>';
   }
   fh+='</div>';
