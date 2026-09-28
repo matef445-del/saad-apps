@@ -438,13 +438,14 @@ const LOGO="logo_green.png?v=4";
   <!-- شريط التبويب -->
   <div class="viewtabs">
     <button id="tabCards" class="vtab active" onclick="switchView('cards')">🗂️ عرض البطاقات</button>
-    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button><button id="tabReport" class="vtab" onclick="switchView('report')">📋 التقرير الشامل</button><button id="tabUtil" class="vtab" onclick="openUtilOverview()">🔌 المرافق (كهرباء/مياه)</button>
+    <button id="tabTable" class="vtab" onclick="switchView('table')">📊 الجدول الشامل</button><button id="tabDash" class="vtab" onclick="switchView('dash')">📈 لوحة التقارير</button><button id="tabReport" class="vtab" onclick="switchView('report')">📋 التقرير الشامل</button><button id="tabVer" class="vtab" onclick="switchView('versions')">🕓 سجل النسخ والتغيّرات</button><button id="tabUtil" class="vtab" onclick="openUtilOverview()">🔌 المرافق (كهرباء/مياه)</button>
   </div>
 
   <!-- شبكة العقارات -->
   <div id="grid" class="grid"></div>
   <div id="dashView" style="display:none"></div>
   <div id="reportView" style="display:none"></div>
+  <div id="versionsView" style="display:none"></div>
   <div id="emptyState" class="empty" style="display:none">
     <div class="big">🏘️</div>
     <h3>لا توجد عقارات مطابقة</h3>
@@ -623,7 +624,7 @@ function pullCloud(){
       pushCloud();
     }
     migrateAddPropsV1();
-    buildFilters(); render(); setSync('ok','محدّث ✓');
+    buildFilters(); render(); try{autoSnap();}catch(e){} setSync('ok','محدّث ✓');
     setTimeout(function(){setSync('');},1800);
     pullAttachments();
   }).catch(function(){ setSync('err','تعذّرت المزامنة'); render(); });
@@ -785,8 +786,71 @@ function switchView(v){
   g('tableView').style.display = (v==='table')?'':'none';
   var dv=g('dashView'); if(dv) dv.style.display = (v==='dash')?'':'none';
   var rv=g('reportView'); if(rv) rv.style.display = (v==='report')?'':'none';
+  var vv=g('versionsView'); if(vv) vv.style.display=(v==='versions')?'':'none';
+  var tv=g('tabVer'); if(tv) tv.classList.toggle('active', v==='versions');
   render();
   if(v==='report' && typeof renderReport==='function'){ renderReport(); }
+  if(v==='versions' && typeof renderVersions==='function'){ renderVersions(); }
+}
+
+
+/* ===== سجل النسخ والتغيّرات (أرشفة نسخ التقارير) ===== */
+var SNAP_KEY='saad_property_snapshots_v1', SNAP_AUTO_KEY='saad_property_autosnap';
+var _SNAPF={realtyNo:'رقم الصحيفة',city:'المدينة',district:'الحي',propType:'النوع',area:'المساحة',purchasePrice:'قيمة الشراء',salePrice:'القيمة التقديرية',deedNo:'رقم الصك',legal:'الحالة القانونية',note:'ملاحظة'};
+function _pkey(p){ return p.id||p.realtyNo||''; }
+function _pname(p){ return [p.city,p.district,(p.realtyNo||_pkey(p))].filter(Boolean).join(' — '); }
+function _snapProps(){ return (STATE.props||[]).map(function(p){ var o={}; Object.keys(_SNAPF).concat(['id']).forEach(function(k){ o[k]=p[k]; }); return o; }); }
+function _snapHash(a){ return a.length+'|'+a.map(function(p){ return _pkey(p)+':'+[p.area,p.purchasePrice,p.salePrice,p.deedNo,p.legal,p.city,p.district,p.note,p.propType].join(','); }).sort().join('|'); }
+function loadSnaps(){ try{ return JSON.parse(localStorage.getItem(SNAP_KEY)||'[]'); }catch(e){ return []; } }
+function saveSnaps(a){ try{ localStorage.setItem(SNAP_KEY, JSON.stringify(a)); }catch(e){} }
+function saveSnapshot(note,silent){
+  var snaps=loadSnaps(), props=_snapProps(), h=_snapHash(props), last=snaps[snaps.length-1];
+  if(last && last.hash===h){ if(!silent)alert('لا تغييرات منذ آخر لقطة — لم تُحفظ نسخة جديدة.'); return false; }
+  snaps.push({ts:Date.now(), date:new Date().toISOString().slice(0,16).replace('T',' '), count:props.length, hash:h, note:note||'', props:props});
+  if(snaps.length>60) snaps=snaps.slice(-60);
+  saveSnaps(snaps); if(!silent)alert('تم حفظ لقطة ('+props.length+' عقار).'); return true;
+}
+function autoSnap(){ if(localStorage.getItem(SNAP_AUTO_KEY)==='1'){ saveSnapshot('تلقائي', true); } }
+function toggleAutoSnap(cb){ localStorage.setItem(SNAP_AUTO_KEY, cb.checked?'1':'0'); if(cb.checked) saveSnapshot('تلقائي — تفعيل', true); }
+function delSnap(i){ if(!confirm('حذف هذه النسخة؟'))return; var a=loadSnaps(); a.splice(i,1); saveSnaps(a); renderVersions(); }
+function _fmtV(f,v){ if(v==null||v==='')return '—'; if(f==='area')return fmt(v)+' م²'; if(f==='purchasePrice'||f==='salePrice')return fmt(v)+' ر.س'; return String(v); }
+function diffSnap(oldArr,newArr){
+  var om={},nm={}; (oldArr||[]).forEach(function(p){om[_pkey(p)]=p;}); (newArr||[]).forEach(function(p){nm[_pkey(p)]=p;});
+  var added=[],removed=[],changed=[];
+  Object.keys(nm).forEach(function(k){ if(!om[k]) added.push(nm[k]); else { var fs=[]; Object.keys(_SNAPF).forEach(function(f){ var a=om[k][f], b=nm[k][f]; if((a==null?'':''+a)!==(b==null?'':''+b)) fs.push({f:f,old:a,new:b}); }); if(fs.length) changed.push({p:nm[k],fields:fs}); } });
+  Object.keys(om).forEach(function(k){ if(!nm[k]) removed.push(om[k]); });
+  return {added:added,removed:removed,changed:changed};
+}
+function renderVersions(){
+  var host=g('versionsView'); if(!host)return;
+  var snaps=loadSnaps(), auto=localStorage.getItem(SNAP_AUTO_KEY)==='1';
+  var h='<div class="dcard dcard-wide" style="margin-bottom:12px"><div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:8px">';
+  h+='<button class="btn-gold" onclick="if(saveSnapshot())renderVersions()">📸 حفظ لقطة الآن</button>';
+  h+='<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:#cfe3d8"><input type="checkbox" '+(auto?'checked':'')+' onchange="toggleAutoSnap(this);renderVersions()"> أرشفة تلقائية عند كل تحديث</label>';
+  h+='<span style="font-size:12px;color:#9db3a3">النسخ المحفوظة: '+snaps.length+'</span></div>';
+  h+='<div style="font-size:12px;color:#9db3a3;line-height:1.7">تحفظ كل لقطة صورةً من السجل للمقارنة لاحقاً وإظهار ما استُجدّ (إضافة/تعديل/حذف أو بيع). الأرشفة <b>يدوية</b> افتراضياً؛ فعّل «الأرشفة التلقائية» لتُحفظ لقطة تلقائياً عند كل تحديث للبيانات إن تغيّرت.</div></div>';
+  if(!snaps.length){ h+='<div class="empty"><div class="big">🕓</div><h3>لا نسخ محفوظة بعد</h3><div>اضغط «حفظ لقطة الآن» لحفظ نسخة أساس، ثم قارن التغيّرات في كل سحب لاحق.</div></div>'; host.innerHTML=h; return; }
+  var opts=snaps.map(function(sn,i){ return '<option value="'+i+'">'+sn.date+' ('+sn.count+' عقار)'+(sn.note?' — '+esc(sn.note):'')+'</option>'; }).join('');
+  h+='<div class="dcard dcard-wide" style="margin-bottom:12px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px;color:#cfe3d8">قارن من: <select id="snapA" onchange="renderVersionsDiff()" style="padding:5px;border-radius:6px">'+opts+'</select> إلى: <select id="snapB" onchange="renderVersionsDiff()" style="padding:5px;border-radius:6px"><option value="cur">الوضع الحالي</option>'+opts+'</select></div><div id="snapDiff" style="margin-top:12px"></div></div>';
+  h+='<div class="dcard dcard-wide"><div class="dcard-h">النسخ المحفوظة</div><table class="dtab"><tr><th>التاريخ</th><th>عدد العقارات</th><th>ملاحظة</th><th></th></tr>'+snaps.slice().reverse().map(function(sn,ri){ var i=snaps.length-1-ri; return '<tr><td>'+esc(sn.date)+'</td><td>'+sn.count+'</td><td>'+esc(sn.note||'—')+'</td><td><button class="btn-line" style="padding:2px 8px;font-size:11px" onclick="delSnap('+i+')">حذف</button></td></tr>'; }).join('')+'</table></div>';
+  host.innerHTML=h;
+  var sa=g('snapA'); if(sa) sa.value=String(snaps.length-1);
+  renderVersionsDiff();
+}
+function renderVersionsDiff(){
+  var out=g('snapDiff'); if(!out)return; var snaps=loadSnaps();
+  var ai=+((g('snapA')||{}).value||(snaps.length-1)); var bv=(g('snapB')||{}).value||'cur';
+  var A=(snaps[ai]||{}).props||[]; var B=(bv==='cur')?_snapProps():((snaps[+bv]||{}).props||[]);
+  var d=diffSnap(A,B), h='';
+  h+='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">';
+  h+='<span style="background:#153a24;color:#5bd07a;padding:4px 12px;border-radius:12px;font-size:12.5px;font-weight:700">➕ مضافة: '+d.added.length+'</span>';
+  h+='<span style="background:#3a2f12;color:#e9c46a;padding:4px 12px;border-radius:12px;font-size:12.5px;font-weight:700">✎ معدّلة: '+d.changed.length+'</span>';
+  h+='<span style="background:#3a1414;color:#fca5a5;padding:4px 12px;border-radius:12px;font-size:12.5px;font-weight:700">➖ محذوفة/مباعة: '+d.removed.length+'</span></div>';
+  if(!d.added.length && !d.changed.length && !d.removed.length){ out.innerHTML=h+'<div style="color:#9db3a3;font-size:13px;padding:8px">لا تغييرات بين النسختين المختارتين.</div>'; return; }
+  if(d.added.length){ h+='<div class="dcard-h" style="color:#5bd07a">العقارات المضافة</div><table class="dtab"><tr><th>الموقع</th><th>رقم الصحيفة</th><th>قيمة الشراء</th></tr>'+d.added.map(function(p){ return '<tr><td>'+esc(_pname(p))+'</td><td>'+esc(p.realtyNo||'')+'</td><td>'+_fmtV('purchasePrice',p.purchasePrice)+'</td></tr>'; }).join('')+'</table>'; }
+  if(d.removed.length){ h+='<div class="dcard-h" style="color:#fca5a5;margin-top:12px">العقارات المحذوفة / المباعة</div><table class="dtab"><tr><th>الموقع</th><th>رقم الصحيفة</th><th>قيمة الشراء</th></tr>'+d.removed.map(function(p){ return '<tr><td>'+esc(_pname(p))+'</td><td>'+esc(p.realtyNo||'')+'</td><td>'+_fmtV('purchasePrice',p.purchasePrice)+'</td></tr>'; }).join('')+'</table>'; }
+  if(d.changed.length){ h+='<div class="dcard-h" style="color:#e9c46a;margin-top:12px">العقارات المعدّلة</div><table class="dtab"><tr><th>الموقع</th><th>الحقل</th><th>قبل</th><th>بعد</th></tr>'+d.changed.map(function(c){ return c.fields.map(function(f,i){ return '<tr><td>'+(i===0?esc(_pname(c.p)):'')+'</td><td>'+(_SNAPF[f.f]||f.f)+'</td><td style="color:#fca5a5">'+esc(_fmtV(f.f,f.old))+'</td><td style="color:#5bd07a">'+esc(_fmtV(f.f,f.new))+'</td></tr>'; }).join(''); }).join('')+'</table>'; }
+  out.innerHTML=h;
 }
 
 /* ===== التقرير الشامل — خلاصة سجل الأملاك ===== */
