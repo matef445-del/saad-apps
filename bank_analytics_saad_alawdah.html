@@ -246,6 +246,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="row-actions">
         <button class="btn" id="btn-save">حفظ ومزامنة الآن</button>
         <button class="btn ghost" id="btn-export">تصدير المصادر (JSON)</button>
+        <button class="btn ghost" id="btn-clear" onclick="clearImport()">🗑️ مسح المستورد وإعادة الاستيراد</button>
       </div>
       <div id="save-msg" style="margin-top:12px;font-size:13px;color:var(--muted)"></div>
     </div>
@@ -312,8 +313,8 @@ function ym(d){ return d?d.substring(0,7):''; }
 function monthLabel(k){ if(!k)return''; var p=k.split('-'); return MONTHS_AR[(+p[1])-1]+' '+p[0]; }
 function srcType(b){ return b.src_type||'منصة إيجار'; }
 function isDirect(b){ var s=srcType(b); return s==='تحويل شخصي'||s==='تحويل داخلي'; }
-function bankKey(b){ if(b.srcIban)return b.srcIban; if(b.nameTok)return 'TOK:'+b.nameTok; return ''; }
-function attrOf(b){ var k=bankKey(b); return (k&&MAP[k])?MAP[k]:''; }
+function bankKey(b){ if(b.srcIban)return b.srcIban; if(b.nameTok)return 'TOK:'+b.nameTok; if(b.name)return 'NM:'+b.name; return ''; }
+function attrOf(b){ var k=bankKey(b); return (k&&MAP[k])?MAP[k]:(b.name||''); }
 function esc(s){ return (s==null?'':String(s)).split('<').join('&lt;').split('>').join('&gt;'); }
 function esc2(s){ return esc(s).split("'").join('&#39;'); }
 
@@ -406,8 +407,8 @@ function rDirect(){
   if(!view.length){ tb.innerHTML='<tr><td colspan="6" class="empty">لا توجد تحويلات مطابقة لبحثك.</td></tr>'; return; }
   tb.innerHTML=view.map(function(b){
     var s=srcType(b), tag=s==='تحويل شخصي'?'<span class="tag pers">شخصي</span>':'<span class="tag intr">داخلي</span>';
-    var key=bankKey(b), a=attrOf(b);
-    var owner=a?('<button class="namelink" onclick="openDetails(\''+esc2(a)+'\')">'+esc(a)+'</button>'):'<span class="tag unmatched">غير معروف</span>';
+    var key=bankKey(b), a=attrOf(b), fromStmt=(!MAP[key]&&b.name);
+    var owner=a?('<button class="namelink" onclick="openDetails(\''+esc2(a)+'\')">'+esc(a)+'</button>'+(fromStmt?' <span class="tag" style="background:#15324f;color:#bcd6f0;font-size:10px">من الكشف</span>':'')):'<span class="tag unmatched">غير معروف</span>';
     var act=a
       ? '<button class="btn ghost sm" onclick="openPick(\''+esc2(key)+'\')">تغيير</button>'
       : '<button class="btn sm" onclick="openPick(\''+esc2(key)+'\')">حدّد صاحبه</button>';
@@ -424,9 +425,9 @@ function openPick(key){
   pickKey=key;
   var rows=BANK.filter(function(b){return bankKey(b)===key;});
   var n=rows.length, amt=rows.reduce(function(s,b){return s+b.amount;},0);
-  var isTok=key.indexOf('TOK:')===0;
+  var isTok=/^(TOK:|NM:)/.test(key);
   document.getElementById('modal-sub').innerHTML=
-    (isTok?'رمز التحويل: <b>'+esc(key.slice(4))+'</b>':'الآيبان: <span class="iban">'+esc(key)+'</span>')+
+    (isTok?'المُحوِّل: <b>'+esc(key.replace(/^(TOK:|NM:)/,''))+'</b>':'الآيبان: <span class="iban">'+esc(key)+'</span>')+
     '<br>عدد تحويلاته: '+n+' — إجماليها '+fmt(amt)+' ر.س. ما تحدّده الآن يُطبَّق على كل تحويلات هذا المصدر.';
   document.getElementById('modal-custom').value=(MAP[key]&&TENANTS.indexOf(MAP[key])<0)?MAP[key]:'';
   document.getElementById('modal-search').value='';
@@ -459,8 +460,8 @@ function clearAssign(key){ delete MAP[key]; persist(); rDirect(); rIdent(); }
 function rIdent(){
   var reg={};
   BANK.filter(isDirect).forEach(function(b){ var k=bankKey(b); if(!k)return;
-    (reg[k]=reg[k]||{name:MAP[k]||'',cnt:0,amt:0,tok:k.indexOf('TOK:')===0});
-    reg[k].cnt++; reg[k].amt+=b.amount; reg[k].name=MAP[k]||''; });
+    (reg[k]=reg[k]||{name:'',cnt:0,amt:0,tok:/^(TOK:|NM:)/.test(k)});
+    reg[k].cnt++; reg[k].amt+=b.amount; reg[k].name=MAP[k]||b.name||''; });
   var q=(document.getElementById('id-q').value||'').trim().toLowerCase();
   var keys=Object.keys(reg).filter(function(k){
     if(!q)return true; return (k+' '+reg[k].name).toLowerCase().indexOf(q)>=0; })
@@ -481,7 +482,7 @@ function rIdent(){
   tb.innerHTML=keys.map(function(k){
     var r=reg[k];
     var nm=r.name?('<button class="namelink" onclick="openDetails(\''+esc2(r.name)+'\')">'+esc(r.name)+'</button>'):'<span class="tag unmatched">غير محدّد</span>';
-    var src=r.tok?('<span class="tag intr">'+esc(k.slice(4))+'</span>'):('<span class="iban">'+esc(k)+'</span>');
+    var src=r.tok?('<span class="tag intr">'+esc(k.replace(/^(TOK:|NM:)/,''))+'</span>'):('<span class="iban">'+esc(k)+'</span>');
     return '<tr><td>'+nm+'</td><td>'+src+'</td><td class="num">'+r.cnt+'</td><td class="num">'+fmt(r.amt)+
       '</td><td><button class="btn ghost sm" onclick="openPick(\''+esc2(k)+'\')">'+(r.name?'تعديل':'تحديد')+'</button></td></tr>';
   }).join('');
@@ -511,40 +512,68 @@ function syncDown(cb){
   }).catch(function(e){ console.warn(e); setSync('off','بدون اتصال — محفوظ محلياً'); cb&&cb(); });
 }
 
-/* ===== IMPORT ===== */
-var IBAN_RE=/from\s+(SA[0-9]{10,30})/i, TOK_RE=/from\s+([A-Z]{3,})\b/;
-function classify(desc){ desc=desc||'';
-  if(IBAN_RE.test(desc)) return {src:'تحويل شخصي',iban:desc.match(IBAN_RE)[1],tok:''};
-  if(/INTERNAL TRANSFER/i.test(desc)){ var m=desc.match(TOK_RE); return {src:'تحويل داخلي',iban:'',tok:m?m[1]:''}; }
-  return {src:'منصة إيجار',iban:'',tok:''}; }
+/* ===== IMPORT (كشف الإنماء — قراءة دقيقة للتاريخ والمبلغ واسم المُحوِّل) ===== */
+function _bn(v){ if(typeof v==='number')return v; var x=parseFloat(String(v==null?'':v).replace(/[,\u066c\s]/g,'').replace(/[^0-9.\-]/g,'')); return isNaN(x)?0:x; }
+function _bclean(s){ return String(s==null?'':s).replace(/#/g,' ').replace(/\s+/g,' ').trim(); }
+function _bISO(v){
+  if(v instanceof Date && !isNaN(v)){ return v.getFullYear()+'-'+('0'+(v.getMonth()+1)).slice(-2)+'-'+('0'+v.getDate()).slice(-2); }
+  var s=String(v==null?'':v).trim(),m;
+  if((m=s.match(/^(\d{4})-(\d{2})-(\d{2})/)))return m[1]+'-'+m[2]+'-'+m[3];
+  if((m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/))){ var a=+m[1],b=+m[2]; if(a>12)return m[3]+'-'+m[2]+'-'+m[1]; if(b>12)return m[3]+'-'+m[1]+'-'+m[2]; return m[3]+'-'+m[2]+'-'+m[1]; }
+  return '';
+}
+function _bSender(desc){
+  var d=String(desc||'').replace(/#/g,' '),m;
+  if((m=d.match(/SAR\s+from\s+([A-Za-z\u0600-\u06FF][^\d]*?)\s+at\s+\d{2,4}\b/i))){ var nm=_bclean(m[1]); if(!/through|amount|IBAN|Bank\b/i.test(nm))return nm; }
+  if(/INTERNAL TRANSFER/i.test(d)){ var seg=d.split(/value\s*Date/i)[0]; var lf=seg.toLowerCase().lastIndexOf('from '); if(lf>=0){ var c=_bclean(seg.slice(lf+5)).replace(/,/g,' ').replace(/\s+/g,' ').trim(); if(c && !/head office|^alinma\b/i.test(c))return c; } }
+  return '';
+}
+function _bIban(desc){ var m=String(desc||'').match(/from\s+(SA\d{10,})/i); return m?m[1]:''; }
+function _bClass(desc){
+  if(/منصة\s*ايجار|منصة\s*إيجار/.test(desc)) return 'منصة إيجار';
+  if(_bSender(desc)) return 'تحويل شخصي';
+  if(/INCOMING SARIE|INTERNAL TRANSFER/i.test(desc)) return 'تحويل شخصي';
+  return 'وارد آخر';
+}
 function handleFile(file){
   var msg=document.getElementById('imp-msg'); msg.textContent='جارٍ القراءة…';
   var rd=new FileReader();
   rd.onload=function(e){
     try{
-      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
       var ws=wb.Sheets[wb.SheetNames[0]];
-      var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false}), added=0, extra=[];
-      rows.forEach(function(r){ if(!r||!r.length)return;
-        var dt='',am=0,ds='';
-        r.forEach(function(c){ var s=String(c==null?'':c);
-          if(!dt && /^\d{4}-\d{2}-\d{2}/.test(s)) dt=s.substring(0,10);
-          if(!dt && /\d{2}\/\d{2}\/\d{4}/.test(s)){ var p=s.match(/(\d{2})\/(\d{2})\/(\d{4})/); dt=p[3]+'-'+p[1]+'-'+p[2]; }
-          var num=parseFloat(s.replace(/[,٬\s]/g,''));
-          if(!am && !isNaN(num) && num>0 && num<10000000 && !/\d{4}-\d{2}/.test(s)) am=num;
-          if(s.length>ds.length) ds=s; });
-        if(dt&&am){ var c=classify(ds);
-          var k=dt+'_'+am+'_'+(c.iban||c.tok||ds.substring(0,20));
-          var dup=BANK.some(function(b){return (b.date+'_'+b.amount+'_'+(b.srcIban||b.nameTok||(b.desc||'').substring(0,20)))===k;});
-          if(!dup){ var rec={date:dt,amount:am,desc:ds,dir:'in',src_type:c.src,srcIban:c.iban,nameTok:c.tok,src:'import'};
-            BANK.push(rec); extra.push(rec); added++; }
-        } });
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true});
+      var hi=-1; for(var i=0;i<rows.length;i++){ if(rows[i]&&rows[i].some(function(c){return /دائن|Credit/i.test(String(c==null?'':c));})){hi=i;break;} }
+      var ai=0,bi=1,ci=2,di=3;
+      if(hi>=0){ rows[hi].forEach(function(c,ix){ c=String(c==null?'':c); if(/دائن|Credit/i.test(c))ci=ix; if(/مدين|Debit/i.test(c))di=ix; if(/تاريخ|Date/i.test(c))ai=ix; if(/تفاصيل|Description/i.test(c))bi=ix; }); }
+      var added=0,skipOut=0,extra=[];
+      for(var r=(hi>=0?hi+1:0);r<rows.length;r++){ var row=rows[r]; if(!row)continue;
+        var dt=_bISO(row[ai]); if(!dt)continue;
+        var cr=_bn(row[ci]);
+        if(!(cr>0)){ if(_bn(row[di]))skipOut++; continue; }
+        var ds=String(row[bi]==null?'':row[bi]);
+        var st=_bClass(ds), iban='', name='';
+        if(st==='منصة إيجار'){ var mi=ds.match(/\(IBAN:\s*(SA\d{10,})\)/i); iban=mi?mi[1]:''; name='منصة إيجار'; }
+        else if(st==='تحويل شخصي'){ iban=_bIban(ds); name=_bSender(ds); }
+        var ref=(ds.match(/Reference N?umber\s*(\w+)/i)||[])[1]||'';
+        var uid=ref?('REF:'+ref):(dt+'_'+cr+'_'+(iban||name||ds.substring(0,24)));
+        var dup=BANK.some(function(b){ var bu=b.ref?('REF:'+b.ref):(b.date+'_'+b.amount+'_'+(b.srcIban||b.nameTok||b.name||(b.desc||'').substring(0,24))); return bu===uid; });
+        if(!dup){ var rec={date:dt,amount:cr,desc:ds,dir:'in',src_type:st,srcIban:iban,nameTok:'',name:name,ref:ref,src:'import'};
+          BANK.push(rec); extra.push(rec); added++; }
+      }
       try{ var ex=JSON.parse(localStorage.getItem(LS_BANK)||'[]'); localStorage.setItem(LS_BANK,JSON.stringify(ex.concat(extra))); }catch(_){}
-      msg.innerHTML='تمّت إضافة <b style="color:var(--gold2)">'+added+'</b> سجلاً جديداً، ونُسبت تلقائياً تحويلات المصادر المعروفة.';
+      msg.innerHTML='تمّت إضافة <b style="color:var(--gold2)">'+added+'</b> إيداعاً، وقُرئت أسماء المُحوِّلين تلقائياً من الكشف'+(skipOut?('. وتُجوهِلت '+skipOut+' حركة سحب (تخصّ برنامج المصروفات)'):'')+'.';
       document.getElementById('ov-year').dataset.built=''; document.getElementById('dr-year').dataset.built=''; renderAll();
     }catch(err){ msg.textContent='تعذّرت قراءة الملف. تأكّد أنه كشف Excel صحيح.'; console.error(err); }
   };
   rd.readAsArrayBuffer(file);
+}
+function clearImport(){
+  if(!confirm('سيُحذف كل ما استوردتَه سابقاً من الكشوف (تبقى المصادر المسمّاة والبيانات الأصلية). متابعة؟'))return;
+  try{ localStorage.removeItem(LS_BANK); }catch(_){}
+  BANK=BANK_SEED.slice();
+  var msg=document.getElementById('imp-msg'); if(msg)msg.innerHTML='تم مسح السجلات المستوردة. ارفع كشف الحساب من جديد لإعادة الاستيراد بشكل صحيح.';
+  document.getElementById('ov-year').dataset.built=''; document.getElementById('dr-year').dataset.built=''; renderAll();
 }
 document.getElementById('drop').onclick=function(){ document.getElementById('file').click(); };
 document.getElementById('file').onchange=function(){ if(this.files[0])handleFile(this.files[0]); };
