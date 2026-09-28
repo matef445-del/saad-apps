@@ -323,6 +323,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
   <div id="bank-alerts"></div>
   <div id="bank-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px"></div>
   <div id="fin-panel" style="margin-bottom:12px"></div>
+  <div style="margin-bottom:10px"><input type="text" id="bk-q" oninput="rBank()" placeholder="🔍 ابحث بالاسم، المبلغ، رقم المرجع، أو الوصف..." style="width:100%;padding:8px 12px;font-size:13px;border-radius:8px;background:#14294d;color:#f3ead0;border:1px solid #294669"></div>
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
     <span style="color:#9db3a3;font-size:12px">التصفية:</span>
     <select id="bkf-sel" onchange="bankFilter(this.value)" style="padding:5px 9px;font-size:12px;border-radius:6px;background:#14294d;color:#f3ead0;border:1px solid #294669">
@@ -394,6 +395,12 @@ function _tw(w){ var o=''; for(var i=0;i<w.length;i++){ var c=_AR2L[w[i]]; o+=(c
 function _sk(w){ w=String(w||'').toUpperCase().replace(/[^A-Z]/g,'').replace(/[AEIOUWY]/g,'').replace(/(.)\1+/g,'$1'); return w; }
 function _toks(str){ return String(str||'').split(/[\s,._\-]+/).filter(Boolean).map(function(p){ var isAr=/[\u0600-\u06FF]/.test(p); var w=p; if(isAr){ if(w.length>3&&w.indexOf('ال')===0)w=w.slice(2); w=_tw(w);} else { if(w.length>4&&/^AL/i.test(w))w=w.slice(2); } return _sk(w); }).filter(function(x){return x.length>=2 && x!=='BN';}); }
 function _bankSenderName(desc){ desc=String(desc||''); var m=desc.match(/Head Office from\s+([A-Za-z][A-Za-z, .]+?)\s+value/i); if(m)return m[1]; m=desc.match(/SAR\s+from\s+([A-Za-z][A-Za-z, .]+?)(?:\s+at\b|#|\s+Purpose)/i); if(m)return m[1]; return ''; }
+function _bkClean2(s){ return String(s||'').replace(/\s+/g,' ').replace(/[,\-]+$/,'').trim(); }
+function _bkSenderDisp(desc){ var d=String(desc||'').replace(/#/g,' '),m;
+  if((m=d.match(/SAR\s+from\s+([A-Za-z؀-ۿ][^\d]*?)\s+at\s+\d{2,4}\b/i))){ var nm=_bkClean2(m[1]); if(!/through|amount|IBAN|Bank\b/i.test(nm))return nm; }
+  if(/INTERNAL TRANSFER/i.test(d)){ var seg=d.split(/value\s*Date/i)[0]; var lf=seg.toLowerCase().lastIndexOf('from '); if(lf>=0){ var c=_bkClean2(seg.slice(lf+5)).replace(/,/g,' ').replace(/\s+/g,' ').trim(); if(c&&!/head office|^alinma\b/i.test(c))return c; } }
+  return ''; }
+function _bkRefNo(desc){ return (String(desc||'').match(/Reference N?umber\s*(\w+)/i)||[])[1]||''; }
 var _POOL=null;
 function _pool(){ if(!_POOL){ _POOL=ACTIVE.map(function(nm){return {name:nm,tk:_toks(nm)};}); } return _POOL; }
 function autoMatch(desc){
@@ -481,7 +488,8 @@ function rFinance(){
 function rBank(){
   bankMatch();
   var from=g('bk-from')?g('bk-from').value:'', to=g('bk-to')?g('bk-to').value:'';
-  var list=BANK.filter(function(b){ var d=_bkDate(b.date); if(from&&d&&d<from)return false; if(to&&d&&d>to)return false; if(_bkFil==='un')return b.source===''; if(_bkFil==='set')return b.source==='مباشر'; if(_bkFil==='ejar')return b.source==='إيجار'; if(_bkFil==='auto')return b.auto===true; return true; });
+  var q=(g('bk-q')?g('bk-q').value:'').trim().toLowerCase();
+  var list=BANK.filter(function(b){ var d=_bkDate(b.date); if(from&&d&&d<from)return false; if(to&&d&&d>to)return false; if(_bkFil==='un'&&b.source!=='')return false; if(_bkFil==='set'&&!(b.source==='مباشر'&&!b.auto))return false; if(_bkFil==='ejar'&&b.source!=='إيجار')return false; if(_bkFil==='auto'&&b.auto!==true)return false; if(q){ var hay=[_bkSenderDisp(b.desc),b.desc,_bkRefNo(b.desc),String(b.amount),b.tenant||'',_bkDate(b.date)].join(' ').toLowerCase(); if(hay.indexOf(q)<0)return false; } return true; });
   var tot=0,cEj=0,cDir=0,cUn=0,cAuto=0;
   list.forEach(function(b){ tot+=+b.amount||0; if(b.source==='إيجار')cEj++; else if(b.source==='مباشر'){ if(b.auto)cAuto++; else cDir++; } else cUn++; });
   var _ac=g('bkf-auto'); if(_ac)_ac.checked=AUTO_LINK; var _sc=g('bkf-sel'); if(_sc)_sc.value=_bkFil;
@@ -492,13 +500,22 @@ function rBank(){
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">مباشر مؤكَّد</div><div style="font-size:18px;font-weight:800;color:#2563eb">'+cDir+'</div></div>'+
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">مطابقة تلقائية</div><div style="font-size:18px;font-weight:800;color:#d97706">'+cAuto+'</div></div>'+
     '<div class="sc"><div style="font-size:11px;color:#9db3a3">يحتاج تحديد</div><div style="font-size:18px;font-weight:800;color:#dc2626">'+cUn+'</div></div>'; }
-  var h='<tr><th>التاريخ</th><th>نص العملية</th><th>المبلغ</th><th>المستأجر</th><th>المصدر</th></tr>';
-  if(!list.length) h+='<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">استورد كشف الحساب لعرض الحوالات</td></tr>';
-  list.forEach(function(b){ var sig=_sig(b); var cell;
+  var h='<tr><th>التاريخ</th><th>المبلغ</th><th>المُحوِّل</th><th>المصدر</th><th>رقم المرجع</th><th>المستأجر</th><th>الوصف</th></tr>';
+  if(!list.length) h+='<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px">استورد كشف الحساب لعرض الحوالات</td></tr>';
+  list.slice().sort(function(a,b){return _bkDate(b.date)<_bkDate(a.date)?-1:1;}).forEach(function(b){ var sig=_sig(b); var cell;
     if(b.source==='إيجار'){ cell='<b style="color:#5bd07a">'+e(b.tenant)+'</b>'; }
-    else { var opts='<option value="">— اختر المستأجر —</option>'+ACTIVE.map(function(n){return '<option '+(b.tenant===n?'selected':'')+'>'+e(n)+'</option>';}).join(''); cell='<select data-sig="'+e(sig)+'" onchange="assignT(this)" style="max-width:200px;font-size:12px;padding:3px">'+opts+'</select>'; }
-    var badge = b.source==='إيجار'?'<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:10.5px">إيجار</span>': (b.source==='مباشر'? (b.auto?'<span style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:10.5px">تلقائي</span>':'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-size:10.5px">مباشر</span>') :'<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10.5px">—</span>');
-    h+='<tr><td style="white-space:nowrap">'+fd(_bkDate(b.date))+'</td><td style="font-size:10.5px;max-width:340px;white-space:normal;line-height:1.55">'+e(b.desc)+'</td><td style="white-space:nowrap">'+_money(b.amount)+'</td><td>'+cell+'</td><td>'+badge+'</td></tr>';
+    else { var opts='<option value="">— اختر المستأجر —</option>'+ACTIVE.map(function(n){return '<option '+(b.tenant===n?'selected':'')+'>'+e(n)+'</option>';}).join(''); cell='<select data-sig="'+e(sig)+'" onchange="assignT(this)" style="max-width:180px;font-size:12px;padding:3px">'+opts+'</select>'; }
+    var badge = b.source==='إيجار'?'<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:10.5px">منصة إيجار</span>': (b.source==='مباشر'? (b.auto?'<span style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:10.5px">تلقائي</span>':'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-size:10.5px">مباشر</span>') :'<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10.5px">—</span>');
+    var mv = b.source==='إيجار' ? 'منصة إيجار' : (_bkSenderDisp(b.desc)||'—');
+    var ref = _bkRefNo(b.desc)||'-';
+    var hl = b.source!=='إيجار' ? ' style="background:rgba(216,180,65,.06)"' : '';
+    h+='<tr'+hl+'><td style="white-space:nowrap">'+fd(_bkDate(b.date))+'</td>'
+      +'<td style="white-space:nowrap;color:#5bd07a;font-weight:700">'+_money(b.amount)+'</td>'
+      +'<td style="font-size:12px;font-weight:600">'+e(mv)+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td style="font-size:10.5px;color:#9db3a3;white-space:nowrap">'+e(ref)+'</td>'
+      +'<td>'+cell+'</td>'
+      +'<td style="font-size:10px;color:#9db3a3;max-width:300px;white-space:normal;line-height:1.5">'+e(b.desc)+'</td></tr>';
   });
   g('bank-tbl').innerHTML=h; rAlerts(); try{rFinance();}catch(e){}
 }
