@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>مقارنة برنامجي الإيجارات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#06240c;--panel:#0a2e13;--panel2:#0c3316;--line:#1d4a2c;
+    --gold:#d8b441;--gold2:#b8921a;--cream:#f3ead0;--muted:#9db3a3;
+    --green:#3fae6b;--blue:#6fb0e6;--red:#e0736b;--amber:#e0a82e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Cairo',sans-serif;background:radial-gradient(1200px 700px at 50% -8%,#0d3418,var(--bg));
+    color:var(--cream);min-height:100vh;padding:26px 16px 60px;line-height:1.7}
+  .wrap{max-width:1000px;margin:0 auto}
+  .head{text-align:center;margin-bottom:26px}
+  .kicker{color:var(--gold);font-size:12.5px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+  h1{font-size:23px;font-weight:800}
+  .sub{color:var(--muted);font-size:13px;margin-top:6px}
+  .divider{width:64px;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;margin:12px auto 0}
+  .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);
+    border-radius:16px;padding:18px 20px;margin-bottom:18px}
+  .ctitle{font-size:16px;font-weight:800;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .app{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#0e3a1b}
+  .app h3{font-size:15px;font-weight:800;margin-bottom:4px}
+  .app .tag{font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;display:inline-block;margin-bottom:8px}
+  .app.a1{border-color:#2f7a4d}.app.a1 .tag{background:#173d24;color:var(--green)}
+  .app.a2{border-color:var(--gold2)}.app.a2 .tag{background:#3a2f0e;color:var(--gold)}
+  .app ul{list-style:none;font-size:12.5px}
+  .app li{padding:4px 0 4px 0;border-bottom:1px dashed rgba(255,255,255,.07)}
+  .app li:last-child{border:none}
+  .app li b{color:var(--cream)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+  th{color:var(--gold2);font-weight:700;font-size:12px;background:#06240c}
+  td.feat{font-weight:700;color:var(--cream);width:26%}
+  .win-1{color:var(--green);font-weight:700}
+  .win-2{color:var(--gold);font-weight:700}
+  .badge{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:4px}
+  .b1{background:#173d24;color:var(--green)} .b2{background:#3a2f0e;color:var(--gold)}
+  .rec{background:linear-gradient(180deg,#0e3a1b,#0a2e13);border:1px solid var(--gold2)}
+  .rec .ctitle{color:var(--gold)}
+  .flow{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .step{flex:1 1 180px;background:#0e3a1b;border:1px solid var(--line);border-radius:12px;padding:12px}
+  .step .n{width:24px;height:24px;border-radius:50%;background:var(--gold);color:#06240c;font-weight:800;
+    display:flex;align-items:center;justify-content:center;font-size:12px;margin-bottom:7px}
+  .step .t{font-size:12.5px;color:var(--cream);font-weight:700;margin-bottom:3px}
+  .step .d{font-size:11.5px;color:var(--muted)}
+  .note{font-size:12px;color:var(--muted);line-height:1.9;border-top:1px solid var(--line);padding-top:12px;margin-top:8px}
+  .note b{color:var(--cream)}
+  .q{background:#0e3a1b;border:1px dashed var(--gold2);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px}
+  .q b{color:var(--gold)}
+  @media(max-width:720px){.two{grid-template-columns:1fr}td.feat{width:34%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="kicker">المكتب الإداري للشيخ سعد علي آل عوضة</div>
+    <h1>مقارنة برنامجَي الإيجارات — تمهيد للدمج</h1>
+    <div class="sub">«الإيجارات الأول» (النسخة الأولى) &nbsp;·&nbsp; «الإيجارات التفاعلي» &nbsp;·&nbsp; ٢٨ سبتمبر ٢٠٢٦</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- الفرق الجوهري -->
+  <div class="card">
+    <div class="ctitle">🧬 الفرق الجوهري في طريقة التفكير</div>
+    <div class="two">
+      <div class="app a1">
+        <span class="tag">الأول</span>
+        <h3>سِجِلّ حركات مسطّح</h3>
+        <p style="font-size:12.5px;color:var(--muted)">يفكّر بالبرنامج كـ<b style="color:var(--cream)">دفتر معاملات</b>: كل دفعة سطر (التاريخ، المستأجر، العقار، المبلغ، الطريقة). ممتاز للبحث والفلترة والتقارير والطباعة.</p>
+      </div>
+      <div class="app a2">
+        <span class="tag">التفاعلي</span>
+        <h3>دورة حياة العقد</h3>
+        <p style="font-size:12.5px;color:var(--muted)">يفكّر بالبرنامج كـ<b style="color:var(--cream)">عقود</b>: كل عقد له جدول استحقاقات ورصيد تراكمي وربط لكل تحويل. ممتاز لتتبّع المتأخرات والتسوية.</p>
+      </div>
+    </div>
+    <div class="note">هذا الفرق هو مفتاح الدمج: نأخذ «العقد المحوري» للتسوية الدقيقة، ونحتفظ بـ«السجل المسطّح» للتقارير والبحث — الاثنان يُبنيان من نفس تقرير منصة إيجار.</div>
+  </div>
+
+  <!-- مقارنة شاشة بشاشة -->
+  <div class="card">
+    <div class="ctitle">🔍 مقارنة شاشة بشاشة</div>
+    <table>
+      <thead><tr><th>الميزة / الشاشة</th><th>الإيجارات الأول</th><th>الإيجارات التفاعلي</th><th>الأفضل</th></tr></thead>
+      <tbody>
+        <tr><td class="feat">الواجهة والتنقّل</td>
+          <td>تبويبات علوية ثابتة (رئيسية/عقارات/معاملات/مستأجرون/تقارير/بنك/تحديث) — واضحة ومريحة</td>
+          <td>بطاقات (Tiles) وتنقّل بالدخول والرجوع — عصري لكن أكثر نقرات</td>
+          <td class="win-1">الأول</td></tr>
+        <tr><td class="feat">اللوحة الرئيسية</td>
+          <td>مؤشرات + رسم أعمدة حسب العقار + رسم ١٢ شهراً + آخر الحركات</td>
+          <td>بطاقتا سكني/تجاري + إشعارات ذكية (متأخر/ينتهي/شاغر/يُحتمل ترك السكن)</td>
+          <td class="win-2">تعادل</td></tr>
+        <tr><td class="feat">سِجِل المعاملات</td>
+          <td>قوي جداً: بحث + فلاتر (سنة/شهر/طريقة/آيبان/عقار) + ترقيم صفحات + تصدير Excel + تظليل البحث</td>
+          <td>لا يوجد سجل حركات مسطّح مستقل بنفس القوة</td>
+          <td class="win-1">الأول</td></tr>
+        <tr><td class="feat">التقارير المطبوعة</td>
+          <td>٤ أنواع (شهري/عقار/مستأجرين/سنوي) بأقسام قابلة للاختيار + شعار المكتب + طباعة أنيقة</td>
+          <td>«تقرير شامل» واحد (خلاصة) + طباعة</td>
+          <td class="win-1">الأول</td></tr>
+        <tr><td class="feat">كشف المستأجر</td>
+          <td>كشف حساب مستأجر + تحليل نمط الدفع (شهري/ربع/نصف/سنوي) تلقائياً + تقرير مطبوع</td>
+          <td>بطاقة مستأجر مفصّلة: جدول استحقاقات + حالة كل دفعة + الرصيد المتأخر</td>
+          <td class="win-2">تعادل (بزاوية مختلفة)</td></tr>
+        <tr><td class="feat">حساب المتأخرات</td>
+          <td>تقديري: أيام منذ آخر دفعة مقابل متوسط الفاصل — قد يعطي تنبيهات تقريبية</td>
+          <td>دقيق: (المستحق حتى اليوم − المُستلم) بالرصيد التراكمي — تختفي التأخيرات الوهمية</td>
+          <td class="win-2">التفاعلي</td></tr>
+        <tr><td class="feat">قراءة كشف البنك (الإنماء)</td>
+          <td>يطابق التحويلات بالمستأجر، لكن قارئه الأصلي عرضة لخلل الأعمدة/التواريخ</td>
+          <td>القارئ المُصحّح: التاريخ/المبلغ/الاسم صحيحة ومطابقة للبنك تماماً</td>
+          <td class="win-2">التفاعلي</td></tr>
+        <tr><td class="feat">ربط التحويل المباشر بالمستأجر</td>
+          <td>مطابقة تلقائية (إيجار بالمبلغ+التاريخ) + تعيين يدوي بذاكرة المرسِل (تتذكّره)</td>
+          <td>ربط كل تحويل بدفعة/استحقاق محدّد داخل بطاقة المستأجر</td>
+          <td class="win-2">تعادل (نجمع الاثنين)</td></tr>
+        <tr><td class="feat">القسم المالي الموحّد</td>
+          <td>ملخّص مالي + جدول معاملات</td>
+          <td>الوارد الفعلي (منصة/مباشر) مفصّلاً بالسنوات + متوقّع + محصّل</td>
+          <td class="win-2">التفاعلي</td></tr>
+        <tr><td class="feat">إدارة دورة العقد</td>
+          <td>—</td>
+          <td>جدول استحقاقات + إنهاء/إخلاء + كشف تارك السكن + تنبيهات انتهاء العقد</td>
+          <td class="win-2">التفاعلي</td></tr>
+        <tr><td class="feat">تنبيه غير المسدّدين هذا الشهر</td>
+          <td>نعم — قائمة المستأجرين الساريين بلا دفعة هذا الشهر</td>
+          <td>عبر الإشعارات والمتأخرات</td>
+          <td class="win-2">تعادل</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- التوصية -->
+  <div class="card rec">
+    <div class="ctitle">⭐ توصيتي</div>
+    <p style="font-size:13.5px">اجعل <b style="color:var(--gold)">«الأول» هو الأساس</b> (واجهته وتقاريره وسجلّه هي ما يريحك في العمل اليومي)، وازرع فيه <b style="color:var(--gold)">المحرّك المالي والبنكي من «التفاعلي»</b>. تربح راحة الأول + دقّة التفاعلي، دون أن تفقد أي تقرير تعتاد عليه.</p>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><div class="t">الأساس: «الأول»</div><div class="d">نُبقي التبويبات والتقارير والسجل وكشف المستأجر كما هي.</div></div>
+      <div class="step"><div class="n">2</div><div class="t">قارئ الإنماء المصحّح</div><div class="d">نستبدل قارئ البنك القديم بالقارئ المُصحّح (تاريخ/مبلغ/اسم صحيح).</div></div>
+      <div class="step"><div class="n">3</div><div class="t">التسوية التراكمية</div><div class="d">نُضيف حساب المتأخرات الدقيق (المستحق − المُستلم) بدل التقديري.</div></div>
+      <div class="step"><div class="n">4</div><div class="t">القسم المالي الموحّد</div><div class="d">الوارد الفعلي (منصة/مباشر) مفصّلاً بالسنوات داخل تبويب البنك/المالية.</div></div>
+    </div>
+    <div class="note"><b>لماذا «الأول» أساساً وليس العكس؟</b> نقل «تقارير الأول» الأربعة المطبوعة وسجلّه القوي إلى التفاعلي أكبر وأخطر من نقل «محرّك مالي» محدَّد ومُختبَر (صار عندي كمهارة جاهزة) إلى الأول. فالطريق الأقصر والأأمن هو تطعيم الأول.</div>
+  </div>
+
+  <!-- القرار المطلوب -->
+  <div class="card">
+    <div class="ctitle">✅ ما أحتاجه منك للبدء</div>
+    <div class="q">١) هل توافق على اعتماد <b>«الأول» أساساً</b> + تطعيمه بمحرّك التفاعلي؟ (أو تفضّل العكس؟)</div>
+    <div class="q">٢) أكّدت أنك تريد <b>قارئ كشف الإنماء المصحّح</b>. هل تريد معه أيضاً: <b>التسوية التراكمية للمتأخرات</b>، و<b>القسم المالي الموحّد (منصة/مباشر بالسنوات)</b>؟ (أنصح بالثلاثة معاً).</div>
+    <div class="q">٣) اسم الملف النهائي: نستبدل <b>«الإيجارات الأول»</b> نفسه، أم ننشئ ملفاً جديداً باسم <b>«إدارة الإيجارات — الموحّد»</b> ونُبقي القديمين كنسخة احتياطية؟</div>
+    <div class="note">بمجرّد ردّك على هذه الثلاثة، أبدأ التنفيذ على مراحل صغيرة قابلة للمراجعة: (أ) قارئ الإنماء، (ب) التسوية، (ج) القسم المالي — أختبر كلاً منها على كشفك الحقيقي قبل التسليم، وأضعها في المستودع لتعمل Push.</div>
+  </div>
+
+</div>
+</body>
+</html>
