@@ -305,7 +305,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <div class="ni" onclick="setNav('done',this)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4"/></svg>مكتملة الدفع</div></nav>
 <div class="sb-ft"><div style="background:rgba(255,255,255,.05);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#b5820a,#7c5a07);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">م</div><div><div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8)">مدير المكتب</div><div style="font-size:9px;color:rgba(255,255,255,.3)">صلاحية كاملة</div></div></div></div></aside>
 <main class="main"><header class="topbar"><img src="logo_green.png?v=4" alt="سعد آل عوضة — المكتب الإداري" style="height:54px;width:auto;display:inline-block;vertical-align:middle;object-fit:contain"><button class="ham" onclick="toggleSB()"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button><span style="font-size:14px;font-weight:700;white-space:nowrap">الشراكات والمشاريع</span><div class="sw"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg><input id="qin" type="text" placeholder="بحث..." oninput="render()" autocomplete="off"></div><button class="btn-new" onclick="openAdd()"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>شراكة جديدة</button></header>
-<div class="page"><div class="ptabs" id="ptabs"><button class="ptab" id="ptab-nalkum" onclick="topTab('nalkum')">🏢 نالكم (الأم)</button><button class="ptab on" id="ptab-list" onclick="topTab('list')">الشراكات</button><button class="ptab" id="ptab-org" onclick="topTab('org')">الهيكل التنظيمي</button></div><div id="listView"><div class="stats"><div class="stat"><div class="st-ic" style="background:rgba(28,28,28,.07)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--ink2)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div><div class="st-v" id="sv0">0</div><div class="st-l">إجمالي الشراكات</div></div>
+<div class="page"><div class="ptabs" id="ptabs"><button class="ptab" id="ptab-nalkum" onclick="topTab('nalkum')">🏢 نالكم (الأم)</button><button class="ptab on" id="ptab-list" onclick="topTab('list')">الشراكات</button><button class="ptab" id="ptab-org" onclick="topTab('org')">الهيكل التنظيمي</button><button class="ptab" id="ptab-report" onclick="topTab('report')">📊 تقرير شامل</button></div><div id="listView"><div class="stats"><div class="stat"><div class="st-ic" style="background:rgba(28,28,28,.07)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--ink2)"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div><div class="st-v" id="sv0">0</div><div class="st-l">إجمالي الشراكات</div></div>
 <div class="stat"><div class="st-ic" style="background:var(--gl)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--gold)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="st-v" id="sv1">0</div><div class="st-l">إجمالي المدفوع (ر.س)</div></div>
 <div class="stat"><div class="st-ic" style="background:var(--rdl)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--red)"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="st-v" id="sv2">0</div><div class="st-l">إجمالي المتبقي (ر.س)</div></div>
 <div class="stat"><div class="st-ic" style="background:var(--grl)"><svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" style="color:var(--grn)"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="st-v" id="sv3">0</div><div class="st-l">شراكات نشطة</div></div></div>
@@ -542,15 +542,64 @@ document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){['dov','pvov','ao
 /* ================= الهيكل التنظيمي — نالكم الحاضنة ================= */
 var ORG_UND='غير محدد';
 function _onum(n){ n=parseFloat(n)||0; return n.toLocaleString('en-US'); }
+function _PE(s){return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;');}
+function _prTbl(title,heads,rows){
+  var h='<div style="background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:14px;margin-top:14px">';
+  h+='<div style="font-size:15px;font-weight:800;color:var(--ink);margin-bottom:10px">'+title+'</div>';
+  h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr>';
+  heads.forEach(function(x,i){h+='<th style="background:#f0efe9;color:var(--ink);padding:8px;border:1px solid var(--brd);'+(i===0?'text-align:right':'text-align:center')+'">'+x+'</th>';});
+  h+='</tr></thead><tbody>';
+  if(!rows.length) h+='<tr><td colspan="'+heads.length+'" style="text-align:center;color:var(--ink3);padding:12px">لا يوجد</td></tr>';
+  rows.forEach(function(r){h+='<tr>';r.forEach(function(c,i){h+='<td style="padding:7px 8px;border:1px solid var(--brd);'+(i===0?'text-align:right;font-weight:600':'text-align:center')+'">'+c+'</td>';});h+='</tr>';});
+  h+='</tbody></table></div></div>';
+  return h;
+}
+function renderReport(){
+  var host=document.getElementById('reportView');
+  if(!host){ var lv=document.getElementById('listView'); host=document.createElement('div'); host.id='reportView'; if(lv&&lv.parentNode) lv.parentNode.appendChild(host); else { var pg=document.querySelector('.page'); if(pg) pg.appendChild(host); } }
+  host.style.display='';
+  var all=DATA.slice(), subs=DATA.filter(function(x){return x.id!=='nalkum';});
+  var inv=0,pd=0,rm=0;
+  all.forEach(function(p){inv+=(parseFloat(p.total)||0);pd+=paid(p);rm+=rem(p);});
+  var payRate=inv?Math.round(pd/inv*100):0;
+  var subCount=DATA.filter(function(x){return x.org==='sub';}).length;
+  var indCount=DATA.filter(function(x){return x.org!=='sub'&&x.id!=='nalkum';}).length;
+  var docsN=DATA.reduce(function(s,p){return s+((p.docs||[]).length);},0);
+  function nkShare(p){var f=(p.partners||[]).filter(function(pt){return (pt.n||'').indexOf('نالكم')>=0;})[0];return f?(parseFloat(f.p)||0):0;}
+  var nkValue=0; all.forEach(function(p){nkValue+=(nkShare(p)/100)*(parseFloat(p.total)||0);});
+  function nf(n){return (Math.round(parseFloat(n)||0)).toLocaleString('en-US');}
+  var h='<div style="font-size:20px;font-weight:800;color:var(--ink);margin:6px 2px 4px">📊 تقرير شامل — خلاصة البرنامج</div>';
+  h+='<div style="color:var(--ink3);font-size:12px;margin-bottom:12px">لمحة كاملة عن الشراكات والاستثمارات والسداد وحصص نالكم</div>';
+  h+='<div class="stats">';
+  h+='<div class="stat"><div class="st-v" style="color:var(--ink)">'+all.length+'</div><div class="st-l">إجمالي الشراكات/الكيانات</div></div>';
+  h+='<div class="stat"><div class="st-v" style="color:var(--grn)">'+subCount+'</div><div class="st-l">شركات تابعة</div></div>';
+  h+='<div class="stat"><div class="st-v" style="color:var(--blu)">'+indCount+'</div><div class="st-l">شركات مستقلة</div></div>';
+  h+='<div class="stat"><div class="st-v" style="color:var(--gold)">'+docsN+'</div><div class="st-l">المستندات المرفقة</div></div>';
+  h+='</div>';
+  h+='<div class="stats">';
+  h+='<div class="stat"><div class="st-v" style="color:var(--ink)">'+nf(inv)+'</div><div class="st-l">إجمالي الاستثمار (ر.س)</div></div>';
+  h+='<div class="stat"><div class="st-v" style="color:var(--grn)">'+nf(pd)+'</div><div class="st-l">إجمالي المدفوع (ر.س)</div></div>';
+  h+='<div class="stat"><div class="st-v" style="color:var(--red)">'+nf(rm)+'</div><div class="st-l">إجمالي المتبقي (ر.س)</div></div>';
+  h+='<div class="stat"><div class="st-v" style="color:var(--blu)">'+payRate+'%</div><div class="st-l">نسبة السداد</div></div>';
+  h+='</div>';
+  h+=_prTbl('الشراكات — التفصيل المالي',['الشراكة','القطاع / العلامات','الحالة','الاستثمار','المدفوع','المتبقي','نسبة السداد','حصة نالكم'],
+    subs.map(function(p){return [ _PE(p.name||p.id), _PE(p.sector||p.brands||'—'), (ST[p.status]||p.status||'—'), nf(p.total), nf(paid(p)), nf(rem(p)), pct(p)+'%', nkShare(p)+'%' ];}));
+  h+='<div style="background:var(--card);border:1px solid var(--brd);border-radius:14px;padding:14px;margin-top:14px"><b style="color:var(--gold)">قيمة حصص نالكم في الشراكات:</b> '+nf(nkValue)+' ر.س <span style="color:var(--ink3);font-size:12px">(بحسب نِسب المشاركة والاستثمار المسجّل)</span></div>';
+  h+='<div style="text-align:center;margin:18px 0"><button onclick="window.print()" style="padding:10px 24px;border:none;border-radius:10px;background:var(--gold);color:#fff;font-weight:700;cursor:pointer">🖨️ طباعة التقرير</button></div>';
+  host.innerHTML=h;
+}
+
 function topTab(w){
-  var ids={list:'ptab-list',org:'ptab-org',nalkum:'ptab-nalkum'};
+  var ids={list:'ptab-list',org:'ptab-org',nalkum:'ptab-nalkum',report:'ptab-report'};
   for(var k in ids){var b=document.getElementById(ids[k]); if(b)b.classList.toggle('on',k===w);}
-  var lv=document.getElementById('listView'),ov=document.getElementById('orgView'),nv=document.getElementById('nalkumView');
+  var lv=document.getElementById('listView'),ov=document.getElementById('orgView'),nv=document.getElementById('nalkumView'),rv=document.getElementById('reportView');
   if(lv)lv.style.display=(w==='list')?'':'none';
   if(ov)ov.style.display=(w==='org')?'':'none';
   if(nv)nv.style.display=(w==='nalkum')?'':'none';
+  if(rv)rv.style.display=(w==='report')?'':'none';
   if(w==='org') renderOrg();
   if(w==='nalkum') renderNalkum();
+  if(w==='report') renderReport();
 }
 function topTabOpen(id){ topTab('list'); if(typeof openD==='function') openD(id); }
 /* ===== نالكم — تبويب الشركة الأم ===== */

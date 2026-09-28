@@ -280,7 +280,7 @@ function goHome(){
   h+='<div class="tile" style="padding:30px 16px" onclick="catView(\'سكني\')"><div class="ic" style="width:70px;height:70px;font-size:34px">🏠</div><h3 style="font-size:19px">القسم السكني</h3><div class="n">'+res.length+'</div><div class="s">وحدة · '+rOcc+' مشغول</div></div>';
   h+='<div class="tile t-com" style="padding:30px 16px" onclick="catView(\'تجاري\')"><div class="ic" style="width:70px;height:70px;font-size:34px">🏬</div><h3 style="font-size:19px">القسم التجاري</h3><div class="n">'+com.length+'</div><div class="s">سعيد بن مزهر · '+cOcc+' عقد</div></div>';
   h+='</div>';
-  h+='<div class="tiles" style="grid-template-columns:1fr 1fr;margin-top:0"><div class="tile t-fin" onclick="bankView()"><div class="ic">🏦</div><h3>كشف الحساب البنكي</h3><div class="s">مراجعة التحويلات حسب الشهر</div></div><div class="tile" onclick="updateView()"><div class="ic">🔄</div><h3>تحديث البيانات</h3><div class="s">استيراد تقرير إيجار وكشف البنك</div></div></div>';
+  h+='<div class="tiles" style="grid-template-columns:1fr 1fr;margin-top:0"><div class="tile" onclick="summaryView()"><div class="ic">📊</div><h3>التقرير الشامل</h3><div class="s">خلاصة كل ما في البرنامج</div></div><div class="tile t-fin" onclick="bankView()"><div class="ic">🏦</div><h3>كشف الحساب البنكي</h3><div class="s">مراجعة التحويلات حسب الشهر</div></div><div class="tile" onclick="updateView()"><div class="ic">🔄</div><h3>تحديث البيانات</h3><div class="s">استيراد تقرير إيجار وكشف البنك</div></div></div>';
   h+='<div class="notif"><h3>🔔 الإشعارات <span class="badge-n">'+lateN+' متأخر</span></h3>';
   h+=n.slice(0,12).map(function(x){
     if(x.vacate){
@@ -808,6 +808,66 @@ function bankRowsToRecords(rows){
 }
 function resetToSeed(){DATA=JSON.parse(JSON.stringify(SEED_DATA));BANK=JSON.parse(JSON.stringify(SEED_BANK));window._links={};window._term={};META={ejar:null,bank:null,ts:null};saveState();updateView();}
 /* ===== تبويب تحديث البيانات ===== */
+function _E(s){return String(s==null?'':s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;');}
+function _rpTbl(title,heads,rows){
+  var h='<div style="background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px">';
+  h+='<div style="font-size:15px;font-weight:800;color:var(--g2);margin-bottom:10px">'+title+'</div>';
+  h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr>';
+  heads.forEach(function(x,i){h+='<th style="background:var(--g2);color:#fff;padding:8px;border:1px solid #0c4a2c;'+(i===0?'text-align:right':'text-align:center')+'">'+x+'</th>';});
+  h+='</tr></thead><tbody>';
+  if(!rows.length) h+='<tr><td colspan="'+heads.length+'" style="text-align:center;color:var(--mut);padding:12px">لا يوجد</td></tr>';
+  rows.forEach(function(r,ri){h+='<tr style="background:'+(ri%2?'#f8fbf9':'#fff')+'">';r.forEach(function(c,i){h+='<td style="padding:7px 8px;border:1px solid var(--line);'+(i===0?'text-align:right':'text-align:center')+'">'+c+'</td>';});h+='</tr>';});
+  h+='</tbody></table></div></div>';
+  return h;
+}
+function summaryView(){
+  window.CAT='';window._view='summary';el('backBtn').classList.add('show');_recordView('summary',summaryView);
+  var a=agg(), occRate=DATA.length?Math.round(a.occ/DATA.length*100):0;
+  var annual=0,collected=0,arrears=0;
+  DATA.forEach(function(c){
+    if(c.occupied) annual+=(+c.annual||0);
+    var coll = c.kind==='تجاري' ? (+c.paidAmt||0) : (c.occupied?((resStats(c).recv)||0):0);
+    collected+=coll; arrears+=((lateInfo(c).amt)||0);
+  });
+  var collRate=annual?Math.round(collected/annual*100):0;
+  var res=DATA.filter(function(c){return c.kind==='سكني';}), com=DATA.filter(function(c){return c.kind==='تجاري';});
+  var rOcc=res.filter(function(c){return c.occupied;}).length, cOcc=com.filter(function(c){return c.occupied;}).length;
+  var rAnnual=res.reduce(function(s,c){return s+(c.occupied?(+c.annual||0):0);},0);
+  var cAnnual=com.reduce(function(s,c){return s+(c.occupied?(+c.annual||0):0);},0);
+  var lateL=DATA.map(function(c){var li=lateInfo(c);return {t:c.tenant,p:c.property,amt:(li.amt||0),n:(li.count||0)};}).filter(function(x){return x.amt>0;}).sort(function(x,y){return y.amt-x.amt;});
+  var totLate=lateL.reduce(function(s,x){return s+x.amt;},0);
+  var byp={}; DATA.forEach(function(c){var p=c.property||'—';var o=byp[p]=byp[p]||{u:0,occ:0,an:0,ar:0};o.u++;if(c.occupied){o.occ++;o.an+=(+c.annual||0);}o.ar+=((lateInfo(c).amt)||0);});
+  var bypArr=Object.keys(byp).map(function(p){return {p:p,o:byp[p]};}).sort(function(x,y){return y.o.an-x.o.an;});
+  var notes=notifications(), vac=notes.filter(function(x){return x.vacate;});
+  function money(v){return fmt(Math.round(v))+' ﷼';}
+  var h='<div class="vtitle">📊 التقرير الشامل — خلاصة البرنامج</div>';
+  h+='<div class="count">لمحة كاملة عن العقارات والوحدات والمستأجرين والوضع المالي</div>';
+  h+='<div class="fcards">';
+  h+='<div class="fc"><div class="n" style="color:var(--g)">'+a.nprops+'</div><div class="s">العقارات</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--blue)">'+DATA.length+'</div><div class="s">الوحدات/العقود</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--g)">'+a.occ+'</div><div class="s">مشغولة</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--red)">'+a.vac+'</div><div class="s">شاغرة</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--amber)">'+occRate+'%</div><div class="s">نسبة الإشغال</div></div>';
+  h+='</div>';
+  h+='<div class="fcards">';
+  h+='<div class="fc"><div class="n" style="color:var(--amber);font-size:19px">'+money(annual)+'</div><div class="s">الإيجار السنوي المتعاقد</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--g);font-size:19px">'+money(collected)+'</div><div class="s">إجمالي المحصّل</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--red);font-size:19px">'+money(arrears)+'</div><div class="s">إجمالي المتأخرات</div></div>';
+  h+='<div class="fc"><div class="n" style="color:var(--blue);font-size:19px">'+collRate+'%</div><div class="s">نسبة التحصيل</div></div>';
+  h+='</div>';
+  h+=_rpTbl('التوزيع: سكني وتجاري',['القسم','عدد الوحدات','المشغولة','الإيجار السنوي'],[
+     ['🏠 سكني',res.length,rOcc,money(rAnnual)],
+     ['🏬 تجاري',com.length,cOcc,money(cAnnual)]]);
+  var lateRows=lateL.slice(0,60).map(function(x){return [_E(x.t||'—'),_E(x.p||'—'),money(x.amt),x.n];});
+  if(lateL.length) lateRows.push(['<b>الإجمالي</b>','','<b>'+money(totLate)+'</b>','']);
+  h+=_rpTbl('المتأخرون ('+lateL.length+' مستأجر)',['المستأجر','العقار','المبلغ المتأخر','دفعات متأخرة'],lateRows);
+  var pRows=bypArr.map(function(r){return [_E(r.p),r.o.u,r.o.occ,money(r.o.an),money(r.o.ar)];});
+  h+=_rpTbl('التفصيل حسب العقار',['العقار','الوحدات','المشغولة','الإيجار السنوي','المتأخرات'],pRows);
+  if(vac.length){ h+='<div style="background:#fdecea;border:1px solid #f5b5ae;color:#a12b22;border-radius:12px;padding:12px;margin-top:14px;font-weight:700">⚠ '+vac.length+' مستأجر متأخر بدفعات متتالية (يُحتمل ترك السكن) — راجع لوحة التنبيهات.</div>'; }
+  h+='<div style="text-align:center;margin:18px 0"><button onclick="window.print()" style="padding:10px 24px;border:none;border-radius:10px;background:var(--g2);color:#fff;font-weight:700;font-size:14px;cursor:pointer">🖨️ طباعة التقرير</button></div>';
+  el('app').innerHTML=h;window.scrollTo(0,0);
+}
+
 function updateView(){
   window.CAT='';window._view='update';el('backBtn').classList.add('show');_recordView('update',updateView);
   var occ=DATA.filter(function(c){return c.occupied;}).length;
