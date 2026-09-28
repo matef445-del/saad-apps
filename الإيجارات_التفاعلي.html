@@ -322,7 +322,7 @@ function bankView(){
   var mopts='<option value="">كل الأشهر</option>'+MO.map(function(m,i){var v=('0'+(i+1)).slice(-2);return '<option value="'+v+'"'+(v===bkMonth?' selected':'')+'>'+m+'</option>';}).join('');
   var srcs=['منصة إيجار','تحويل شخصي','تحويل داخلي'];
   var sopts='<option value="">كل المصادر</option>'+srcs.map(function(s){return '<option value="'+s+'"'+(s===bkSrc?' selected':'')+'>'+s+'</option>';}).join('');
-  el('app').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 2px"><div class="vtitle" style="margin:0">كشف الحساب البنكي — الإنماء</div><label class="linkbtn" style="background:var(--g);padding:10px 16px;cursor:pointer;font-size:13px">⬆️ استرداد كشف من ملف<input type="file" accept=".csv,.txt" style="display:none" onchange="importBankFile(this.files)"></label></div>'+
+  el('app').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin:6px 2px"><div class="vtitle" style="margin:0">كشف الحساب البنكي — الإنماء</div><label class="linkbtn" style="background:var(--g);padding:10px 16px;cursor:pointer;font-size:13px">⬆️ استرداد كشف من ملف<input type="file" accept=".xlsx,.xls,.csv,.txt" style="display:none" onchange="importBankFile(this.files)"></label></div>'+
     '<div class="search-row"><div class="search"><span class="ic">🔍</span><input id="bq" placeholder="ابحث بالاسم، المبلغ، رقم المرجع، أو الوصف..."></div>'+
     '<select id="by" onchange="bkYear=this.value;drawBank()">'+yopts+'</select>'+
     '<select id="bm" onchange="bkMonth=this.value;drawBank()">'+mopts+'</select>'+
@@ -797,13 +797,36 @@ function importBankFile(files){
     alert('تم استرداد كشف البنك: '+recs.length+' عملية.');updateView();
   });
 }
+function _bkClean(x){return String(x==null?'':x).replace(/#/g,' ').replace(/\s+/g,' ').trim();}
+function _bkISO(v){
+  if(v==null)return '';var s=(''+v).trim(),m;
+  if((m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/)))return m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2);
+  if((m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/))){var a=+m[1],b=+m[2];if(a>12)return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);if(b>12)return m[3]+'-'+('0'+m[1]).slice(-2)+'-'+('0'+m[2]).slice(-2);return m[3]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[1]).slice(-2);}
+  return '';
+}
+function _bkSender(desc){
+  var d=String(desc||'').replace(/#/g,' '),m;
+  if((m=d.match(/SAR\s+from\s+([A-Za-z\u0600-\u06FF][^\d]*?)\s+at\s+\d{2,4}\b/i))){var nm=_bkClean(m[1]);if(!/through|amount|IBAN|Bank\b/i.test(nm))return nm;}
+  if(/INTERNAL TRANSFER/i.test(d)){var seg=d.split(/value\s*Date/i)[0];var lf=seg.toLowerCase().lastIndexOf('from ');if(lf>=0){var c=_bkClean(seg.slice(lf+5)).replace(/,/g,' ').replace(/\s+/g,' ').trim();if(c&&!/head office|^alinma\b/i.test(c))return c;}}
+  return '';
+}
 function bankRowsToRecords(rows){
-  if(!rows.length)return [];
-  var head=rows[0].map(function(x){return (''+(x==null?'':x)).toLowerCase().trim();});
-  function idx(keys){for(var i=0;i<head.length;i++)for(var k=0;k<keys.length;k++)if(head[i].indexOf(keys[k])>=0)return i;return -1;}
-  var di=idx(['date','تاريخ']),ai=idx(['amount','مبلغ','دائن','credit','قيمة','وارد']),ni=idx(['name','اسم','المحول','beneficiary','sender']),ci=idx(['desc','وصف','بيان','description','details','ملاحظ']),ri=idx(['ref','مرجع','reference']);
-  var hasH=(di>=0||ai>=0),out=[];
-  for(var r=(hasH?1:0);r<rows.length;r++){var c=rows[r];if(!c||!c.length)continue;var amt=num(ai>=0?c[ai]:c[1]);if(!amt)continue;var desc=''+((ci>=0?c[ci]:c[3])||''),name=''+((ni>=0?c[ni]:c[2])||'');out.push({date:dOnly(di>=0?c[di]:c[0]),amount:amt,name:name,desc:desc,ref:''+((ri>=0?c[ri]:'')||''),src:/ejar|إيجار/i.test(desc+' '+name)?'منصة إيجار':'تحويل شخصي'});}
+  if(!rows||!rows.length)return [];
+  var hi=-1;
+  for(var i=0;i<rows.length;i++){var rr=rows[i];if(rr&&rr.some(function(c){return /دائن|credit/i.test(String(c==null?'':c));})){hi=i;break;}}
+  var ai=2,di=0,bi=1,ci=3;
+  if(hi>=0){rows[hi].forEach(function(c,ix){c=String(c==null?'':c).toLowerCase();if(/دائن|credit/.test(c))ai=ix;if(/مدين|debit/.test(c))ci=ix;if(/تاريخ|date/.test(c))di=ix;if(/تفاصيل|description|بيان/.test(c))bi=ix;});}
+  var out=[];
+  for(var r=(hi>=0?hi+1:0);r<rows.length;r++){
+    var c=rows[r];if(!c||!c.length)continue;
+    var dt=_bkISO(c[di]);if(!/^\d{4}-\d{2}-\d{2}$/.test(dt))continue;
+    var cr=num(c[ai]);if(!(cr>0))continue;
+    var ds=String(c[bi]==null?'':c[bi]);
+    var src=/منصة\s*ايجار|منصة\s*إيجار/.test(ds)?'منصة إيجار':'تحويل شخصي';
+    var name=src==='منصة إيجار'?'منصة إيجار':_bkSender(ds);
+    var ref=(ds.match(/Reference N?umber\s*(\w+)/i)||[])[1]||'';
+    out.push({date:dt,amount:cr,name:name,desc:ds,ref:ref,src:src});
+  }
   return out;
 }
 function resetToSeed(){DATA=JSON.parse(JSON.stringify(SEED_DATA));BANK=JSON.parse(JSON.stringify(SEED_BANK));window._links={};window._term={};META={ejar:null,bank:null,ts:null};saveState();updateView();}
