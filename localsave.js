@@ -314,7 +314,8 @@
     '.sls-sl:before{content:"";position:absolute;height:18px;width:18px;right:3px;top:3px;background:#9db3a3;border-radius:50%;transition:.2s}'+
     '.sls-sw input:checked + .sls-sl{background:#123b20;border-color:#2e9e5b}'+
     '.sls-sw input:checked + .sls-sl:before{transform:translateX(-20px);background:#2e9e5b}'+
-    '.sls-last{font-size:12px;color:#9db3a3;background:#08160d;border:1px solid #1d4a2c;border-radius:10px;padding:9px 12px;line-height:1.8;word-break:break-word}';
+    '.sls-last{font-size:12px;color:#9db3a3;background:#08160d;border:1px solid #1d4a2c;border-radius:10px;padding:9px 12px;line-height:1.8;word-break:break-word}'+
+    '@media print{.sls-chip,.sls-ov{display:none !important}}';
     document.head.appendChild(css);
 
     chip=document.createElement('div'); chip.className='sls-chip';
