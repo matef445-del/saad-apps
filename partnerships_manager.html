@@ -171,7 +171,7 @@ label{font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase;l
 
 </style><style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
-@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}} @media print{.ham,.sw,.btn-new,.ptabs,#SB,#sbov,.sb,#authLogoutBtn{display:none!important}.topbar{border:none!important;box-shadow:none!important;justify-content:center;gap:12px;padding:6px 0!important;position:static!important}.topbar img{height:58px!important}.topbar span{font-size:16px!important}.main{margin:0!important}.page{padding-top:6px!important}#rp-title{font-size:15px!important;margin:4px 0 2px!important}#rp-sub{font-size:10px!important;margin-bottom:8px!important}#reportView .stats{gap:6px!important;margin-bottom:8px!important}#reportView .stat{padding:9px 11px!important}#reportView .st-v{font-size:16px!important}}</style>
 <style>
 /* ===== NALKUM TAB ===== */
 .nk-wrap{padding:6px 2px}
@@ -568,8 +568,8 @@ function renderReport(){
   function nkShare(p){var f=(p.partners||[]).filter(function(pt){return (pt.n||'').indexOf('نالكم')>=0;})[0];return f?(parseFloat(f.p)||0):0;}
   var nkValue=0; all.forEach(function(p){nkValue+=(nkShare(p)/100)*(parseFloat(p.total)||0);});
   function nf(n){return (Math.round(parseFloat(n)||0)).toLocaleString('en-US');}
-  var h='<div style="font-size:20px;font-weight:800;color:var(--ink);margin:6px 2px 4px">📊 تقرير شامل — خلاصة البرنامج</div>';
-  h+='<div style="color:var(--ink3);font-size:12px;margin-bottom:12px">لمحة كاملة عن الشراكات والاستثمارات والسداد وحصص نالكم</div>';
+  var h='<div id="rp-title" style="font-size:20px;font-weight:800;color:var(--ink);margin:6px 2px 4px">📊 تقرير شامل — خلاصة البرنامج</div>';
+  h+='<div id="rp-sub" style="color:var(--ink3);font-size:12px;margin-bottom:12px">لمحة كاملة عن الشراكات والاستثمارات والسداد وحصص نالكم</div>';
   h+='<div class="stats">';
   h+='<div class="stat"><div class="st-v" style="color:var(--ink)">'+all.length+'</div><div class="st-l">إجمالي الشراكات/الكيانات</div></div>';
   h+='<div class="stat"><div class="st-v" style="color:var(--grn)">'+subCount+'</div><div class="st-l">شركات تابعة</div></div>';
