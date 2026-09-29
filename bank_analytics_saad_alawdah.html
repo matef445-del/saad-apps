@@ -198,9 +198,10 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <div class="pagehead"><h2 class="sec">التحويلات المباشرة</h2><button class="btn ghost sm noprint" onclick="printPage()">🖨️ طباعة</button></div>
     <p class="lead">تحويلات وصلت للحساب خارج منصة إيجار. اقرأ اسم المُحوِّل من رسالة جوّالك، ابحث هنا بتاريخ الرسالة لتجد التحويل المطابق، ثم اربطه بالمستأجر مرة واحدة — يتذكّره النظام للأبد عبر الآيبان.</p>
     <div class="searchbar">
-      <input id="dr-q" placeholder="ابحث بالتاريخ مثل 2026-01 أو بالمبلغ أو الآيبان…">
-      <select id="dr-year"></select>
-      <select id="dr-month"></select>
+      <input id="dr-q" placeholder="ابحث بالتاريخ أو المبلغ أو الآيبان…">
+      <span class="hint">من تاريخ:</span><span id="dr-from"></span>
+      <span class="hint">إلى تاريخ:</span><span id="dr-to"></span>
+      <button class="btn ghost sm" onclick="drFrom='';drTo='';rDirect(true)">مسح التاريخ</button>
       <select id="dr-filter">
         <option value="unmatched">غير المنسوبة</option>
         <option value="all">الكل</option>
@@ -309,6 +310,28 @@ var curMonth=null;
 
 var MONTHS_AR=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 function fmt(n){ return (Math.round(n)||0).toLocaleString('en-US'); }
+/* ===== تنسيق التاريخ الموحّد: من التاريخ المخزّن -> يوم/شهر/سنة دائماً ===== */
+function _pad2(n){ return ('0'+n).slice(-2); }
+function toISO(v){
+  if(v==null||v==='')return '';
+  if(v instanceof Date){ return isNaN(v)?'':(v.getFullYear()+'-'+_pad2(v.getMonth()+1)+'-'+_pad2(v.getDate())); }
+  var s=String(v).trim(),m;
+  if((m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/)))return m[1]+'-'+_pad2(+m[2])+'-'+_pad2(+m[3]);
+  if((m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/))){ var a=+m[1],b=+m[2]; if(a>12)return m[3]+'-'+_pad2(b)+'-'+_pad2(a); if(b>12)return m[3]+'-'+_pad2(a)+'-'+_pad2(b); return m[3]+'-'+_pad2(b)+'-'+_pad2(a); }
+  return s;
+}
+function fmtDate(v){ if(v==null||v==='')return '-'; var iso=toISO(v),p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso); return p?(p[3]+'/'+p[2]+'/'+p[1]):String(v); }
+function _dmyOpts(kind,sel){ var o='<option value="">'+(kind==='d'?'يوم':kind==='m'?'شهر':'سنة')+'</option>',i;
+  if(kind==='d'){ for(i=1;i<=31;i++){ var dd=_pad2(i); o+='<option value="'+dd+'"'+(sel==dd?' selected':'')+'>'+i+'</option>'; } }
+  else if(kind==='m'){ for(i=1;i<=12;i++){ var mm=_pad2(i); o+='<option value="'+mm+'"'+(sel==mm?' selected':'')+'>'+MONTHS_AR[i-1]+'</option>'; } }
+  else{ var yr=new Date().getFullYear(); for(i=yr+1;i>=2021;i--)o+='<option value="'+i+'"'+(sel==i?' selected':'')+'>'+i+'</option>'; }
+  return o; }
+function dmyPicker(base,iso){ iso=iso||''; var p=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)||[];
+  return '<span class="dmy" style="display:inline-flex;gap:4px;direction:rtl;flex-wrap:wrap">'+
+    '<select id="'+base+'_d">'+_dmyOpts('d',p[3])+'</select>'+
+    '<select id="'+base+'_m">'+_dmyOpts('m',p[2])+'</select>'+
+    '<select id="'+base+'_y">'+_dmyOpts('y',p[1])+'</select></span>'; }
+function dmyValue(base){ var d=document.getElementById(base+'_d'),m=document.getElementById(base+'_m'),y=document.getElementById(base+'_y'); if(!d||!m||!y||!d.value||!m.value||!y.value)return ''; return y.value+'-'+m.value+'-'+d.value; }
 function ym(d){ return d?d.substring(0,7):''; }
 function monthLabel(k){ if(!k)return''; var p=k.split('-'); return MONTHS_AR[(+p[1])-1]+' '+p[0]; }
 function srcType(b){ return b.src_type||'منصة إيجار'; }
@@ -365,32 +388,30 @@ function rOverview(){
 }
 
 /* ===== DIRECT TRANSFERS ===== */
-var drQ='', drFilter='unmatched', drYear='', drMonth='';
+var drQ='', drFilter='unmatched', drYear='', drMonth='', drFrom='', drTo='';
 function srcLabel(b){
   if(b.nameTok && !b.srcIban) return '<span class="tag intr">'+esc(b.nameTok)+'</span>';
   if(b.srcIban) return '<span class="iban">'+esc(b.srcIban)+'</span>';
   return '<span class="iban">—</span>';
 }
-function rDirect(){
-  var ys=document.getElementById('dr-year'), msl=document.getElementById('dr-month');
-  if(!ys.dataset.built){
-    ys.innerHTML=yearOpts(BANK.filter(isDirect).map(function(b){return b.date;}));
-    msl.innerHTML=monthOpts(); ys.dataset.built='1';
-    ys.onchange=function(){ drYear=ys.value; rDirect(); };
-    msl.onchange=function(){ drMonth=msl.value; rDirect(); };
+function rDirect(rebuild){
+  var fw=document.getElementById('dr-from'), tw=document.getElementById('dr-to');
+  if(fw && (rebuild||!fw.dataset.built)){
+    fw.innerHTML=dmyPicker('drf',drFrom); tw.innerHTML=dmyPicker('drt',drTo); fw.dataset.built='1';
+    ['drf_d','drf_m','drf_y','drt_d','drt_m','drt_y'].forEach(function(id){ var e=document.getElementById(id); if(e)e.onchange=function(){ drFrom=dmyValue('drf'); drTo=dmyValue('drt'); rDirect(); }; });
   }
   var rows=BANK.filter(isDirect);
   var view=rows.filter(function(b){
-    var a=attrOf(b), d=b.date||'';
+    var a=attrOf(b), d=toISO(b.date);
     if(drFilter==='matched'&&!a)return false;
     if(drFilter==='unmatched'&&a)return false;
-    if(drYear && d.substring(0,4)!==drYear)return false;
-    if(drMonth && d.substring(5,7)!==drMonth)return false;
-    if(drQ){ var hay=(b.date+' '+b.amount+' '+(b.srcIban||'')+' '+(b.nameTok||'')+' '+a).toLowerCase();
+    if(drFrom && (!d||d<drFrom))return false;
+    if(drTo && (!d||d>drTo))return false;
+    if(drQ){ var hay=(b.date+' '+fmtDate(b.date)+' '+b.amount+' '+(b.srcIban||'')+' '+(b.nameTok||'')+' '+a).toLowerCase();
       if(hay.indexOf(drQ.toLowerCase())<0)return false; }
     return true;
   });
-  view.sort(function(a,b){ return a.date<b.date?1:(a.date>b.date?-1:0); });
+  view.sort(function(a,b){ return toISO(a.date)<toISO(b.date)?1:(toISO(a.date)>toISO(b.date)?-1:0); });
   var sAmt=0,sM=0,sU=0;
   view.forEach(function(b){ sAmt+=b.amount; if(attrOf(b))sM+=b.amount; else sU+=b.amount; });
   var k=[
@@ -412,7 +433,7 @@ function rDirect(){
     var act=a
       ? '<button class="btn ghost sm" onclick="openPick(\''+esc2(key)+'\')">تغيير</button>'
       : '<button class="btn sm" onclick="openPick(\''+esc2(key)+'\')">حدّد صاحبه</button>';
-    return '<tr><td class="num">'+esc(b.date)+'</td><td class="num">'+fmt(b.amount)+'</td><td>'+tag+'</td>'+
+    return '<tr><td class="num">'+fmtDate(b.date)+'</td><td class="num">'+fmt(b.amount)+'</td><td>'+tag+'</td>'+
       '<td>'+srcLabel(b)+'</td><td>'+owner+'</td><td>'+act+'</td></tr>';
   }).join('');
 }
@@ -608,7 +629,7 @@ function openDetails(name){
   if(bankRows.length){
     html+='<div class="tbl-wrap" style="max-height:230px"><table><thead><tr><th>التاريخ</th><th>المبلغ</th><th>النوع</th><th>الآيبان / الرمز</th></tr></thead><tbody>'+
       bankRows.map(function(b){ var s=srcType(b),tg=s==='تحويل شخصي'?'<span class="tag pers">شخصي</span>':'<span class="tag intr">داخلي</span>';
-        return '<tr><td class="num">'+esc(b.date)+'</td><td class="num">'+fmt(b.amount)+'</td><td>'+tg+'</td><td>'+srcLabel(b)+'</td></tr>'; }).join('')+
+        return '<tr><td class="num">'+fmtDate(b.date)+'</td><td class="num">'+fmt(b.amount)+'</td><td>'+tg+'</td><td>'+srcLabel(b)+'</td></tr>'; }).join('')+
       '</tbody></table></div>';
   } else html+='<div class="empty">لا تحويلات مباشرة منسوبة لهذا الاسم.</div>';
 
@@ -617,7 +638,7 @@ function openDetails(name){
       '<div class="tbl-wrap" style="max-height:280px"><table><thead><tr><th>التاريخ</th><th>المبلغ</th><th>الحالة</th><th>العقار</th><th>رقم الإيصال</th></tr></thead><tbody>'+
       ejRows.map(function(t){ var st=STATUS_AR[t.status]||t.status||'';
         var stc=t.status==='success'?'var(--ok)':(t.status==='pending'?'var(--gold2)':'var(--muted)');
-        return '<tr><td class="num">'+esc(t.date)+'</td><td class="num">'+fmt(t.amount)+'</td><td style="color:'+stc+'">'+esc(st)+
+        return '<tr><td class="num">'+fmtDate(t.date)+'</td><td class="num">'+fmt(t.amount)+'</td><td style="color:'+stc+'">'+esc(st)+
           '</td><td>'+esc(t.prop||'—')+'</td><td class="num" style="font-size:11px">'+esc(t.receipt||'')+'</td></tr>'; }).join('')+
       '</tbody></table></div>';
   }
@@ -636,8 +657,8 @@ function printPage(){
   var ctx='';
   if(active){
     if(active.id==='p-overview') ctx=filterCtx(ovYear,ovMonth);
-    else if(active.id==='p-direct') ctx=filterCtx(drYear,drMonth)+
-      (drFilter==='all'?'':' — '+(drFilter==='unmatched'?'غير المنسوبة':'المنسوبة'));
+    else if(active.id==='p-direct'){ var _dr=(drFrom||drTo)?('من '+(drFrom?fmtDate(drFrom):'البداية')+' إلى '+(drTo?fmtDate(drTo):'النهاية')):'كل الفترات';
+      ctx=_dr+(drFilter==='all'?'':' — '+(drFilter==='unmatched'?'غير المنسوبة':'المنسوبة')); }
   }
   var d=new Date(), ds=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
   document.getElementById('printHead').innerHTML=
