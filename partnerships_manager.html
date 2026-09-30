@@ -205,7 +205,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 .nk-doc{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--brd,#e2e8e5);border-radius:10px;padding:10px 12px;margin-bottom:8px}
 .nk-doc .d-i{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--gl,#f5f2e6)}
 .nk-doc .d-n{font-weight:700;font-size:13px;color:var(--ink,#1c1c1c)}
-.nk-doc .d-s{font-size:11px;color:var(--ink3,#6b7280)}
+.nk-doc .d-s{font-size:11px;color:var(--ink3,#6b7280)}.nk-acc{border:1px solid var(--brd,#e2e8e5);border-radius:11px;margin-bottom:8px;overflow:hidden;background:var(--card,#fff)}.nk-acc-h{display:flex;align-items:center;gap:9px;padding:11px 12px;cursor:pointer;user-select:none}.nk-acc-h:hover{background:var(--gl,rgba(181,130,10,.10))}.nk-acc-cv{color:var(--gold,#b5820a);font-size:12px;transition:transform .2s;display:inline-block}.nk-acc.open .nk-acc-cv{transform:rotate(90deg)}.nk-acc-t{flex:1;font-weight:800;font-size:13.5px;color:var(--ink,#1c1c1c)}.nk-acc-c{background:var(--gl,rgba(181,130,10,.12));color:var(--gold,#b5820a);border-radius:999px;padding:1px 10px;font-size:12px;font-weight:800}.nk-acc-badge{background:rgba(176,0,32,.10);color:#b00020;border-radius:999px;padding:1px 9px;font-size:11px;font-weight:700}.nk-acc-b{display:none;padding:8px 10px 2px}.nk-acc.open .nk-acc-b{display:block}.nk-acc.open{box-shadow:0 2px 10px rgba(0,0,0,.05)}
 .nk-tl{position:relative;padding-right:6px}
 .nk-tl .ev{position:relative;padding:0 18px 14px 0;border-right:2px solid #d7e6dd;margin-right:5px}
 .nk-tl .ev:last-child{border-right:2px solid transparent}
@@ -874,13 +874,31 @@ function nkExpAttach(id){ _nkAttachTarget={kind:'exp',id:id}; _nkTriggerFile(); 
 function nkDocsHtml(){
   var n=_nk(),docs=n.docs||[];
   if(!docs.length)return '<div style="color:#9ca3af;font-size:12.5px">لا توجد مستندات</div>';
-  return docs.map(function(d,i){
-    var has=d.pdf||d.img;
-    var right = has?('<button class="nk-btn ghost" onclick="nkViewDoc('+i+')">عرض</button>')
-                   :('<button class="nk-btn g" onclick="nkDocAttach(\''+d.id+'\')">＋ إرفاق ملف</button>');
-    return '<div class="nk-doc"><div class="d-i">'+(has?'📄':'📁')+'</div><div style="flex:1;min-width:0"><div class="d-n">'+e(d.name||'')+'</div><div class="d-s">'+(d.date?e(d.date)+' · ':'')+(has?('✓ مرفق: '+e(d.fn||'')):(e(d.notes||'بلا ملف')))+'</div></div>'+right+'<button class="nk-ic" onclick="nkDocDel('+i+')">🗑️</button></div>';
-  }).join('');
+  var order=['التأسيس والسجل','الضرائب والزكاة','العلامات التجارية','الفواتير','التحويلات المالية','العنوان والحسابات','مستندات أخرى'];
+  var groups={};
+  docs.forEach(function(d,i){var c=_nkDocCat(d);(groups[c]=groups[c]||[]).push(i);});
+  var html='';
+  order.forEach(function(cat){
+    var idxs=groups[cat]; if(!idxs||!idxs.length)return;
+    var attn=idxs.some(function(i){var d=docs[i];return !(d.pdf||d.img);});
+    var rows=idxs.map(function(i){var d=docs[i];var has=d.pdf||d.img;
+      var right = has?('<button class="nk-btn ghost" onclick="event.stopPropagation();nkViewDoc('+i+')">عرض</button>')
+                     :('<button class="nk-btn g" onclick="event.stopPropagation();nkDocAttach(\''+d.id+'\')">＋ إرفاق ملف</button>');
+      return '<div class="nk-doc"><div class="d-i">'+(has?'📄':'📁')+'</div><div style="flex:1;min-width:0"><div class="d-n">'+e(d.name||'')+'</div><div class="d-s">'+(d.date?e(d.date)+' · ':'')+(has?('✓ مرفق: '+e(d.fn||'')):(e(d.notes||'بلا ملف')))+'</div></div>'+right+'<button class="nk-ic" onclick="event.stopPropagation();nkDocDel('+i+')">🗑️</button></div>';
+    }).join('');
+    html+='<div class="nk-acc"><div class="nk-acc-h" onclick="nkAccToggle(this)"><span class="nk-acc-cv">▸</span><span class="nk-acc-t">'+cat+'</span><span class="nk-acc-c">'+idxs.length+'</span>'+(attn?'<span class="nk-acc-badge">يحتاج إرفاق</span>':'')+'</div><div class="nk-acc-b">'+rows+'</div></div>';
+  });
+  return html;
 }
+function _nkDocCat(d){var s=((d.name||'')+' '+(d.id||''));
+  if(/زكاة|ضريب|VAT|القيمة المضافة/i.test(s))return 'الضرائب والزكاة';
+  if(/علامة تجاري|علامه تجاري/i.test(s))return 'العلامات التجارية';
+  if(/إيصال|ايصال|تحويل|دعم رصيد|سداد|دفعة/i.test(s))return 'التحويلات المالية';
+  if(/فاتورة|فاتوره/i.test(s))return 'الفواتير';
+  if(/عنوان|آيبان|ايبان|iban/i.test(s))return 'العنوان والحسابات';
+  if(/عقد|تأسيس|سجل|CR|مستخرج|حجز الاسم|خطاب|محضر/i.test(s))return 'التأسيس والسجل';
+  return 'مستندات أخرى';}
+function nkAccToggle(el){try{var p=el.closest('.nk-acc');if(p)p.classList.toggle('open');}catch(e){}}
 function nkViewDoc(i){var n=_nk();var d=(n.docs||[])[i];if(d&&typeof openPV==='function')openPV(d);}
 function nkDocAttach(id){ _nkAttachTarget={kind:'doc',id:id}; _nkTriggerFile(); }
 function nkDocDel(i){var n=_nk();if(!n.docs)return;if(!confirm('حذف هذا المستند؟'))return;n.docs.splice(i,1);saveD(DATA);renderNalkum();}
