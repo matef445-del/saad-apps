@@ -316,6 +316,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     </div>
     <div class="sec"><h2>🏷️ التصنيفات</h2>
       <div id="set-cats" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
+      <div style="margin-bottom:12px"><button class="btn ghost sm" onclick="mergePropCats()">🔗 دمج مرادفات «تحويل العقار» في تصنيف واحد</button></div>
       <div class="mrow"><div class="fg" style="flex:2"><input id="newcat" placeholder="تصنيف جديد…"></div><button class="btn ghost sm" onclick="addCat()" style="align-self:start">＋ إضافة</button></div>
     </div>
     <div class="sec"><h2>🔄 قواعد الترحيل التلقائي</h2>
@@ -1898,8 +1899,41 @@ function renderSet(){
   g('al-3001').value=STATE.alerts['3001']||0; g('al-3002').value=STATE.alerts['3002']||0;
   renderCats();
 }
+function _catGroup(c){
+  c=String(c||'');
+  if(/تحويل عهدة|منح عهدة|تصفية|تحويل من حساب العقار|تحويل من العقار|تغذية.*عقار|تحويل من الشيخ/.test(c)) return 'تحويلات داخلية';
+  if(/إيراد|ايراد|إيداع|ايداع|تبرع/.test(c)) return 'إيرادات وإيداعات';
+  if(/رواتب|راتب|سلف|أجور|اجور/.test(c)) return 'رواتب وسلف';
+  if(/حكوم/.test(c)) return 'حكومي';
+  if(/نالكم|شركة|طحينة|لافا|مؤسسة/.test(c)) return 'جهات وشركات';
+  if(/كهرباء|انترنت|إنترنت|جوال|مياه|نظافة|صيانة|مشتريات|مصروف|فاتورة|طيران|تأمين|مدفوعات|صيا|عام/.test(c)) return 'مصروفات تشغيلية';
+  return 'أخرى';
+}
 function renderCats(){
-  g('set-cats').innerHTML=STATE.cats.map(function(c,i){return '<span class="chip" style="display:inline-flex;gap:6px;align-items:center">'+esc(c)+' <span style="cursor:pointer;color:#f0a8a8" onclick="delCat('+i+')">✕</span></span>';}).join('');
+  var order=['مصروفات تشغيلية','تحويلات داخلية','إيرادات وإيداعات','رواتب وسلف','حكومي','جهات وشركات','أخرى'];
+  var groups={};
+  (STATE.cats||[]).forEach(function(c,i){ var gn=_catGroup(c); (groups[gn]=groups[gn]||[]).push({c:c,i:i}); });
+  var html='';
+  order.forEach(function(gn){
+    var arr=groups[gn]; if(!arr||!arr.length) return;
+    html+='<div style="width:100%;margin:8px 0 3px;font-weight:800;font-size:12px;color:var(--gold2)">'+gn+' <span style="color:var(--muted);font-weight:600;font-size:11px">('+arr.length+')</span></div>';
+    html+='<div style="display:flex;flex-wrap:wrap;gap:8px;width:100%">';
+    arr.forEach(function(o){ html+='<span class="chip" style="display:inline-flex;gap:6px;align-items:center">'+esc(o.c)+' <span style="cursor:pointer;color:#f0a8a8" onclick="delCat('+o.i+')">✕</span></span>'; });
+    html+='</div>';
+  });
+  g('set-cats').innerHTML=html||'<div style="color:var(--muted);font-size:12px">لا توجد تصنيفات</div>';
+}
+function mergePropCats(){
+  if(!confirm('سيتم توحيد «تحويل من العقار» و«تغذية الحساب من العقار» و«تغذية من العقار» تحت «تحويل من حساب العقار» في كل القيود والتصنيفات، دون فقد أي قيد (ويمكن التراجع). متابعة؟')) return;
+  if(typeof pushUndo==='function') pushUndo();
+  var CANON='تحويل من حساب العقار', SYN=['تحويل من العقار','تغذية من العقار','تغذية الحساب من العقار'];
+  var n=0;
+  ACCKEYS.forEach(function(k){ var a=STATE.accounts&&STATE.accounts[k]; if(!a||!a.rows)return; a.rows.forEach(function(r){ if(SYN.indexOf(r.cat)>=0){ r.cat=CANON; n++; } }); });
+  STATE.cats=(STATE.cats||[]).filter(function(c){return SYN.indexOf(c)<0;}); if(STATE.cats.indexOf(CANON)<0) STATE.cats.push(CANON);
+  if(typeof persist==='function') persist();
+  renderCats();
+  try{ if(g('pg-acc').classList.contains('act')&&typeof openAccPage==='function') openAccPage(); }catch(e){}
+  try{ toast('تم الدمج — عُدِّل '+n+' قيداً تحت «تحويل من حساب العقار» (يمكنك التراجع)'); }catch(e){}
 }
 function addCat(){var v=g('newcat').value.trim();if(!v)return;if(STATE.cats.indexOf(v)<0){pushUndo();STATE.cats.push(v);persist();renderCats();}g('newcat').value='';}
 function delCat(i){pushUndo();STATE.cats.splice(i,1);persist();renderCats();}
