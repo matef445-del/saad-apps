@@ -49,7 +49,7 @@ nav{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;border-bottom:1px sol
 nav::-webkit-scrollbar{height:5px}nav::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
 .nb{white-space:nowrap;background:rgba(255,255,255,.03);color:var(--muted);border:1px solid var(--line);padding:9px 16px;border-radius:12px;font-family:inherit;font-weight:600;font-size:13.5px;cursor:pointer;transition:.2s}
 .nb:hover{color:var(--cream);border-color:var(--gold)}
-.nb.act{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1206;border-color:transparent;font-weight:800}
+.nb.act{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1206;border-color:transparent;font-weight:800}.subnav{display:none;gap:6px;flex-wrap:wrap;padding:2px 14px 8px;align-items:center}.snb{white-space:nowrap;background:rgba(255,255,255,.02);color:var(--muted);border:1px solid var(--line);padding:6px 13px;border-radius:10px;font-family:inherit;font-weight:600;font-size:12.5px;cursor:pointer;transition:.2s}.snb:hover{color:var(--gold2)}.snb.act{background:rgba(216,180,65,.18);color:var(--gold2);border-color:var(--gold);font-weight:800}
 main{padding:20px 16px 60px;max-width:1180px;margin:0 auto}
 .pg{display:none;animation:fade .3s}.pg.act{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
@@ -183,6 +183,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 </header>
 
 <nav id="nav"></nav>
+<nav id="subnav" class="subnav"></nav>
 
 <main>
   <div id="printhead"><img src="logo_green.png?v=4"><div class="pt">المكتب الإداري للشيخ سعد علي آل عوضه</div><div id="phsub"></div></div>
@@ -857,9 +858,7 @@ document.addEventListener('keydown',function(e){
 
 /* ============ NAV ============ */
 function buildNav(){
-  var n=g('nav'); var items=[['dash','📊 لوحة التحكم']];
-  ACCKEYS.forEach(function(k){items.push(['acc:'+k, ACCMETA[k].icon+' '+ACCMETA[k].name+(ACCMETA[k].code&&!ACCMETA[k].simple&&k!=='bank'?' '+ACCMETA[k].code:'')]);});
-  items.push(['salaf','💵 السلف']); items.push(['bankstmt','🏦 كشف حساب — العهدة الرئيسية']); items.push(['rpt','📅 التقرير الشهري']); items.push(['crpt','📈 تقرير شامل']); items.push(['search','🔍 بحث']); items.push(['set','⚙️ الإعدادات']);
+  var n=g('nav'); var items=[['dash','📊 لوحة التحكم'],['accgrp','🗂️ الحسابات'],['salaf','💵 السلف'],['rptgrp','📊 التقارير'],['search','🔍 بحث'],['set','⚙️ الإعدادات']];
   n.innerHTML='';
   items.forEach(function(it){
     var b=document.createElement('button'); b.className='nb'; b.textContent=it[1]; b.dataset.t=it[0];
@@ -867,7 +866,13 @@ function buildNav(){
   });
 }
 function go(t){
-  document.querySelectorAll('.nb').forEach(function(b){b.classList.toggle('act',b.dataset.t===t);});
+  if(t==='accgrp'){ var c=(typeof CUR!=='undefined'&&CUR&&ACCMETA[CUR])?CUR:'3000'; t='acc:'+c; }
+  else if(t==='rptgrp'){ t=(window._lastRpt||'crpt'); }
+  if(t==='rpt'||t==='crpt'||t==='bankstmt'){ window._lastRpt=t; }
+  var topKey=t;
+  if(t.indexOf('acc:')===0) topKey='accgrp';
+  else if(t==='rpt'||t==='crpt'||t==='bankstmt') topKey='rptgrp';
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.toggle('act',b.dataset.t===topKey);});
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('act');});
   if(t==='dash'){g('pg-dash').classList.add('act'); renderDash();}
   else if(t.indexOf('acc:')===0){CUR=t.split(':')[1]; g('pg-acc').classList.add('act'); openAccPage();}
@@ -877,7 +882,22 @@ function go(t){
   else if(t==='crpt'){g('pg-crpt').classList.add('act'); renderCRpt();}
   else if(t==='search'){g('pg-search').classList.add('act'); renderSearch();}
   else if(t==='set'){g('pg-set').classList.add('act'); renderSet();}
+  renderSubnav(t, topKey);
   window.scrollTo(0,0);
+}
+function renderSubnav(t, topKey){
+  var el=g('subnav'); if(!el)return;
+  var html='';
+  if(topKey==='accgrp'){
+    ACCKEYS.forEach(function(k){
+      var lbl=ACCMETA[k].icon+' '+ACCMETA[k].name+(ACCMETA[k].code&&!ACCMETA[k].simple&&k!=='bank'?' '+ACCMETA[k].code:'');
+      html+='<button class="snb'+(t==='acc:'+k?' act':'')+'" onclick="go(\''+'acc:'+k+'\')">'+lbl+'</button>';
+    });
+  } else if(topKey==='rptgrp'){
+    var R=[['rpt','📅 شهري'],['crpt','📈 شامل'],['bankstmt','🏦 كشف حساب']];
+    R.forEach(function(it){ html+='<button class="snb'+(t===it[0]?' act':'')+'" onclick="go(\''+it[0]+'\')">'+it[1]+'</button>'; });
+  }
+  el.innerHTML=html; el.style.display=html?'flex':'none';
 }
 
 /* ============ DASHBOARD ============ */
