@@ -271,6 +271,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <div class="sec"><h2>الإيرادات ومصادرها</h2><div class="twrap"><table id="crpt-rev"></table></div></div>
     <div class="sec"><h2>المصروفات حسب الجهة</h2><div class="twrap"><table id="crpt-exp"></table></div></div>
     <div class="sec"><h2>التحويلات للحسابات الداخلية</h2><div class="twrap"><table id="crpt-trf"></table></div></div>
+    <div class="sec"><h2>تفاصيل عمليات الفترة المحددة</h2><div class="twrap"><table id="crpt-detail"></table></div></div>
     <div class="sec"><div id="crpt-note" style="font-size:12px;color:var(--muted);line-height:2"></div></div>
   </div>
 
@@ -1637,20 +1638,35 @@ function crptCompute(){
   var accs=mselValues('crpt-acc'); if(!accs.length) accs=ACCKEYS.filter(function(k){return k!=='bank';});
   var per=mselValues('crpt-month');
   var rev={},exp={},trf={}, tRev=0,tExp=0,tTrf=0, cnt=0;
+  var all=[], baseOpen=0;
   accs.forEach(function(k){
     if(k==='bank'||!STATE.accounts[k]) return;
+    baseOpen += (+(STATE.accounts[k].opening)||0);
     sortRows(effRows(k)).forEach(function(r){
       if(r._ref) return;
-      if(per.length && !periodMatch(r.date,per)) return;
       var dir = ACCMETA[k].simple ? -1 : dirOf(r.type);
-      var amt=+r.amount||0, key=r.cat||r.type||'—';
-      cnt++;
-      if(dir>0){ rev[key]=(rev[key]||0)+amt; tRev+=amt; }
-      else if(crptIsTransfer(r)){ trf[key]=(trf[key]||0)+amt; tTrf+=amt; }
-      else { exp[key]=(exp[key]||0)+amt; tExp+=amt; }
+      var amt=+r.amount||0;
+      all.push({k:k,r:r,dir:dir,amt:amt,date:r.date,inP:periodMatch(r.date,per)});
     });
   });
-  return {rev:rev,exp:exp,trf:trf,tRev:tRev,tExp:tExp,tTrf:tTrf,cnt:cnt,accs:accs,per:per};
+  var inP=all.filter(function(x){return x.inP;});
+  var pStart=null;
+  inP.forEach(function(x){ var dd=normDate(x.date)||String(x.date||''); if(pStart===null||dd<pStart)pStart=dd; });
+  var opening=baseOpen;
+  if(per.length && pStart!==null){
+    all.forEach(function(x){ var dd=normDate(x.date)||String(x.date||''); if(dd<pStart){ opening += (x.dir>0? x.amt : -x.amt); } });
+  }
+  var detail=[];
+  inP.forEach(function(x){
+    var r=x.r, k=x.k, key=r.cat||r.type||'—', amt=x.amt; cnt++;
+    if(x.dir>0){ rev[key]=(rev[key]||0)+amt; tRev+=amt; }
+    else if(crptIsTransfer(r)){ trf[key]=(trf[key]||0)+amt; tTrf+=amt; }
+    else { exp[key]=(exp[key]||0)+amt; tExp+=amt; }
+    detail.push({date:r.date, accName:(ACCMETA[k]?ACCMETA[k].name:k), desc:(r.desc||r.reason||r.note||'—'), cat:key, amt:amt, dir:x.dir, trf:crptIsTransfer(r)});
+  });
+  detail.sort(function(a,b){ var da=normDate(a.date)||String(a.date||''), db=normDate(b.date)||String(b.date||''); return da<db?-1:(da>db?1:0); });
+  var net=tRev-tExp-tTrf, closing=opening+net;
+  return {rev:rev,exp:exp,trf:trf,tRev:tRev,tExp:tExp,tTrf:tTrf,cnt:cnt,accs:accs,per:per,opening:opening,closing:closing,rows:detail};
 }
 function crptFill(id,obj,col1){
   var el=g(id); if(!el)return;
@@ -1660,6 +1676,22 @@ function crptFill(id,obj,col1){
   if(!keys.length){ h+='<tr><td colspan="2" style="text-align:center;color:var(--muted);padding:14px">لا يوجد</td></tr>'; }
   keys.forEach(function(k){ h+='<tr><td>'+esc(k)+'</td><td style="text-align:center;font-weight:700">'+fmt(obj[k])+'</td></tr>'; });
   h+='<tr style="background:rgba(216,180,65,.16);font-weight:800"><td>الإجمالي</td><td style="text-align:center">'+fmt(tot)+'</td></tr></tbody>';
+  el.innerHTML=h;
+}
+function crptDetail(d){
+  var el=g('crpt-detail'); if(!el)return;
+  var h='<thead><tr><th>#</th><th>التاريخ</th><th>الحساب</th><th>البيان</th><th>التصنيف</th><th>الاتجاه</th><th>المبلغ (ر.س)</th><th>الرصيد التراكمي</th></tr></thead><tbody>';
+  h+='<tr style="background:rgba(31,111,235,.10);font-weight:800"><td colspan="7">رصيد أول الفترة</td><td style="text-align:center">'+fmt(d.opening)+'</td></tr>';
+  if(!d.rows.length){ h+='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:14px">لا توجد عمليات في الفترة المحددة</td></tr>'; }
+  var bal=d.opening;
+  d.rows.forEach(function(x,i){
+    bal += (x.dir>0? x.amt : -x.amt);
+    var dirTag = x.dir>0?'<span style="color:#3a7d44;font-weight:700">إيراد</span>' : (x.trf?'<span style="color:#b8921a;font-weight:700">تحويل</span>':'<span style="color:#cf5050;font-weight:700">مصروف</span>');
+    var amtCol = x.dir>0?'#3a7d44':(x.trf?'#b8921a':'#cf5050');
+    h+='<tr><td style="text-align:center">'+(i+1)+'</td><td style="text-align:center;white-space:nowrap">'+esc(x.date)+'</td><td>'+esc(x.accName)+'</td><td>'+esc(x.desc)+'</td><td>'+esc(x.cat)+'</td><td style="text-align:center">'+dirTag+'</td><td style="text-align:center;font-weight:700;color:'+amtCol+'">'+(x.dir>0?'+':'−')+fmt(x.amt)+'</td><td style="text-align:center;font-weight:700">'+fmt(bal)+'</td></tr>';
+  });
+  h+='<tr style="background:rgba(216,180,65,.16);font-weight:800"><td colspan="7">الرصيد الختامي</td><td style="text-align:center">'+fmt(d.closing)+'</td></tr>';
+  h+='</tbody>';
   el.innerHTML=h;
 }
 function renderCRpt(){
@@ -1677,13 +1709,16 @@ function renderCRpt(){
   var d=crptCompute(), net=d.tRev-d.tExp-d.tTrf;
   function card(lb,v,col){return '<div class="card"><div class="lbl">'+lb+'</div><div class="val" style="--cv:'+col+'">'+fmt(v)+' <span style="font-size:11px">ر.س</span></div></div>';}
   g('crpt-cards').innerHTML=
+    card('رصيد أول الفترة', d.opening, '#1f6feb') +
     card('الإيرادات', d.tRev, '#3a7d44') +
     card('المصروفات', d.tExp, '#cf5050') +
     card('التحويلات الداخلية', d.tTrf, '#b8921a') +
-    card('صافي الحركة', net, net<0?'#cf5050':'#3a7d44');
+    card('صافي الحركة', net, net<0?'#cf5050':'#3a7d44') +
+    card('الرصيد الختامي', d.closing, d.closing<0?'#cf5050':'#3a7d44');
   crptFill('crpt-rev', d.rev, 'المصدر');
   crptFill('crpt-exp', d.exp, 'الجهة / التصنيف');
   crptFill('crpt-trf', d.trf, 'الحساب / الجهة');
+  crptDetail(d);
   var accNames=d.accs.map(function(k){return ACCMETA[k]?ACCMETA[k].name:k;}).join('، ');
   g('crpt-note').innerHTML='النطاق: '+esc(accNames)+' · الفترة: '+(d.per.length?esc(d.per.join('، ')):'كل الفترات')+' · عدد القيود: '+d.cnt+
     '<br>ملاحظة: قيود «تحويل عهدة» المسجّلة سهواً كنوع «مصروف» تُحتسب هنا ضمن التحويلات. وعند اختيار «كل الحسابات» تشمل الأرقام التحويلات الداخلية بين حسابات المكتب (تظهر واردةً في حسابٍ وصادرةً من آخر).';
@@ -1711,6 +1746,14 @@ function exportCRpt(){
     section('الإيرادات ومصادرها', d.rev);
     section('المصروفات حسب الجهة', d.exp);
     section('التحويلات للحسابات الداخلية', d.trf);
+    ws.addRow(['رصيد أول الفترة', d.opening]).font={bold:true,color:{argb:'FF1F6FEB'}};
+    ws.addRow(['الرصيد الختامي', d.closing]).font={bold:true};
+    var wd=wb.addWorksheet('تفاصيل العمليات',{views:[{rightToLeft:true}]});
+    wd.columns=[{width:12},{width:18},{width:40},{width:20},{width:12},{width:16},{width:18}];
+    wd.addRow(['التاريخ','الحساب','البيان','التصنيف','الاتجاه','المبلغ (ر.س)','الرصيد التراكمي']).font={bold:true};
+    wd.addRow(['','','رصيد أول الفترة','','','',d.opening]).font={bold:true};
+    var _b=d.opening; d.rows.forEach(function(x){ _b+=(x.dir>0?x.amt:-x.amt); wd.addRow([x.date,x.accName,x.desc,x.cat,(x.dir>0?'إيراد':(x.trf?'تحويل':'مصروف')),(x.dir>0?x.amt:-x.amt),_b]); });
+    wd.addRow(['','','الرصيد الختامي','','','',d.closing]).font={bold:true};
     saveWB(wb,'تقرير_شامل.xlsx');
   }catch(e){ try{toast('تعذّر التصدير');}catch(_){} }
 }
