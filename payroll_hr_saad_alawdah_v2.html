@@ -2407,16 +2407,39 @@ function renderLoans(){
 const STORAGE_KEY='saad_awadah_hr_v2';
 
 
-// ===== Firebase Cloud Save/Load =====
+// ===== Firebase Cloud Save/Load (schema 2: صور الموظفين في سجلّات مستقلة لتفادي حدّ 1MB) =====
 const CLOUD_DOC = db.collection('saad_apps').doc('payroll_data');
+const MEDIA_COL = CLOUD_DOC.collection('media');
+let _mediaHash = {}; // id -> بصمة لتفادي إعادة رفع نفس الصور
+
+/* نسخة خفيفة من الملفات بدون الصور (photo + docs) لإبقاء المستند الرئيسي صغيراً */
+function _stripMedia(prof){
+  var lite={};
+  Object.keys(prof||{}).forEach(function(id){
+    var p=prof[id]||{}, c={};
+    Object.keys(p).forEach(function(k){ if(k!=='photo'&&k!=='docs') c[k]=p[k]; });
+    lite[id]=c;
+  });
+  return lite;
+}
+/* استخراج الوسائط (الصور) لموظف واحد */
+function _mediaOf(prof,id){ var p=prof[id]||{}; return {photo:(p.photo||null), docs:(p.docs||[])}; }
+/* بصمة سريعة لحجم صور الموظف (لتخطّي الرفع إن لم تتغيّر) */
+function _mh(prof,id){ var p=prof[id]||{}; var dl=(p.docs||[]).reduce(function(s,d){return s+(((d&&d.img&&d.img.length))||0);},0); return (p.photo?p.photo.length:0)+'_'+dl+'_'+((p.docs||[]).length); }
 
 async function saveToCloud() {
   try {
-    const payload = {emps, att, lvReqs, disc, profiles, loans, payrollArchive, savedAt: new Date().toISOString()};
+    const liteProfiles=_stripMedia(profiles);
+    const mediaIds=Object.keys(profiles||{}).filter(function(id){var p=profiles[id]||{};return p.photo||(p.docs&&p.docs.length);});
+    const payload = {emps, att, lvReqs, disc, profiles:liteProfiles, loans, payrollArchive, schema:2, mediaIds:mediaIds, savedAt: new Date().toISOString()};
     await CLOUD_DOC.set(payload);
+    // كتابة سجلّ صور مستقل لكل موظف تغيّرت صوره فقط
+    const writes=[];
+    mediaIds.forEach(function(id){ var h=_mh(profiles,id); if(_mediaHash[id]!==h){ writes.push(MEDIA_COL.doc(String(id)).set(_mediaOf(profiles,id)).then(function(){_mediaHash[id]=h;})); } });
+    await Promise.all(writes);
     const st = document.getElementById('save-status');
     if (st) { st.textContent = '☁️ محفوظ على السحابة: ' + new Date().toLocaleTimeString('ar-SA'); st.style.color = 'rgba(80,200,120,0.9)'; }
-  } catch(e) { console.error('Cloud save error:', e); }
+  } catch(e) { console.error('Cloud save error:', e); const st=document.getElementById('save-status'); if(st){st.textContent='⚠️ تعذّر الحفظ السحابي: '+(e.code||e.message); st.style.color='rgba(230,120,120,0.95)';} }
 }
 
 async function loadFromCloud() {
@@ -2425,8 +2448,17 @@ async function loadFromCloud() {
     if (snap.exists) {
       const data = snap.data();
       if (data.emps && data.emps.length) {
+        // الأحدث يفوز: إن كانت نسخة هذا الجهاز أحدث من السحابة لا نكتب فوقها
+        try{ var lraw=localStorage.getItem(STORAGE_KEY); if(lraw){ var ld=JSON.parse(lraw); if(ld&&ld.savedAt&&data.savedAt&&new Date(ld.savedAt)>new Date(data.savedAt)){ return false; } } }catch(_){}
         emps = data.emps; att = data.att || att; lvReqs = data.lvReqs || lvReqs;
         disc = data.disc || disc; if (data.profiles) profiles = data.profiles; if (data.loans) loans = data.loans; if (data.payrollArchive) payrollArchive = data.payrollArchive;
+        // schema 2: دمج الصور من السجلّات المستقلة (مع توافق خلفي للنسخ القديمة التي تحوي الصور داخل الملف)
+        if (data.schema===2 || (data.mediaIds && data.mediaIds.length)) {
+          try{
+            const ms=await MEDIA_COL.get();
+            ms.forEach(function(doc){ var id=doc.id; var m=doc.data()||{}; profiles[id]=profiles[id]||{}; profiles[id].photo=m.photo||undefined; profiles[id].docs=m.docs||[]; _mediaHash[id]=_mh(profiles,id); });
+          }catch(_me){ console.error('Media load error:',_me); }
+        }
         const st = document.getElementById('save-status');
         if (st) { st.textContent = '☁️ محمّل من السحابة: ' + new Date(data.savedAt).toLocaleDateString('ar-SA'); st.style.color = 'rgba(80,200,120,0.9)'; }
         return true;
