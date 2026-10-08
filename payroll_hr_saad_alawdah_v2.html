@@ -398,12 +398,12 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         </div>
       </div>
       <div class="hint"><i class="ti ti-info-circle" style="font-size:14px;color:var(--gdm)"></i>
-        وفق نظام العمل السعودي: <b>21 يوم</b> سنوياً لمن أمضى أقل من 5 سنوات · <b>30 يوم</b> لمن أمضى 5 سنوات فأكثر
+        وفق نظام العمل السعودي: <b>21 يوم</b> سنوياً لمن أمضى أقل من 5 سنوات · <b>30 يوم</b> لمن أمضى 5 سنوات فأكثر — ويُحتسب الرصيد تلقائياً بالتراكم من <b>آخر تاريخ عودة</b>. والتذكرة <b>كل سنتين لغير السعوديين</b>
       </div>
       <div id="lv-return"></div>
       <div class="lv-card">
         <div class="lv-head">
-          <span>الموظف</span><span>الرصيد المستحق</span><span>المأخوذ</span><span>المتبقي</span><span>الحالة</span><span>نسبة الاستهلاك</span><span>إجراء</span>
+          <span>الموظف</span><span>الرصيد المتراكم</span><span>المأخوذ</span><span>المتبقي</span><span>الحالة / التذكرة</span><span>نسبة الاستهلاك</span><span>إجراء</span>
         </div>
         <div id="lv-body"></div>
       </div>
@@ -1344,21 +1344,26 @@ function lvEntitlement(e){
   const yrs=(new Date()-new Date(e.hire))/(365.25*24*3600*1000);
   return yrs>=5?30:21;
 }
+function _accrualStart(e){ var ds=(lvReqs||[]).filter(function(r){return r.eid===e.id&&r.st==='approved'&&r.returnWork;}).map(function(r){return r.returnWork;}); ds.sort(); return ds.length?ds[ds.length-1]:(e.hire||null); }
+function _accruedBalance(e){ var ent=lvEntitlement(e); var start=_accrualStart(e); if(!start) return {accrued:0,taken:0,bal:0,start:null,ent:ent}; var days=Math.max(0,(new Date()-new Date(start))/(24*3600*1000)); var accrued=days/365.25*ent; var taken=(lvReqs||[]).filter(function(r){return r.eid===e.id&&r.st==='approved'&&r.type==='annual'&&r.from>start;}).reduce(function(s,r){return s+(r.days||0);},0); return {accrued:Math.round(accrued*10)/10,taken:taken,bal:Math.round((accrued-taken)*10)/10,start:start,ent:ent}; }
+function _ticketStatus(e){ var p=(typeof profiles!=='undefined'&&profiles[e.id])?profiles[e.id]:{}; if(!p.nationality) return {state:'unknown',txt:'حدّد الجنسية'}; if(p.nationality==='SA') return {state:'na',txt:'لا ينطبق (سعودي)'}; var base=p.lastTicket||e.hire; if(!base) return {state:'unknown',txt:'حدّد تاريخ التوظيف'}; var months=(new Date()-new Date(base))/(30.4375*24*3600*1000); var cycle=24; if(months>=cycle) return {state:'due',txt:'مستحق التذكرة',since:base}; return {state:'pending',txt:'باقٍ '+Math.ceil(cycle-months)+' شهراً',since:base}; }
+function setTicketGiven(id){ var p=profiles[id]=(profiles[id]||{}); var d=prompt('تاريخ صرف التذكرة (YYYY-MM-DD) — يبدأ منه دورة سنتين جديدة:', new Date().toISOString().slice(0,10)); if(!d)return; p.lastTicket=d; try{saveToLocal();}catch(e){} if(typeof renderLeaves==='function')renderLeaves(); if(typeof tk==='function')tk('✅ سُجّلت التذكرة — بدأت دورة جديدة'); }
 function renderLeaves(){
   // Summary per employee
   document.getElementById('lv-body').innerHTML=emps.map(e=>{
-    const ent=lvEntitlement(e);
-    const used=lvReqs.filter(r=>r.eid===e.id&&r.type==='annual'&&r.st==='approved').reduce((s,r)=>s+r.days,0)+(e.lvUsed||0);
-    const rem=Math.max(0,ent-used);
-    const pct=Math.min(100,Math.round((used/ent)*100));
-    const stBge=rem===0?'bgd':rem<7?'bgw':'bgs';
-    const stTxt=rem===0?'مستنفذ':rem<7?'شارف النهاية':'متاح';
+    const ab=_accruedBalance(e); const ent=ab.ent; const accrued=ab.accrued; const used=ab.taken; const rem=ab.bal;
+    const startTxt=ab.start?('يتراكم من '+ab.start):'لا تاريخ مرجعي';
+    const pct=Math.min(100,Math.max(0,Math.round((used/Math.max(1,accrued))*100)));
+    const stBge=rem<=0?'bgd':rem<7?'bgw':'bgs';
+    const stTxt=rem<=0?'لا رصيد':rem<7?'رصيد منخفض':'متاح';
+    const _tk=_ticketStatus(e);
+    const tkBadge=_tk.state==='due'?`<span class="bge bgw" title="مستحق تذكرة (كل سنتين)">🎫 ${_tk.txt}</span>`:_tk.state==='pending'?`<span class="bge bgi" title="التذكرة كل سنتين">🎫 ${_tk.txt}</span>`:_tk.state==='na'?`<span class="bge bgs" style="opacity:.75">🎫 لا ينطبق</span>`:`<span class="bge bgo" title="الجنسية غير محددة">🎫 ${_tk.txt}</span>`;
     return`<div class="lv-row">
-      <div style="display:flex;align-items:center"><span class="ea">${av2(e.name)}</span>${e.name}</div>
-      <div style="font-weight:600;color:var(--gd)">${ent} يوم</div>
+      <div style="display:flex;flex-direction:column"><div style="display:flex;align-items:center"><span class="ea">${av2(e.name)}</span>${e.name}</div><div style="font-size:10px;color:#8A7A50">${startTxt} · ${ent}ي/سنة</div></div>
+      <div style="font-weight:600;color:var(--gd)" title="المتراكم حتى اليوم">${accrued} يوم</div>
       <div style="color:var(--err)">${used} يوم</div>
-      <div style="font-weight:700;color:${rem===0?'var(--err)':rem<7?'#7A5A00':'var(--ok)'}">${rem} يوم</div>
-      <div><span class="bge ${stBge}">${stTxt}</span></div>
+      <div style="font-weight:700;color:${rem<=0?'var(--err)':rem<7?'#7A5A00':'var(--ok)'}">${rem} يوم</div>
+      <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-start"><span class="bge ${stBge}">${stTxt}</span>${tkBadge}${_tk.state!=='na'?`<button class="btn bo sm" style="font-size:10px;padding:2px 6px" onclick="setTicketGiven(${e.id})" title="تسجيل صرف تذكرة (يبدأ دورة جديدة)">سجّل تذكرة</button>`:''}</div>
       <div><div class="lv-bar-bg" style="min-width:60px"><div class="lv-bar" style="width:${pct}%"></div></div></div>
       <div><button class="btn bg sm" onclick="openLeaveModal(-1,${e.id})"><i class="ti ti-plus"></i> إجازة</button></div>
     </div>`;
@@ -1789,6 +1794,27 @@ function openEmp360(id){
   var ST={approved:'معتمدة',pending:'معلّقة',rejected:'مرفوضة'};
   var lv=(typeof lvReqs!=='undefined'?lvReqs:[]).filter(function(r){return r.eid===id;});
   var lvHtml = lv.length? '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#EDEAD9;color:#06240c"><th style="padding:5px">النوع</th><th>من</th><th>إلى</th><th>الأيام</th><th>الحالة</th></tr></thead><tbody>'+lv.map(function(r){return '<tr style="border-bottom:1px solid #eee;text-align:center"><td style="padding:5px">'+(LT[r.type]||r.type||'')+'</td><td>'+(r.from||'')+'</td><td>'+(r.to||'')+'</td><td>'+(r.days||'')+'</td><td>'+(ST[r.st]||r.st||'')+'</td></tr>';}).join('')+'</tbody></table>' : '<div style="color:#8A7A50;font-size:12px">لا توجد إجازات مسجّلة.</div>';
+  // رصيد الإجازات المتراكم تلقائياً + استحقاق التذكرة
+  var lvSummary='';
+  try{
+    if(typeof _accruedBalance==='function'){
+      var ab=_accruedBalance(e); var ts=(typeof _ticketStatus==='function')?_ticketStatus(e):null;
+      var balColor = ab.bal<0 ? '#b00020' : (ab.bal<7 ? '#7A5A00' : '#06240c');
+      var tColor = ts&&ts.state==='due' ? '#06240c' : (ts&&ts.state==='na' ? '#8A7A50' : '#7A5A00');
+      var tBg = ts&&ts.state==='due' ? '#DCEBD9' : (ts&&ts.state==='na' ? '#EDEAD9' : '#F6ECCF');
+      lvSummary='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">'
+        +'<div style="background:#fff;border:1px solid #E3DCC4;border-radius:10px;padding:8px 10px;text-align:center"><div style="font-size:11px;color:#8A7A50">المتراكم (معدّل '+ab.ent+' يوم/سنة)</div><div style="font-size:18px;font-weight:800;color:#06240c">'+ab.accrued+'</div></div>'
+        +'<div style="background:#fff;border:1px solid #E3DCC4;border-radius:10px;padding:8px 10px;text-align:center"><div style="font-size:11px;color:#8A7A50">المستخدَم (منذ آخر عودة)</div><div style="font-size:18px;font-weight:800;color:#b00020">'+ab.taken+'</div></div>'
+        +'<div style="background:#fff;border:1px solid #E3DCC4;border-radius:10px;padding:8px 10px;text-align:center"><div style="font-size:11px;color:#8A7A50">الرصيد المتاح</div><div style="font-size:18px;font-weight:800;color:'+balColor+'">'+ab.bal+'</div></div>'
+        +'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px;font-size:12px">'
+        +(ab.start?'<span style="color:#8A7A50">يبدأ الاحتساب من آخر تاريخ عودة: <b style="color:#06240c">'+ab.start+'</b></span>':'<span style="color:#7A5A00">حدِّد تاريخ العودة أو التوظيف لبدء الاحتساب</span>')
+        +(ts?'<span style="background:'+tBg+';color:'+tColor+';border-radius:20px;padding:3px 12px;font-weight:700">🎫 '+ts.txt+(ts.since?' · آخر تذكرة/أساس: '+ts.since:'')+'</span>':'')
+        +(ts&&ts.state!=='na'&&ts.state!=='unknown'?'<button onclick="setTicketGiven('+id+')" style="background:#185FA5;color:#fff;border:0;border-radius:8px;padding:4px 12px;font-weight:700;cursor:pointer;font-size:12px">سجّل تذكرة</button>':'')
+        +'</div>';
+    }
+  }catch(_lx){ lvSummary=''; }
+  lvHtml = lvSummary + lvHtml;
   // loans
   var ln=(typeof loans!=='undefined'?loans:[]).filter(function(l){return l.eid===id;});
   var lnHtml= ln.length? ln.map(function(l){return _e360row((l.desc||'سلفة')+' — قسط '+fmt(l.inst||l.monthly||0),'إجمالي '+fmt(l.amount||l.total||0)+' ر.س');}).join('') : '<div style="color:#8A7A50;font-size:12px">لا توجد سلف.</div>';
