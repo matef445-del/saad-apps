@@ -112,6 +112,14 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 .tl-note{font-size:12px;color:var(--muted);margin-top:3px}
 .tl-act{margin-top:6px}
 .repsec{margin:14px 0 6px;color:var(--gold2);font-size:14px;font-weight:700;border-right:3px solid var(--gold);padding-right:8px}
+#alerts{display:none}
+#alerts.open{display:block}
+.notif-bad{border-color:#6b2020!important;color:#f08a8a!important;background:#241010!important}
+.notif-warn{border-color:#6b5518!important;color:#e8b84b!important;background:#241f10!important}
+.notif-ok{opacity:.75}
+.btn.on{outline:2px solid var(--gold2);outline-offset:1px}
+.nbadge{background:#6b2020;color:#fff;border-radius:11px;padding:0 7px;font-size:11px;margin-right:4px;font-weight:700}
+.notif-warn .nbadge{background:#6b5518}
 @media print{
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;background:transparent!important;color:#000!important}
  body{background:#fff!important;padding:0}
@@ -151,7 +159,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
  <div class="stats" id="stats"></div>
 </header>
 <div class="toolbar">
- <input class="grow" id="q" placeholder="بحث بالماركة أو الموديل أو اللوحة…">
+ <button class="btn" id="notifBtn" onclick="toggleNotif()">🔔 التنبيهات</button><input class="grow" id="q" placeholder="بحث بالماركة أو الموديل أو اللوحة…">
  <select id="fb"></select>
  <select id="fs"><option value="">كل الحالات</option><option value="ok">سليمة</option><option value="warn">فيها تنبيه</option></select>
  <button class="btn gold" onclick="openForm()">+ إضافة سيارة</button>
@@ -222,7 +230,11 @@ function renderStats(){
 function renderAlerts(){
  var list=[];
  CARS.forEach(function(c,i){var ch=carChecks(c).filter(function(x){return x.state!=='ok';});var vs=vioStats(c);if(ch.length||vs.unpaid)list.push({c:c,i:i,ch:ch,vs:vs});});
- if(!list.length){g('alerts').innerHTML='<div class="al-ok">✓ كل المركبات سليمة — لا توجد تنبيهات تجديد أو مخالفات غير مسددة</div>';return;}
+ var btn=g('notifBtn');var isOpen=g('alerts')&&g('alerts').classList.contains('open');
+ if(!list.length){g('alerts').innerHTML='<div class="al-ok">✓ كل المركبات سليمة — لا توجد تنبيهات تجديد أو مخالفات غير مسددة</div>';if(btn){btn.className='btn notif-ok'+(isOpen?' on':'');btn.innerHTML='🔔 لا تنبيهات';}return;}
+ var bad=0;
+ list.forEach(function(o){var hasExp=o.ch.some(function(x){return x.state==='expired'||x.state==='none';});if(hasExp||o.vs.unpaid)bad++;});
+ if(btn){btn.className='btn '+(bad?'notif-bad':'notif-warn')+(isOpen?' on':'');btn.innerHTML='🔔 التنبيهات <span class="nbadge">'+list.length+'</span>';}
  function rank(o){var m=9999;o.ch.forEach(function(x){var v=(x.state==='soon')?x.days:-1000;if(v<m)m=v;});if(o.vs.unpaid&&m>0)m=-500;return m;}
  list.sort(function(a,b){return rank(a)-rank(b);});
  var rows=list.map(function(o){
@@ -230,7 +242,7 @@ function renderAlerts(){
    if(o.vs.unpaid)pills+='<span class="pill pill-exp">🚫 مخالفات: '+o.vs.unpaid+' غير مسددة ('+money(o.vs.unpaidSum)+')</span>';
    return '<div class="al-row" onclick="openDetail('+o.i+')"><div class="al-car">'+e(o.c.brand)+' '+e(o.c.model)+' <span class="al-plate">'+e(o.c.plate)+'</span></div><div class="al-pills">'+pills+'</div></div>';
  }).join('');
- g('alerts').innerHTML='<div class="al-card"><div class="al-head"><span>🔔 التنبيهات</span><span class="al-sub">الرخصة والفحص والتأمين قبل 14 يوم + المخالفات غير المسددة</span></div>'+rows+'</div>';
+ g('alerts').innerHTML='<div class="al-card"><div class="al-head"><span>🔔 التنبيهات</span><span class="al-sub">الرخصة والفحص والتأمين قبل 14 يوم + المخالفات غير المسددة · اضغط «التنبيهات» للإغلاق</span></div>'+rows+'</div>';
 }
 function brands(){return [...new Set(CARS.map(c=>c.brand).filter(Boolean))].sort();}
 function fillBrandFilter(){const cur=g('fb').value;g('fb').innerHTML='<option value="">كل الماركات</option>'+brands().map(b=>'<option '+(b===cur?'selected':'')+'>'+e(b)+'</option>').join('');}
@@ -289,6 +301,9 @@ var EVTYPES=[
  {k:'other',l:'أخرى',ic:'📌'}
 ];
 function evMeta(k){for(var j=0;j<EVTYPES.length;j++){if(EVTYPES[j].k===k)return EVTYPES[j];}return EVTYPES[EVTYPES.length-1];}
+function todayG(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
+function fdEvent(s){if(!s||s==='—'||s==='None')return '—';var m=String(s).match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return s;var Y=+m[1],M=+m[2],D=+m[3];var gg=('0'+D).slice(-2)+'/'+('0'+M).slice(-2)+'/'+Y;var hs=gregToHijri(Y,M,D);var hp=hs.split('-');var hh=hp[2]+'/'+hp[1]+'/'+hp[0];return gg+' م / '+hh+' هـ';}
+function toggleNotif(){var a=g('alerts');if(!a)return;a.classList.toggle('open');var b=g('notifBtn');if(b){if(a.classList.contains('open'))b.classList.add('on');else b.classList.remove('on');}}
 function cEvents(c){return Array.isArray(c.events)?c.events:[];}
 function evSorted(c){return cEvents(c).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});}
 function money(n){var v=parseFloat(n);if(isNaN(v)||!v)return '—';return v.toLocaleString('en-US')+' ر.س';}
@@ -305,7 +320,7 @@ function evRowActions(i,id){return '<button class="minibtn" onclick="openEvent('
 function evTable(c,i,types,empty){
  var evs=evSorted(c).filter(function(ev){return types.indexOf(ev.type)>=0;});
  if(!evs.length)return '<div class="emptybox">'+empty+' · استخدم «＋ إضافة حدث» لإضافة سجل</div>';
- var rows=evs.map(function(ev){var m=evMeta(ev.type);return '<tr><td>'+m.ic+' '+m.l+'</td><td class="mono">'+fdBoth(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+e(ev.notes||'—')+' '+evThumb(ev)+'</td><td class="c">'+evRowActions(i,ev.id)+'</td></tr>';}).join('');
+ var rows=evs.map(function(ev){var m=evMeta(ev.type);return '<tr><td>'+m.ic+' '+m.l+'</td><td class="mono">'+fdEvent(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+e(ev.notes||'—')+' '+evThumb(ev)+'</td><td class="c">'+evRowActions(i,ev.id)+'</td></tr>';}).join('');
  return '<div class="evwrap"><table class="evtab"><thead><tr><th>النوع</th><th>التاريخ</th><th>المبلغ</th><th>الجهة</th><th>المرجع</th><th>ملاحظات</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function vioPane(c,i){
@@ -316,14 +331,14 @@ function vioPane(c,i){
   '<div class="vcard"><b>'+money(vs.total)+'</b><span>إجمالي الغرامات</span></div></div>';
  var evs=evSorted(c).filter(function(ev){return ev.type==='violation';});
  if(!evs.length)return head+'<div class="emptybox">لا توجد مخالفات مسجّلة · استخدم «＋ إضافة حدث» ثم اختر «مخالفة»</div>';
- var rows=evs.map(function(ev){return '<tr><td class="mono">'+fdBoth(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+e(ev.notes||'—')+' '+evThumb(ev)+'</td><td class="c"><button class="pillbtn '+(ev.paid?'paid':'unpaid')+'" onclick="togglePaid('+i+',\''+ev.id+'\')">'+(ev.paid?'✔ مسددة':'● غير مسددة')+'</button></td><td class="c">'+evRowActions(i,ev.id)+'</td></tr>';}).join('');
+ var rows=evs.map(function(ev){return '<tr><td class="mono">'+fdEvent(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+e(ev.notes||'—')+' '+evThumb(ev)+'</td><td class="c"><button class="pillbtn '+(ev.paid?'paid':'unpaid')+'" onclick="togglePaid('+i+',\''+ev.id+'\')">'+(ev.paid?'✔ مسددة':'● غير مسددة')+'</button></td><td class="c">'+evRowActions(i,ev.id)+'</td></tr>';}).join('');
  return head+'<div class="evwrap"><table class="evtab"><thead><tr><th>التاريخ</th><th>الغرامة</th><th>الجهة</th><th>رقم المخالفة</th><th>ملاحظات</th><th>الحالة</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function timeline(c,i){
  var evs=evSorted(c);
  if(!evs.length)return '<div class="emptybox">لا توجد أحداث مسجّلة بعد لهذه المركبة</div>';
  var items=evs.map(function(ev){var m=evMeta(ev.type);var ex=[];if(ev.amount&&parseFloat(ev.amount))ex.push(money(ev.amount));if(ev.party)ex.push(e(ev.party));if(ev.ref)ex.push('مرجع: '+e(ev.ref));if(ev.meter&&parseFloat(ev.meter))ex.push('العداد: '+e(ev.meter)+' كم');if(ev.type==='violation')ex.push(ev.paid?'<span style="color:#7bd88f">مسددة</span>':'<span style="color:#f08a8a">غير مسددة</span>');
-  return '<div class="tl-ev"><div class="tl-ic">'+m.ic+'</div><div class="tl-body"><div class="tl-top"><b>'+m.l+'</b><span class="tl-date mono">'+fdBoth(ev.date)+'</span></div>'+(ex.length?'<div class="tl-meta">'+ex.join(' · ')+'</div>':'')+(ev.notes?'<div class="tl-note">'+e(ev.notes)+'</div>':'')+evThumb(ev)+'<div class="tl-act">'+evRowActions(i,ev.id)+'</div></div></div>';}).join('');
+  return '<div class="tl-ev"><div class="tl-ic">'+m.ic+'</div><div class="tl-body"><div class="tl-top"><b>'+m.l+'</b><span class="tl-date mono">'+fdEvent(ev.date)+'</span></div>'+(ex.length?'<div class="tl-meta">'+ex.join(' · ')+'</div>':'')+(ev.notes?'<div class="tl-note">'+e(ev.notes)+'</div>':'')+evThumb(ev)+'<div class="tl-act">'+evRowActions(i,ev.id)+'</div></div></div>';}).join('');
  return '<div class="tl">'+items+'</div>';
 }
 function openDetail(i,tab){
@@ -363,13 +378,13 @@ function openEvent(i,id){
  _evCar=i;_evId=id||null;_evImg='';
  var ev=null;if(id){ev=cEvents(CARS[i]).filter(function(x){return x.id===id;})[0]||null;}
  if(ev)_evImg=ev.img||'';
- var typ=(ev&&ev.type)||'violation';var dt=(ev&&ev.date)||TODAY;
+ var typ=(ev&&ev.type)||'violation';var dt=(ev&&ev.date)||todayG();
  var typeOpts=EVTYPES.map(function(t){return '<option value="'+t.k+'" '+(t.k===typ?'selected':'')+'>'+t.ic+' '+t.l+'</option>';}).join('');
  g('modalIn').innerHTML=
   '<div class="modal-head"><h2>'+(id?'✎ تعديل حدث':'＋ إضافة حدث')+' — '+e(CARS[i].brand)+' '+e(CARS[i].model)+'</h2><button class="x" onclick="openDetail('+i+',_dtab)">×</button></div>'+
   '<div class="grid2">'+
    '<div class="field"><label>نوع الحدث</label><select id="ev_type" onchange="evTypeHint()">'+typeOpts+'</select></div>'+
-   '<div class="field"><label>التاريخ (هجري)</label><input id="ev_date" value="'+e(dt)+'" placeholder="1448-03-22"></div>'+
+   '<div class="field"><label>التاريخ (ميلادي)</label><input type="date" id="ev_date" value="'+e(dt)+'"></div>'+
    '<div class="field"><label>المبلغ / الغرامة (ر.س)</label><input id="ev_amount" type="number" value="'+e(ev&&ev.amount!=null?ev.amount:'')+'" placeholder="0"></div>'+
    '<div class="field"><label>الجهة / المصدر</label><input id="ev_party" value="'+e(ev&&ev.party||'')+'" placeholder="المرور / الورشة / شركة التأمين"></div>'+
    '<div class="field"><label>الرقم المرجعي</label><input id="ev_ref" value="'+e(ev&&ev.ref||'')+'" placeholder="رقم المخالفة / الفاتورة"></div>'+
@@ -408,7 +423,7 @@ function openReport(){
   '<div class="vcard"><b>'+money(vioUnpaidTot)+'</b><span>مبلغ غير مسدّد</span></div>'+
   '<div class="vcard"><b>'+money(maintTot)+'</b><span>إجمالي الصيانة</span></div></div>';
  var ren=upRenew.length?('<div class="evwrap"><table class="evtab"><thead><tr><th>المركبة</th><th>البند</th><th>الحالة</th></tr></thead><tbody>'+upRenew.map(function(o){return '<tr onclick="openDetail('+o.i+')" style="cursor:pointer"><td>'+e(o.c.brand)+' '+e(o.c.model)+' <span class="mono">'+e(o.c.plate)+'</span></td><td>'+e(o.x.label)+'</td><td style="color:'+(o.x.state==='expired'?'#f08a8a':'#e8b84b')+'">'+e(o.x.txt)+'</td></tr>';}).join('')+'</tbody></table></div>'):'<div class="emptybox">لا توجد تجديدات مستحقة خلال المدى القريب</div>';
- var vio=unpaid.length?('<div class="evwrap"><table class="evtab"><thead><tr><th>المركبة</th><th>التاريخ</th><th>الغرامة</th><th>رقم المخالفة</th></tr></thead><tbody>'+unpaid.map(function(o){return '<tr onclick="openDetail('+o.i+',\'vio\')" style="cursor:pointer"><td>'+e(o.c.brand)+' '+e(o.c.model)+' <span class="mono">'+e(o.c.plate)+'</span></td><td class="mono">'+fdBoth(o.ev.date)+'</td><td>'+money(o.ev.amount)+'</td><td>'+e(o.ev.ref||'—')+'</td></tr>';}).join('')+'</tbody></table></div>'):'<div class="emptybox">لا توجد مخالفات غير مسددة ✓</div>';
+ var vio=unpaid.length?('<div class="evwrap"><table class="evtab"><thead><tr><th>المركبة</th><th>التاريخ</th><th>الغرامة</th><th>رقم المخالفة</th></tr></thead><tbody>'+unpaid.map(function(o){return '<tr onclick="openDetail('+o.i+',\'vio\')" style="cursor:pointer"><td>'+e(o.c.brand)+' '+e(o.c.model)+' <span class="mono">'+e(o.c.plate)+'</span></td><td class="mono">'+fdEvent(o.ev.date)+'</td><td>'+money(o.ev.amount)+'</td><td>'+e(o.ev.ref||'—')+'</td></tr>';}).join('')+'</tbody></table></div>'):'<div class="emptybox">لا توجد مخالفات غير مسددة ✓</div>';
  g('modalIn').innerHTML='<div class="modal-head"><h2>📊 تقرير الأسطول</h2><button class="x" onclick="closeModal()">×</button></div>'+kpis+
   '<div class="repsec">🔔 التجديدات المستحقة والقريبة</div>'+ren+
   '<div class="repsec">🚫 المخالفات غير المسددة</div>'+vio+
