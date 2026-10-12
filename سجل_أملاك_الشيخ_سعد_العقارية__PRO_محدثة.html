@@ -232,6 +232,52 @@ select:focus,input:focus,textarea:focus{border-color:var(--gold)}
 
 /* ---- أزرار الوثائق الرسمية (الصك/الصحيفة) ---- */
 .docs-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+
+/* ===== بطاقة العقار التفاعلية ===== */
+.modal.wide{width:min(97vw,1020px)}
+.ptable tbody tr{cursor:pointer}
+.ptable tbody tr:hover td{background:rgba(216,180,65,.10)}
+tr.clickrow{cursor:pointer} tr.clickrow:hover td{background:rgba(216,180,65,.10)}
+.dx-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.dx-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800;border:1px solid var(--line);background:#0b2a15;color:var(--cream)}
+.dx-badge.warn{background:#3a1414;border-color:#7a2a2a;color:#fca5a5}
+.dx-badge.gold{background:#3a2f12;border-color:#6b5520;color:#e9c46a}
+.dx-badge.ok{background:#153a24;border-color:#2d6b45;color:#7fd18a}
+.dx-last{background:linear-gradient(135deg,#1b3a22,#11331c);border:1px solid #2d6b45;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#cfe3d8;line-height:1.8}
+.dx-last b{color:var(--gold2)}
+.dx-tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:14px}
+.dx-tab{padding:9px 16px;border:1px solid var(--line);border-bottom:none;border-radius:12px 12px 0 0;background:#0b2a15;color:var(--muted);font-family:inherit;font-weight:800;font-size:13px;cursor:pointer}
+.dx-tab.on{background:var(--gold);color:#06240c;border-color:var(--gold)}
+.dx-pane{display:none}.dx-pane.on{display:block}
+.dx-docs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dx-doc{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0b2a15}
+.dx-doc-h{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-weight:800;color:var(--gold2);font-size:13px;border-bottom:1px solid var(--line)}
+.dx-doc-h a{color:var(--cream);font-size:12px;text-decoration:none;border:1px solid var(--line);padding:3px 10px;border-radius:10px}
+.dx-doc iframe{width:100%;height:520px;border:0;background:#fff;display:block}
+.dx-doc .none{padding:40px 12px;text-align:center;color:var(--muted);font-size:13px}
+.dx-note{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#0b2a15;font-size:13.5px;line-height:1.9;color:var(--cream)}
+.dx-note .t{font-size:12px;font-weight:800;color:var(--muted);margin-bottom:4px}
+.dx-note.warn{border-color:#7a2a2a;background:#2a1010}.dx-note.warn .t{color:#fca5a5}
+.dx-tl{position:relative;padding-right:18px}
+.dx-tl:before{content:"";position:absolute;right:6px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.dx-ev{position:relative;margin-bottom:14px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#0b2a15}
+.dx-ev:before{content:"";position:absolute;right:-17px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--gold);border:2px solid #06240c}
+.dx-ev.latest{border-color:var(--gold)}
+.dx-ev-h{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.dx-ev-h b{color:var(--gold2);font-size:13.5px}
+.dx-ch{width:100%;border-collapse:collapse;font-size:12.5px}
+.dx-ch th{background:#06240c;color:var(--gold2);padding:6px 8px;text-align:right}
+.dx-ch td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--cream);vertical-align:top}
+.dx-ch td.old{color:#fca5a5;text-decoration:line-through;text-decoration-color:rgba(252,165,165,.5)}
+.dx-ch td.nw{color:#7fd18a;font-weight:700}
+.dx-own{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.dx-own th{background:#06240c;color:var(--gold2);padding:6px 8px;text-align:right}
+.dx-own td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--cream)}
+.dx-mini{font-size:11.5px;color:var(--muted)}
+.dx-rv{margin-top:8px;padding:5px 12px;border-radius:10px;border:1px solid #6b5520;background:transparent;color:#e9c46a;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}
+@media(max-width:760px){.dx-docs{grid-template-columns:1fr}.dx-doc iframe{height:420px}}
+@media print{.dx-tabs,.dx-rv{display:none!important}}
+
 .doc-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:12px;
   background:linear-gradient(180deg,#b8921a,#9a7a14);color:#1a1208;font-weight:700;font-size:14px;
   text-decoration:none;border:1px solid #d8b441;transition:.15s;cursor:pointer}
@@ -543,7 +589,7 @@ const LOGO="logo_green.png?v=4";
 
 <!-- نافذة تفاصيل العقار -->
 <div class="modal-bg" id="detailModal">
-  <div class="modal">
+  <div class="modal wide">
     <div class="modal-head">
       <h3 id="detailTitle">تفاصيل العقار</h3>
       <button class="x" onclick="closeModal('detailModal')">×</button>
@@ -623,7 +669,7 @@ function pullCloud(){
     } else if(STATE.props.length){
       pushCloud();
     }
-    migrateAddPropsV1();
+    migrateAddPropsV1(); migrateRerV2();
     buildFilters(); render(); try{autoSnap();}catch(e){} setSync('ok','محدّث ✓');
     setTimeout(function(){setSync('');},1800);
     pullAttachments();
@@ -927,7 +973,7 @@ function renderReport(){
   if(legal.length){
     h+='<div class="dcard dcard-wide"><div class="dcard-h">⚠ عقارات تحتاج متابعة قانونية/توثيقية ('+legal.length+')</div>'
       +'<table class="dtab"><thead><tr><th style="text-align:right">الموقع</th><th>رقم الصك</th><th>رقم العقار</th><th style="text-align:right">الملاحظة</th></tr></thead><tbody>'
-      +legal.map(function(p){ return '<tr><td style="text-align:right">'+_dLoc(p)+'</td><td>'+esc(p.deedNo||'—')+'</td><td>'+esc(p.realtyNo||'—')+'</td><td style="text-align:right">'+esc(p.legal)+'</td></tr>'; }).join('')
+      +legal.map(function(p){ return '<tr class="clickrow" onclick="openDetail(\''+p.id+'\')"><td style="text-align:right">'+_dLoc(p)+'</td><td>'+esc(p.deedNo||'—')+'</td><td>'+esc(p.realtyNo||'—')+'</td><td style="text-align:right">'+esc(p.legal)+'</td></tr>'; }).join('')
       +'</tbody></table></div>';
   }
 
@@ -943,14 +989,14 @@ function renderReport(){
 function printReport(){ window.print(); }
 function money(n){ return (n&&n>0)? fmt(n)+' ر.س' : '—'; }
 function renderTable(list){
-  var cols=['#','المدينة','الحي','المخطط','البلك','القطعة','المساحة (م²)','النوع','رقم الصك','رقم العقار','تاريخ الصك','سعر الشراء','القيمة السوقية','الفرق','الوثائق'];
+  var cols=['#','المدينة','الحي','المخطط','البلك','القطعة','المساحة (م²)','النوع','رقم الصك','رقم العقار','تاريخ الصك','سعر الشراء','القيمة السوقية','الفرق','آخر تحديث','الوثائق'];
   var thead='<thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>';}).join('')+'</tr></thead>';
   var seen={};
   var rows=list.map(function(p,i){
     var mk=showMark(p)?' class="mk"':'';
     var docs='';
-    if(p.deedFile) docs+='<a href="'+deedURL(p.deedFile)+'" target="_blank" class="tlink">صك</a>';
-    if(p.pageFile) docs+=' <a href="'+deedURL(p.pageFile)+'" target="_blank" class="tlink">صحيفة</a>';
+    if(p.deedFile) docs+='<a href="'+deedURL(p.deedFile)+'" target="_blank" class="tlink" onclick="event.stopPropagation()">صك</a>';
+    if(p.pageFile) docs+=' <a href="'+deedURL(p.pageFile)+'" target="_blank" class="tlink" onclick="event.stopPropagation()">صحيفة</a>';
     var buyCell,saleCell,diffCell;
     if(p.mergedGroup){
       var first=!seen[p.mergedGroup]; seen[p.mergedGroup]=1;
@@ -966,7 +1012,8 @@ function renderTable(list){
       diffCell='<td class="money '+diffCls+'">'+(diff?money(Math.abs(diff)):'—')+(diff>0?' ▲':(diff<0?' ▼':''))+'</td>';
     }
     var plotCell='<td class="b">'+esc(p.plot)+(showMark(p)?' <span class="newdot">⭐</span>':'')+'</td>';
-    return '<tr'+mk+'>'+
+    var lu=lastUpdate(p);
+    return '<tr'+mk+' onclick="openDetail(\''+p.id+'\')" title="اضغط لعرض بطاقة العقار">'+
       '<td>'+(i+1)+'</td>'+
       '<td>'+esc(p.city)+'</td>'+
       '<td>'+esc(p.district)+'</td>'+
@@ -979,6 +1026,7 @@ function renderTable(list){
       '<td class="mono">'+esc(p.realtyNo||'—')+'</td>'+
       '<td>'+esc(p.deedDate||'—')+'</td>'+
       buyCell+saleCell+diffCell+
+      '<td>'+(lu?'<span style="color:#e9c46a;font-weight:700" title="'+esc(lu.src)+'">'+esc(lu.at)+'</span>':'—')+'</td>'+
       '<td>'+(docs||'—')+'</td>'+
     '</tr>';
   }).join('');
@@ -990,7 +1038,7 @@ function renderTable(list){
     '<td class="money">'+money(t.buy)+'</td>'+
     '<td class="money">'+money(t.sale)+'</td>'+
     '<td class="money '+(t.diff>0?'pos':(t.diff<0?'neg':''))+'">'+money(Math.abs(t.diff))+(t.diff>0?' ▲':(t.diff<0?' ▼':''))+'</td>'+
-    '<td>—</td>'+
+    '<td>—</td><td>—</td>'+
   '</tr></tfoot>';
   var strip='<div class="rep-strip">'+
     repCard('عدد العقارات',fmt(t.count),'')+
@@ -1140,35 +1188,99 @@ function officialDocsHTML(p){
             btn('فتح الصحيفة',pu,'🗂️')+
          '</div></div>';
 }
+/* ===== بطاقة العقار التفاعلية + سجل التحديثات ===== */
+var FIELD_LBL={city:'المدينة',district:'الحي',plan:'المخطط',block:'البلك',plot:'القطعة',area:'المساحة',propType:'نوع العقار',propState:'حالة العقار',usage:'الاستعمال',
+  deedNo:'رقم الصك',realtyNo:'رقم العقار (التسجيل العيني)',oldRealtyNo:'رقم العقار السابق',deedDate:'تاريخ الصك',prevDeed:'مصدر الصك (وزارة العدل)',prevDeedDate:'تاريخ صك وزارة العدل',
+  regDate:'تاريخ التسجيل',rerFirstDate:'تاريخ التسجيل العيني الأول',registrar:'المسجل العقاري',purchasePrice:'قيمة الشراء',salePrice:'القيمة التقديرية',purchaseDate:'تاريخ الشراء',
+  legal:'الحالة النظامية',restrictions:'القيود',note:'ملاحظات',address:'العنوان الوطني',deedFile:'ملف الصك',pageFile:'ملف الصحيفة',docVersion:'رقم نسخة الوثيقة',docIssued:'تاريخ إصدار النسخة',
+  ownerChain:'تسلسل الملكية',unitNo:'رقم الوحدة',unitArea:'مساحة الوحدة',marked:'تمييز «جديد»'};
+var _HIST_SKIP={history:1,id:1,src:1};
+function _hv(f,v){ if(v==null||v===''||(Array.isArray(v)&&!v.length))return '—';
+  if(f==='area'||f==='unitArea')return fmt(v)+' م²'; if(f==='purchasePrice'||f==='salePrice')return fmt(v)+' ر.س';
+  if(f==='deedFile'||f==='pageFile')return v?'مرتبط':'—'; if(f==='marked')return v?'نعم':'لا';
+  if(f==='restrictions'&&Array.isArray(v))return v.map(function(r){return r.type+' — '+r.reason+' ('+r.by+'، '+r.date+')';}).join('؛ ');
+  if(f==='ownerChain'&&Array.isArray(v))return v.length+' مالك سابق';
+  return String(v); }
+function _same(a,b){ return JSON.stringify(a==null?'':a)===JSON.stringify(b==null?'':b); }
+function diffProps(o,n){ var ch=[]; var keys={}; Object.keys(o||{}).forEach(function(k){keys[k]=1;}); Object.keys(n||{}).forEach(function(k){keys[k]=1;});
+  Object.keys(keys).forEach(function(k){ if(_HIST_SKIP[k])return; if(!_same((o||{})[k],(n||{})[k])) ch.push({f:k,old:(o||{})[k]==null?'':(o||{})[k],nw:(n||{})[k]==null?'':(n||{})[k]}); }); return ch; }
+function addHistory(p,ev){ if(!p.history)p.history=[]; ev.ts=ev.ts||Date.now(); p.history.push(ev); }
+function _snapHist(p){ var out=[]; try{ var snaps=loadSnaps(), k=_pkey(p), prev=null;
+    snaps.forEach(function(sn){ var cur=(sn.props||[]).filter(function(x){return _pkey(x)===k;})[0]||null;
+      if(prev&&cur){ var ch=[]; Object.keys(_SNAPF).forEach(function(f){ if(!_same(prev[f],cur[f])) ch.push({f:f,old:prev[f],nw:cur[f]}); });
+        if(ch.length) out.push({at:sn.date,src:'لقطة من سجل النسخ',title:'تغيّر رُصد بين لقطتين',changes:ch,ts:sn.ts,snap:1}); }
+      if(cur)prev=cur; }); }catch(e){} return out; }
+function histFor(p){ var h=(p.history||[]).map(function(e,i){ var c=JSON.parse(JSON.stringify(e)); c._i=i; return c; }).concat(_snapHist(p));
+  h.sort(function(a,b){ return (b.ts||0)-(a.ts||0); }); return h; }
+function lastUpdate(p){ var h=histFor(p); return h.length?h[0]:null; }
+var _dxTab='data';
+function dxTab(t){ _dxTab=t; document.querySelectorAll('#detailBody .dx-tab').forEach(function(b){ b.classList.toggle('on',b.getAttribute('data-t')===t); });
+  document.querySelectorAll('#detailBody .dx-pane').forEach(function(x){ x.classList.toggle('on',x.getAttribute('data-t')===t); }); }
+function _evHTML(e,latest,pid){
+  var rows=(e.changes||[]).map(function(c){ return '<tr><td>'+esc(FIELD_LBL[c.f]||c.f)+'</td><td class="old">'+esc(_hv(c.f,c.old))+'</td><td class="nw">'+esc(_hv(c.f,c.nw))+'</td></tr>'; }).join('');
+  return '<div class="dx-ev'+(latest?' latest':'')+'"><div class="dx-ev-h"><span><b>'+esc(e.title||'تحديث')+'</b></span><span>'+esc(e.at||'')+' · '+esc(e.src||'')+'</span></div>'+
+    (e.detail?'<div class="dx-mini" style="margin-bottom:6px">'+esc(e.detail)+'</div>':'')+
+    (rows?'<table class="dx-ch"><tr><th>الحقل</th><th>قبل</th><th>بعد</th></tr>'+rows+'</table>':'<div class="dx-mini">لا تغيير في الحقول.</div>')+
+    ((!e.snap&&rows)?'<button class="dx-rv" onclick="revertHistory(\''+pid+'\','+e._i+')">↶ استرجاع القيم السابقة لهذا التحديث</button>':'')+'</div>'; }
+function revertHistory(pid,i){ var p=findProp(pid); if(!p||!p.history||!p.history[i])return; var e=p.history[i];
+  if(!confirm('استرجاع القيم السابقة لتحديث «'+(e.title||'')+'»؟ سيُسجَّل الاسترجاع في سجل التحديثات.'))return;
+  var back=[]; (e.changes||[]).forEach(function(c){ back.push({f:c.f,old:p[c.f]==null?'':p[c.f],nw:c.old}); p[c.f]=c.old; });
+  addHistory(p,{at:new Date().toISOString().slice(0,10),src:'تراجع يدوي',title:'استرجاع ما قبل: '+(e.title||''),changes:back});
+  STATE.updatedAt=Date.now(); saveLocal(); render(); openDetail(pid); toast('تم الاسترجاع ✓'); }
 function openDetail(id){
   var p=findProp(id); if(!p)return; _detailCur=p;
-  g('detailTitle').textContent='قطعة '+p.plot+' — '+p.district;
-  var di=function(k,v){ return '<div class="di"><div class="dk">'+k+'</div><div class="dv">'+esc(v||'—')+'</div></div>'; };
-  var atts=ATTACH_CACHE[p.realtyNo]||[];
-  var attHTML='';
-  if(atts.length){
-    attHTML='<div class="di full"><div class="dk">المرفقات (الصك والصحيفة)</div><div class="attach-list">'+
-      atts.map(function(a,i){return '<div class="attach-item"><a href="'+a.data+'" download="'+esc(a.name)+'" target="_blank">📎 '+esc(a.name)+'</a></div>';}).join('')+
-      '</div></div>';
-  }
-  var html='<div class="detail-grid">'+
-    di('المدينة',p.city)+di('الحي',p.district)+
-    di('رقم القطعة',p.plot)+di('رقم المخطط',p.plan)+
-    di('رقم البلك',p.block)+di('المساحة',fmt(p.area)+' م²')+
-    di('نوع العقار',p.propType)+di('الاستعمال',p.usage)+
-    di('رقم الصك التعريفي',p.deedNo)+di('رقم الصحيفة / العقار',p.realtyNo)+
-    di('صك التملك السابق',p.prevDeed)+di('تاريخ الصك (هجري)',p.deedDate)+
-    di('قيمة الشراء',p.purchasePrice>0?fmt(p.purchasePrice)+' ريال':'غير مذكورة')+di('تاريخ الشراء',p.purchaseDate)+
-    di('المسجل العقاري',p.registrar)+
+  g('detailTitle').textContent='قطعة '+p.plot+' — '+p.district+(p.city?' — '+p.city:'');
+  var di=function(k,v){ return '<div class="di"><div class="dk">'+k+'</div><div class="dv">'+esc(v==null||v===''?'—':v)+'</div></div>'; };
+  var hist=histFor(p), lu=hist[0];
+  var legal=p.legal&&p.legal.trim(), rs=p.restrictions||[];
+  var badges='<div class="dx-head">'+
+    '<span class="dx-badge">'+esc(p.propType||'—')+'</span>'+
+    (p.realtyNo&&String(p.realtyNo).length>=16&&String(p.realtyNo).charAt(0)!=='1'?'<span class="dx-badge ok">✓ مسجّل عينياً</span>':'<span class="dx-badge">صك وزارة العدل</span>')+
+    (p.deedFile?'<span class="dx-badge ok">📄 الصك مرتبط</span>':'<span class="dx-badge">📄 لا صك</span>')+
+    (p.pageFile?'<span class="dx-badge ok">🗂️ الصحيفة مرتبطة</span>':'<span class="dx-badge">🗂️ لا صحيفة</span>')+
+    (legal||rs.length?'<span class="dx-badge warn">⚠ عليه قيد / ملاحظة نظامية</span>':'')+
+    (p.mergedGroup?'<span class="dx-badge gold">🔗 مدمج: '+esc(p.mergedGroup)+'</span>':'')+'</div>';
+  var lastBox=lu?'<div class="dx-last">🕓 <b>آخر تحديث:</b> '+esc(lu.at)+' — '+esc(lu.src)+'<br>'+esc(lu.title||'')+((lu.changes||[]).length?' ('+lu.changes.length+' تغيير) — <a href="javascript:dxTab(\'hist\')" style="color:#d8b441">عرض التفاصيل</a>':'')+'</div>'
+               :'<div class="dx-last">🕓 لا يوجد سجل تحديثات لهذا العقار بعد — بياناته كما أُدخلت أول مرة.</div>';
+  var tabs='<div class="dx-tabs">'+[['data','📋 البيانات'],['docs','📄 الصكوك والصحائف'],['notes','📝 الملاحظات والقيود'+((legal||rs.length)?' ⚠':'')],['hist','🕓 سجل التحديثات ('+hist.length+')']]
+    .map(function(t){ return '<button class="dx-tab" data-t="'+t[0]+'" onclick="dxTab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('')+'</div>';
+  // البيانات
+  var data='<div class="detail-grid">'+
+    di('المدينة',p.city)+di('الحي',p.district)+di('رقم القطعة',p.plot)+di('رقم المخطط',p.plan)+
+    di('رقم البلك',p.block)+di('المساحة',p.area?fmt(p.area)+' م²':'')+di('نوع العقار',p.propType)+di('حالة العقار',p.propState)+
+    di('الاستعمال',p.usage)+di('رقم الصك',p.deedNo)+di('رقم العقار (التسجيل العيني)',p.realtyNo)+(p.oldRealtyNo?di('رقم العقار السابق',p.oldRealtyNo):'')+
+    di('تاريخ الصك (هجري)',p.deedDate)+di('مصدر الصك (وزارة العدل)',p.prevDeed)+
+    di('تاريخ التسجيل العيني الأول',p.rerFirstDate)+di('تاريخ التسجيل',p.regDate)+di('المسجل العقاري',p.registrar)+
+    di('نسخة الوثيقة',p.docVersion?('رقم '+p.docVersion+(p.docIssued?' — صدرت '+p.docIssued:'')):'')+
+    di('قيمة الشراء',p.mergedGroup?('ضمن المدمج: '+money(p.mergedValue)):(p.purchasePrice>0?fmt(p.purchasePrice)+' ريال':'غير مذكورة'))+di('تاريخ الشراء',p.purchaseDate)+
     (p.unitNo?di('رقم الوحدة',p.unitNo)+di('مساحة الوحدة',p.unitArea+' م²'):'')+
-    (p.address?'<div class="di full">'+di('العنوان الوطني',p.address).replace('<div class="di">','').replace(/<\/div>$/,'')+'</div>':'')+
-    (p.legal&&p.legal.trim()?'<div class="di full"><div class="dk" style="color:var(--danger)">⚠ الحالة النظامية</div><div class="dv" style="color:#e8a087">'+esc(p.legal)+'</div></div>':'')+
-    (p.note?'<div class="di full"><div class="dk">ملاحظات</div><div class="dv">'+esc(p.note)+'</div></div>':'')+
-    utilSectionHTML(p)+
-    officialDocsHTML(p)+
-    attHTML+
-  '</div>';
-  g('detailBody').innerHTML=html;
+    (p.address?'<div class="di full"><div class="dk">العنوان الوطني</div><div class="dv">'+esc(p.address)+'</div></div>':'')+
+    utilSectionHTML(p)+'</div>';
+  // الوثائق
+  var du=p.deedFile?deedURL(p.deedFile):'', pu=p.pageFile?deedURL(p.pageFile):'';
+  var docBox=function(t,u){ return '<div class="dx-doc"><div class="dx-doc-h"><span>'+t+'</span>'+(u?'<a href="'+u+'" target="_blank" rel="noopener">فتح في نافذة ↗</a>':'')+'</div>'+
+      (u?'<iframe loading="lazy" src="'+u+'#toolbar=0&view=FitH"></iframe>':'<div class="none">لم تُرتبط وثيقة بعد</div>')+'</div>'; };
+  var atts=ATTACH_CACHE[p.realtyNo]||[];
+  var docs='<div class="dx-docs">'+docBox('📄 صك تسجيل الملكية',du)+docBox('🗂️ الصحيفة العقارية',pu)+'</div>'+
+    (atts.length?'<div class="dx-note" style="margin-top:12px"><div class="t">مرفقات إضافية</div>'+atts.map(function(a){return '<div><a href="'+a.data+'" download="'+esc(a.name)+'" target="_blank" style="color:#d8b441">📎 '+esc(a.name)+'</a></div>';}).join('')+'</div>':'');
+  // الملاحظات والقيود
+  var notes='';
+  if(legal) notes+='<div class="dx-note warn"><div class="t">⚠ الحالة النظامية</div>'+esc(p.legal)+'</div>';
+  if(rs.length) notes+='<div class="dx-note warn"><div class="t">⚠ القيود المسجّلة على العقار</div>'+rs.map(function(r){ return '<div>• <b>'+esc(r.type)+'</b> — السبب: '+esc(r.reason)+' — الجهة: '+esc(r.by)+' — رقم القيد '+esc(r.no||'—')+' — بتاريخ '+esc(r.date)+'</div>'; }).join('')+'</div>';
+  if(p.mergedGroup) notes+='<div class="dx-note"><div class="t">الدمج</div>هذه القطعة ضمن مجموعة «'+esc(p.mergedGroup)+'» بقيمة إجمالية مشتركة '+money(p.mergedValue)+'، وتُحتسب مرة واحدة في الإجماليات.</div>';
+  if(p.note) notes+='<div class="dx-note"><div class="t">ملاحظات</div>'+esc(p.note)+'</div>';
+  if(p.ownerChain&&p.ownerChain.length) notes+='<div class="dx-note"><div class="t">تسلسل الملكية (الملّاك السابقون حسب الصحيفة)</div><table class="dx-own"><tr><th>#</th><th>المالك</th><th>نوع التملك</th><th>التاريخ</th><th>القيمة</th></tr>'+
+      p.ownerChain.map(function(o,i){ return '<tr><td>'+(i+1)+'</td><td>'+esc(o.owner)+'</td><td>'+esc(o.type||'—')+'</td><td>'+esc(o.date||'—')+'</td><td>'+(o.value?fmt(o.value)+' ر.س':'—')+'</td></tr>'; }).join('')+'</table></div>';
+  if(!notes) notes='<div class="dx-note">لا ملاحظات ولا قيود مسجّلة على هذا العقار.</div>';
+  // سجل التحديثات
+  var hh='';
+  if(!hist.length) hh='<div class="dx-note">لا توجد تحديثات مسجّلة بعد. أي تعديل يدوي أو تحديث من التسجيل العيني سيظهر هنا مع القيم السابقة والجديدة.</div>';
+  else { hh='<div class="dx-mini" style="margin-bottom:10px">الأحدث أولاً. «قبل» = ما كان عليه العقار، «بعد» = ما صار إليه.</div><div class="dx-tl">'+
+      hist.map(function(e,i){ return (i===0?'<div class="dx-mini" style="color:#d8b441;font-weight:800;margin-bottom:4px">آخر تحديث</div>':(i===1?'<div class="dx-mini" style="font-weight:800;margin:4px 0">ما قبله</div>':''))+_evHTML(e,i===0,p.id); }).join('')+'</div>'; }
+  g('detailBody').innerHTML=badges+lastBox+tabs+
+    '<div class="dx-pane" data-t="data">'+data+'</div><div class="dx-pane" data-t="docs">'+docs+'</div>'+
+    '<div class="dx-pane" data-t="notes">'+notes+'</div><div class="dx-pane" data-t="hist">'+hh+'</div>';
+  dxTab('data');
   openModal('detailModal');
 }
 function editFromDetail(){ if(_detailCur){ closeModal('detailModal'); openEdit(_detailCur.id); } }
@@ -1259,7 +1371,10 @@ function saveProperty(){
   };
   // الحفاظ على الحقول الإضافية عند التعديل
   var old=findProp(id);
-  if(old){ ['unitNo','unitArea','unitShare','address'].forEach(function(k){ if(old[k]!==undefined)obj[k]=old[k]; }); }
+  if(old){ var merged=JSON.parse(JSON.stringify(old)); Object.keys(obj).forEach(function(k){ merged[k]=obj[k]; });
+    if(!obj.propState && old.propState) merged.propState=old.propState;
+    var ch=diffProps(old,merged); obj=merged;
+    if(ch.length) addHistory(obj,{at:new Date().toISOString().slice(0,10),src:'تعديل يدوي',title:'تعديل بيانات العقار من البرنامج',changes:ch}); }
 
   var idx=-1;
   for(var i=0;i<STATE.props.length;i++){ if(STATE.props[i].id===id){idx=i;break;} }
@@ -1895,6 +2010,60 @@ function migrateAddPropsV1(){
     if(changed){ STATE.updatedAt=Date.now(); saveLocal(false); if(_fbReady){ pushCloud(); } }
   }catch(e){}
 }
+/* ===== ترحيل V2: تحديثات التسجيل العيني (صكوك وصحائف ٨ أكتوبر ٢٠٢٦) ===== */
+var RER_V2 = [
+ {id:'p29',deedNo:'281901004141',title:'ربط صك وصحيفة التسجيل العيني وتحديث البيانات منها',detail:'الصحيفة العقارية — نسخة رقم 1 صادرة 2024/12/20. الصحيفة تصف العقار «مبنى — مجمع سكني» لا أرضاً فضاء.',
+  set:{realtyNo:'8004467047500000',plan:'2351/5',usage:'إستعمال مختلط',propType:'مجمع سكني',propState:'مبنى',registrar:'عبدالله سلطان الخثلان',regDate:'2024-12-20',rerFirstDate:'2024-12-20',
+       prevDeed:'17704479',prevDeedDate:'1446-06-08',address:'RDLA8903 — مبنى 8903، شارع نهاوند، الرمز البريدي 13782، الرمز الإضافي 3407',docVersion:'1',docIssued:'2024/12/20',
+       deedFile:'deed_281901004141.pdf',pageFile:'page_281901004141.pdf'}},
+ {id:'p28',deedNo:'581002000703',title:'قيد جديد «عدم البيع» + ربط الصك والصحيفة',detail:'الصك والصحيفة نسخة رقم 2 صادرة 2026/09/01. أُضيف قيد «عدم البيع» بسبب رسوم الأراضي البيضاء من الهيئة العامة للعقار بتاريخ 2026-09-14. وتغيّر رقم العقار إلى رقم التسجيل العيني.',
+  set:{oldRealtyNo:'1136221440940001',realtyNo:'5945142248900000',usage:'سكني',propState:'أرض فضاء',registrar:'ديمه عبدالناصر العمر',regDate:'2024-12-25',rerFirstDate:'2024-12-25',
+       prevDeed:'17638790',prevDeedDate:'1446-05-23',address:'RKRA2615 — مبنى 2615، الرمز البريدي 14944، الرمز الإضافي 7233',docVersion:'2',docIssued:'2026/09/01',
+       legal:'قيد «عدم البيع» — السبب: رسوم الأراضي البيضاء — الجهة: الهيئة العامة للعقار — قيد رقم 0001 بتاريخ 2026-09-14',
+       restrictions:[{type:'عدم البيع',reason:'رسوم الأراضي البيضاء',by:'الهيئة العامة للعقار',no:'0001',date:'2026-09-14'}],
+       deedFile:'deed_581002000703.pdf',pageFile:'page_581002000703.pdf'}},
+ {id:'p38',deedNo:'460002369278',title:'تسجيل عيني أول للقطعة + ربط الصك والصحيفة',detail:'سُجّلت القطعة في التسجيل العيني لأول مرة في 2026-09-30 (نسخة رقم 1).',
+  set:{realtyNo:'3652656721200000',block:'925',usage:'إستعمال مختلط',propState:'أرض فضاء',registrar:'عبدالوهاب فهد الحافي',regDate:'2026-09-30',rerFirstDate:'2026-09-30',
+       prevDeed:'19836913',prevDeedDate:'1447-09-27',docVersion:'1',docIssued:'2026/09/30',deedFile:'deed_460002369278.pdf',pageFile:'page_460002369278.pdf'}},
+ {id:'p31',deedNo:'360002369279',title:'تسجيل عيني أول للقطعة + ربط الصك والصحيفة',detail:'سُجّلت القطعة في التسجيل العيني لأول مرة في 2026-09-29 (نسخة رقم 1).',
+  set:{realtyNo:'8019958876200000',block:'925',usage:'إستعمال مختلط',propState:'أرض فضاء',registrar:'حصه منصور القحزي',regDate:'2026-09-29',rerFirstDate:'2026-09-29',
+       prevDeed:'19836915',prevDeedDate:'1447-09-27',docVersion:'1',docIssued:'2026/09/29',deedFile:'deed_360002369279.pdf',pageFile:'page_360002369279.pdf'}},
+ {id:'p24',deedNo:'260002369280',title:'تسجيل عيني أول للقطعة + ربط الصك والصحيفة',detail:'سُجّلت القطعة في التسجيل العيني لأول مرة في 2026-10-06 (نسخة رقم 1).',
+  set:{realtyNo:'3481118235900000',block:'925',usage:'إستعمال مختلط',propState:'أرض فضاء',registrar:'حصه منصور القحزي',regDate:'2026-10-06',rerFirstDate:'2026-10-06',
+       prevDeed:'19836917',prevDeedDate:'1447-09-27',docVersion:'1',docIssued:'2026/10/06',deedFile:'deed_260002369280.pdf',pageFile:'page_260002369280.pdf'}},
+ {id:'p37',deedNo:'260689001912',title:'تسجيل عيني أول للقطعة + ربط الصك والصحيفة',detail:'سُجّلت القطعة في التسجيل العيني لأول مرة في 2026-09-29 (نسخة رقم 1).',
+  set:{realtyNo:'3283854467800000',block:'925',usage:'إستعمال مختلط',propState:'أرض فضاء',registrar:'اعزاز سليمان الصيقل',regDate:'2026-09-29',rerFirstDate:'2026-09-29',
+       prevDeed:'19836916',prevDeedDate:'1447-09-19',docVersion:'1',docIssued:'2026/09/29',deedFile:'deed_260689001912.pdf',pageFile:'page_260689001912.pdf'}},
+ {id:'p39',deedNo:'311025001222',title:'ربط الصك والصحيفة + تسلسل الملكية',detail:'الصحيفة نسخة رقم 3 صادرة 2025/02/05.',
+  set:{rerFirstDate:'2024-01-11',docVersion:'3',docIssued:'2025/02/05',address:'RWTA6839 — مبنى 6839، الرمز البريدي 13839، الرمز الإضافي 2714',
+       ownerChain:[{owner:'ناصر بن عقيل بن ناصر السبيعي',type:'شراء',date:'',value:0},{owner:'مفلح مسفر سعيد القحطاني',type:'شراء',date:'2024-10-22',value:540000},{owner:'سعد علي محمد القحطاني (المالك الحالي)',type:'شراء',date:'2025-02-05',value:800000}],
+       note:'عقار جديد — صكه وصحيفته مرتبطان بالبرنامج',deedFile:'deed_311025001222.pdf',pageFile:'page_311025001222.pdf'}},
+ {id:'p40',deedNo:'762058000517',title:'ربط الصك والصحيفة + تسلسل الملكية',detail:'الصحيفة نسخة رقم 4 صادرة 2024/11/05 — وحدة ضمن عقار مشترك (رقم العقار الأم 3686607294200000).',
+  set:{rerFirstDate:'2024-03-02',docVersion:'4',docIssued:'2024/11/05',address:'RFDC7518 — مبنى 7518، شارع عبدالرحمن بن عزاز، الرمز البريدي 13241، الرمز الإضافي 3350',
+       ownerChain:[{owner:'مهناء محمد مهناء السبيعي',type:'هبة',date:'',value:0},{owner:'مؤسسة العمرانية المتميزة للمقاولات',type:'شراء',date:'2024-05-13',value:0},{owner:'سعد علي محمد القحطاني (المالك الحالي)',type:'شراء',date:'2024-11-05',value:1240000}],
+       note:'عقار جديد — وحدة ضمن عقار مشترك — صكه وصحيفته مرتبطان بالبرنامج',deedFile:'deed_762058000517.pdf',pageFile:'page_762058000517.pdf'}},
+ {id:'p41',deedNo:'210806004216',title:'ربط الصك والصحيفة + تسلسل الملكية',detail:'الصحيفة نسخة رقم 3 صادرة 2025/02/20.',
+  set:{rerFirstDate:'2024-05-27',docVersion:'3',docIssued:'2025/02/20',address:'RWFA8906 — مبنى 8906، الرمز البريدي 13854، الرمز الإضافي 4146',
+       ownerChain:[{owner:'ولاء علي بن مبارك القحطاني',type:'شراء',date:'',value:0},{owner:'سلطان شائع حنس القحطاني (33.33%) ومحمد فالح ابن علي القحطاني (66.67%) — 500,000 لكلٍّ منهما',type:'شراء',date:'2024-12-15',value:0},{owner:'سعد علي محمد القحطاني (المالك الحالي)',type:'شراء',date:'2025-02-20',value:1300000}],
+       note:'عقار جديد — صكه وصحيفته مرتبطان بالبرنامج',deedFile:'deed_210806004216.pdf',pageFile:'page_210806004216.pdf'}}
+];
+function migrateRerV2(){
+  try{
+    if(!STATE.props) return; var changed=false;
+    RER_V2.forEach(function(u){
+      var p=STATE.props.filter(function(x){ return x.id===u.id && x.deedNo===u.deedNo; })[0]
+         || STATE.props.filter(function(x){ return x.deedNo===u.deedNo; })[0];
+      if(!p) return;
+      if((p.history||[]).some(function(e){ return e.key==='rerV2'; })) return;
+      var ch=[];
+      Object.keys(u.set).forEach(function(k){ var nv=u.set[k]; if(!_same(p[k],nv)){ ch.push({f:k,old:p[k]==null?'':JSON.parse(JSON.stringify(p[k])),nw:nv}); p[k]=JSON.parse(JSON.stringify(nv)); } });
+      addHistory(p,{key:'rerV2',at:'2026-10-08',src:'التسجيل العيني (eservices.rer.sa)',title:u.title,detail:u.detail,changes:ch,ts:Date.parse('2026-10-08T10:48:00+03:00')});
+      changed=true;
+    });
+    if(changed){ STATE.updatedAt=Date.now(); saveLocal(false); if(_fbReady){ pushCloud(); } }
+  }catch(e){ console.warn('migrateRerV2',e); }
+}
+
 function toggleMark(){
   STATE.hideMark=!STATE.hideMark;
   try{ var b=g('markToggle'); if(b) b.classList.toggle('active', !STATE.hideMark); }catch(e){}
@@ -2428,6 +2597,7 @@ function afterLoad(){
   loadLocal();
   ensureSeed();
   migrateAddPropsV1();
+  migrateRerV2();
   buildFilters();
   render();
   try{ var mb=g('markToggle'); if(mb) mb.classList.toggle('active', !STATE.hideMark); }catch(e){}
