@@ -46,7 +46,7 @@ nav button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 
 main{padding:22px;max-width:1100px;margin:0 auto}
 .page{display:none;animation:fade .25s ease}
-.page.on{display:block}
+.page.on{display:block} .dirrow{background:rgba(216,180,65,.055)} #st-tbl td{vertical-align:top} #st-q{min-width:260px;flex:1}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 h2.sec{font-size:20px;font-weight:800;margin-bottom:4px}
 p.lead{color:var(--muted);font-size:13px;margin-bottom:18px;line-height:1.7}
@@ -168,7 +168,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <div class="divider"></div>
 
 <nav id="nav">
-  <button data-pg="overview" class="on">كم دخل ومن أين</button>
+  <button data-pg="statement" class="on">كشف الحساب</button>
+  <button data-pg="overview">كم دخل ومن أين</button>
   <button data-pg="direct">التحويلات المباشرة</button>
   <button data-pg="ident">المصادر المعروفة</button>
   <button data-pg="import">استيراد وحفظ</button>
@@ -177,7 +178,29 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
 <main>
   <div class="print-head" id="printHead"></div>
   <!-- OVERVIEW -->
-  <section class="page on" id="p-overview">
+  <!-- STATEMENT (الإنماء) -->
+  <section class="page on" id="p-statement">
+    <div class="pagehead"><h2 class="sec">كشف الحساب البنكي — الإنماء</h2>
+      <div class="row-actions noprint">
+        <button class="btn sm" onclick="document.getElementById('file').click()">⬆️ استرداد كشف من ملف</button>
+        <button class="btn ghost sm" onclick="printPage()">🖨️ طباعة</button>
+      </div>
+    </div>
+    <p class="lead">كامل الوارد للحساب خلال الفترة المختارة، موزّعاً بين منصة إيجار والتحويلات المباشرة من المستأجرين — اضغط اسم المُحوِّل لعرض تحويلاته أو نسبته لمستأجر.</p>
+    <div class="searchbar">
+      <input id="st-q" placeholder="ابحث بالاسم، المبلغ، رقم المرجع، أو الوصف…">
+      <select id="st-src"></select>
+      <select id="st-month"></select>
+      <select id="st-year"></select>
+    </div>
+    <div class="grid kpis" id="st-kpis"></div>
+    <div class="count" id="st-count"></div>
+    <div class="tbl-wrap"><table id="st-tbl"><thead><tr><th>التاريخ</th><th>المبلغ</th><th>المُحوِّل</th><th>المصدر</th><th>رقم المرجع</th><th>الوصف</th></tr></thead><tbody></tbody></table></div>
+    <div class="count" style="margin-top:8px">الصفوف المظلّلة = تحويلات مباشرة (قد تخصّ إيجاراً — انسبها للمستأجر من «حدّد صاحبه»).</div>
+  </section>
+
+  <!-- OVERVIEW -->
+  <section class="page" id="p-overview">
     <div class="pagehead"><h2 class="sec">كم دخل الحساب ومن أين</h2><button class="btn ghost sm noprint" onclick="printPage()">🖨️ طباعة</button></div>
     <p class="lead">إجمالي ما دخل الحساب خلال الفترة المختارة، موزّعاً بين منصة إيجار والتحويلات المباشرة من المستأجرين.</p>
     <div class="searchbar">
@@ -353,6 +376,60 @@ function bankMonths(){ var s={}; BANK.forEach(function(b){ if(b.date)s[ym(b.date
 function yearOpts(dates){ var ys={}; dates.forEach(function(d){ if(d)ys[d.substring(0,4)]=1; });
   var h='<option value="">كل السنوات</option>'; Object.keys(ys).sort().forEach(function(y){ h+='<option value="'+y+'">'+y+'</option>'; }); return h; }
 function monthOpts(){ var h='<option value="">كل الأشهر</option>'; for(var i=1;i<=12;i++){ var mm=(i<10?'0':'')+i; h+='<option value="'+mm+'">'+MONTHS_AR[i-1]+'</option>'; } return h; }
+
+/* ===== STATEMENT (كشف الحساب — الإنماء) ===== */
+var stYear='', stMonth='', stSrc='', stQ='';
+function rStatement(){
+  var ys=document.getElementById('st-year'), ms=document.getElementById('st-month'), ss=document.getElementById('st-src'), q=document.getElementById('st-q');
+  if(!ys) return;
+  if(!ys.dataset.built){
+    ys.innerHTML=yearOpts(BANK.map(function(b){return b.date;}));
+    ms.innerHTML=monthOpts();
+    var srcs={}; BANK.forEach(function(b){ srcs[srcType(b)]=1; });
+    ss.innerHTML='<option value="">كل المصادر</option>'+Object.keys(srcs).sort().map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('');
+    ys.dataset.built='1';
+    ys.onchange=function(){ stYear=ys.value; rStatement(); };
+    ms.onchange=function(){ stMonth=ms.value; rStatement(); };
+    ss.onchange=function(){ stSrc=ss.value; rStatement(); };
+    q.oninput=function(){ stQ=this.value; rStatement(); };
+  }
+  var qq=(stQ||'').trim().toLowerCase();
+  var rows=BANK.filter(function(b){ var d=b.date||'';
+    if(stYear && d.substring(0,4)!==stYear)return false;
+    if(stMonth && d.substring(5,7)!==stMonth)return false;
+    if(stSrc && srcType(b)!==stSrc)return false;
+    if(qq){ var a=attrOf(b); var hay=[fmtDate(b.date),b.date,b.amount,a,b.name,b.desc,b.ref,b.srcIban,b.nameTok,srcType(b)].join(' ').toLowerCase(); if(hay.indexOf(qq)<0)return false; }
+    return true;
+  }).slice().sort(function(a,b){ var x=toISO(a.date),y=toISO(b.date); return x<y?1:(x>y?-1:0); });
+  var tot=0,ej=0;
+  rows.forEach(function(b){ tot+=b.amount; if(srcType(b)==='منصة إيجار')ej+=b.amount; });
+  var direct=tot-ej;
+  var k=[
+    ['إجمالي الوارد ('+rows.length+' عملية)',fmt(tot),'gold'],
+    ['عبر منصة إيجار',fmt(ej),'info'],
+    ['تحويلات شخصية مباشرة',fmt(direct),'ok']
+  ];
+  document.getElementById('st-kpis').innerHTML=k.map(function(x){
+    return '<div class="card kpi"><div class="lbl">'+x[0]+'</div><div class="val '+x[2]+'">'+x[1]+'<span class="unit">ر.س</span></div></div>'; }).join('');
+  document.getElementById('st-count').textContent='عدد العمليات: '+rows.length+' · إجمالي '+fmt(tot)+' ر.س';
+  var tb=document.querySelector('#st-tbl tbody');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="6" class="empty">لا عمليات مطابقة</td></tr>'; return; }
+  tb.innerHTML=rows.slice(0,600).map(function(b){
+    var sc=srcType(b), dir=isDirect(b);
+    var a=attrOf(b), key=bankKey(b), fromStmt=(!MAP[key]&&b.name&&a);
+    var who = sc==='منصة إيجار'
+      ? '<span style="color:var(--muted)">منصة إيجار</span>'
+      : ( a ? '<button class="namelink" onclick="openDetails(\''+esc2(a)+'\')">'+esc(a)+'</button>'+(fromStmt?' <span class="tag intr" style="font-size:10px">من الكشف</span>':'')
+            : '<button class="btn ghost sm" onclick="openPick(\''+esc2(key)+'\')">حدّد صاحبه</button>' );
+    var srcTag = sc==='منصة إيجار' ? '<span class="tag intr">منصة إيجار</span>'
+      : ( sc==='تحويل شخصي' ? '<span class="tag pers">تحويل شخصي</span>' : '<span class="tag">'+esc(sc)+'</span>' );
+    return '<tr'+(dir?' class="dirrow"':'')+'><td class="num">'+fmtDate(b.date)+'</td>'+
+      '<td class="num" style="font-weight:700;color:var(--ok)">'+fmt(b.amount)+'</td>'+
+      '<td>'+who+'</td><td>'+srcTag+'</td>'+
+      '<td class="num" style="font-size:11px;color:var(--muted)">'+esc(b.ref||'-')+'</td>'+
+      '<td style="font-size:11px;color:var(--muted);max-width:360px">'+esc(b.desc||'')+'</td></tr>';
+  }).join('');
+}
 
 /* ===== OVERVIEW ===== */
 var ovYear='', ovMonth='';
@@ -584,7 +661,7 @@ function handleFile(file){
       }
       try{ var ex=JSON.parse(localStorage.getItem(LS_BANK)||'[]'); localStorage.setItem(LS_BANK,JSON.stringify(ex.concat(extra))); }catch(_){}
       msg.innerHTML='تمّت إضافة <b style="color:var(--gold2)">'+added+'</b> إيداعاً، وقُرئت أسماء المُحوِّلين تلقائياً من الكشف'+(skipOut?('. وتُجوهِلت '+skipOut+' حركة سحب (تخصّ برنامج المصروفات)'):'')+'.';
-      document.getElementById('ov-year').dataset.built=''; document.getElementById('dr-year').dataset.built=''; renderAll();
+      document.getElementById('ov-year').dataset.built=''; document.getElementById('dr-year').dataset.built=''; var _sty=document.getElementById('st-year'); if(_sty)_sty.dataset.built=''; renderAll();
     }catch(err){ msg.textContent='تعذّرت قراءة الملف. تأكّد أنه كشف Excel صحيح.'; console.error(err); }
   };
   rd.readAsArrayBuffer(file);
@@ -669,7 +746,7 @@ function printPage(){
 }
 
 /* ===== NAV + INIT ===== */
-function renderAll(){ rOverview(); rDirect(); rIdent(); }
+function renderAll(){ rStatement(); rOverview(); rDirect(); rIdent(); }
 document.querySelectorAll('#nav button').forEach(function(b){
   b.onclick=function(){
     document.querySelectorAll('#nav button').forEach(function(x){x.classList.remove('on');});
