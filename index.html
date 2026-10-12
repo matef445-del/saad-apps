@@ -65,6 +65,9 @@ body.manage .grip{display:inline-block;position:absolute;bottom:8px;left:10px;co
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
 @media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head><body>
 <div data-idbar style="text-align:center;padding:10px 0 4px;background:transparent"><img src="logo_green.png?v=4" alt="شعار المكتب الإداري للشيخ سعد آل عوضه" style="height:120px;max-width:92%;object-fit:contain"></div>
 <header><img src="logo_green.png?v=4" alt="شعار"><div><div class="h-t">لوحة التطبيقات</div><div class="h-s">سعد آل عوضة · المكتب الإداري</div></div></header>
@@ -76,6 +79,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
   <div class="search"><span class="i">🔍</span><input id="q" placeholder="ابحث عن تطبيق بالاسم أو الوصف…"></div>
   <button class="btn" id="manageBtn" onclick="toggleManage()">⚙️ ترتيب وإدارة</button>
   <button class="btn" id="hiddenBtn" onclick="toggleHidden()">🙈 المخفية <span id="hcount"></span></button>
+  <span id="syncChip" style="font-size:12px;font-weight:700;color:var(--muted);display:inline-flex;align-items:center;gap:5px">محلي</span>
 </div>
 <div class="managehint">وضع الترتيب مفعّل: اسحب أي تطبيق لتغيير ترتيبه أو نقله إلى مجموعة أخرى · اضغط ✕ أعلى البطاقة لإخفائه · اضغط «تم» للإنهاء. كل تغيير يُحفظ تلقائياً في هذا المتصفح.</div>
 
@@ -118,7 +122,36 @@ APPS.forEach(function(a){if(ST.order.indexOf(a.id)<0)ST.order.push(a.id);});
 
 var byId={};APPS.forEach(function(a){byId[a.id]=a;});
 var manage=false,dragId=null;
-function save(){try{localStorage.setItem(LS,JSON.stringify(ST));}catch(e){}}
+function save(){ST.updated=Date.now();try{localStorage.setItem(LS,JSON.stringify(ST));}catch(e){}pushCloud();}
+
+/* ===== مزامنة سحابية موحّدة عبر الأجهزة (نفس مشروع فايربيس للمكتب) ===== */
+var FBCFG={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
+var FDB=null;
+function setSyncUI(s){var e=document.getElementById('syncChip');if(!e)return;
+  if(s==='on'){e.innerHTML='☁️ مُزامَن ✓';e.style.color='var(--green)';}
+  else if(s==='saving'){e.innerHTML='☁️ جارٍ الحفظ…';e.style.color='var(--muted)';}
+  else{e.innerHTML='💾 محلي';e.style.color='var(--muted)';}}
+function initFB(){try{if(typeof firebase==='undefined')return;if(!firebase.apps.length)firebase.initializeApp(FBCFG);FDB=firebase.firestore();
+  try{firebase.auth().onAuthStateChanged(function(){pullCloud();});}catch(e){pullCloud();}}catch(e){setSyncUI('local');}}
+function pullCloud(){
+  if(!FDB){setSyncUI('local');return;}
+  FDB.collection('launcher_db').doc('layout').get().then(function(d){
+    if(d.exists){var v=d.data()||{};
+      if(v.order&&(v.updated||0)>(ST.updated||0)){
+        ST.order=v.order;ST.cat=v.cat||{};ST.hidden=v.hidden||{};ST.updated=v.updated||0;
+        APPS.forEach(function(a){if(ST.order.indexOf(a.id)<0)ST.order.push(a.id);});
+        try{localStorage.setItem(LS,JSON.stringify(ST));}catch(e){}
+        render();setSyncUI('on');
+      }else{setSyncUI('on');pushCloud();}
+    }else{pushCloud();}
+  }).catch(function(){setSyncUI('local');});
+}
+function pushCloud(){
+  if(!FDB){return;}
+  setSyncUI('saving');
+  FDB.collection('launcher_db').doc('layout').set({order:ST.order,cat:ST.cat,hidden:ST.hidden,updated:ST.updated||Date.now()})
+    .then(function(){setSyncUI('on');}).catch(function(){setSyncUI('local');});
+}
 function catOf(id){return ST.cat[id]||byId[id].cat;}
 function el(id){return document.getElementById(id);}
 function toast(m){var t=el('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show');},2400);}
@@ -187,6 +220,7 @@ function toggleManage(){manage=!manage;document.body.classList.toggle('manage',m
 function toggleHidden(){el('hiddenBox').classList.toggle('show');}
 el('q').addEventListener('input',render);
 render();
+initFB();
 </script>
 <script src="localsave.js" defer></script>
 </body></html>
