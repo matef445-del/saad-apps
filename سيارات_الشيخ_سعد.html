@@ -69,6 +69,49 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 .imgview{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:70;padding:20px;cursor:zoom-out}
 .imgview.open{display:flex}
 .imgview img{max-width:100%;max-height:100%;border-radius:8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{flex:1;min-width:120px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.chip .chl{font-size:11px;color:var(--muted)}
+.chip .chv{font-size:13px;font-weight:700}
+.ch-ok{border-color:#1f5233}.ch-ok .chv{color:#7bd88f}
+.ch-warn{border-color:#6b5518;background:#241f10}.ch-warn .chv{color:#e8b84b}
+.ch-bad{border-color:#6b2020;background:#241010}.ch-bad .chv{color:#f08a8a}
+.dtabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px}
+.dtab{background:#0e2e15;border:1px solid var(--line);color:var(--muted);border-radius:9px 9px 0 0;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.dtab.on{background:linear-gradient(160deg,var(--gold),#8a6d14);color:#1a1205;border-color:var(--gold2);font-weight:700}
+.dtab.addev{margin-right:auto;background:#12241a;color:#d8b441;border:1px dashed var(--gold)}
+.tbadge{background:#6b2020;color:#fff;border-radius:10px;padding:0 6px;font-size:11px}
+.dbody{min-height:120px}
+.evwrap{overflow:auto;margin-top:10px}
+.evtab{width:100%;border-collapse:collapse;font-size:12.5px}
+.evtab th{background:#0e2e15;color:var(--gold2);padding:7px 6px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+.evtab td{padding:7px 6px;border-bottom:1px solid var(--line);color:var(--cream);vertical-align:top}
+.evtab td.c{text-align:center}
+.emptybox{background:#0e2e15;border:1px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);font-size:13px;margin-top:10px}
+.minibtn{background:#1a3325;border:1px solid var(--line);color:var(--cream);border-radius:7px;padding:3px 7px;font-size:12px;cursor:pointer;margin:0 2px;font-family:inherit}
+.minibtn.del{border-color:#6b2020;color:#f0a0a0}
+.pillbtn{border-radius:20px;padding:3px 10px;font-size:11.5px;cursor:pointer;font-family:inherit;border:1px solid}
+.pillbtn.paid{background:#12241a;border-color:#1f5233;color:#7bd88f}
+.pillbtn.unpaid{background:#241010;border-color:#6b2020;color:#f08a8a}
+.evthumb{height:34px;border-radius:6px;border:1px solid var(--gold);cursor:zoom-in;vertical-align:middle;margin-right:4px;background:#fff}
+.evthumb.big{height:120px;margin-top:8px}
+.viosum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.vcard{flex:1;min-width:110px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}
+.vcard b{display:block;font-size:17px;color:var(--gold2)}
+.vcard span{font-size:11px;color:var(--muted)}
+.vcard.bad{border-color:#6b2020;background:#241010}.vcard.bad b{color:#f08a8a}
+.tl{position:relative;padding-right:18px;margin-top:8px}
+.tl:before{content:"";position:absolute;right:7px;top:4px;bottom:4px;width:2px;background:var(--line)}
+.tl-ev{position:relative;display:flex;gap:10px;margin-bottom:12px}
+.tl-ic{position:absolute;right:-18px;width:26px;height:26px;border-radius:50%;background:#0e2e15;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:13px}
+.tl-body{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-right:16px}
+.tl-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tl-top b{color:var(--cream);font-size:13.5px}
+.tl-date{font-size:11.5px;color:var(--muted)}
+.tl-meta{font-size:12px;color:var(--gold2);margin-top:3px}
+.tl-note{font-size:12px;color:var(--muted);margin-top:3px}
+.tl-act{margin-top:6px}
+.repsec{margin:14px 0 6px;color:var(--gold2);font-size:14px;font-weight:700;border-right:3px solid var(--gold);padding-right:8px}
 @media print{
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;background:transparent!important;color:#000!important}
  body{background:#fff!important;padding:0}
@@ -113,7 +156,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
  <select id="fs"><option value="">كل الحالات</option><option value="ok">سليمة</option><option value="warn">فيها تنبيه</option></select>
  <button class="btn gold" onclick="openForm()">+ إضافة سيارة</button>
  <button class="btn" onclick="window.print()">🖨 طباعة</button>
- <button class="btn" onclick="exportXls()">⬇ Excel</button><button class="btn" id="calbtn" onclick="toggleCal()">🗓 عرض ميلادي</button>
+ <button class="btn" onclick="exportXls()">⬇ Excel</button><button class="btn" onclick="openReport()">📊 تقرير الأسطول</button><button class="btn" id="calbtn" onclick="toggleCal()">🗓 عرض ميلادي</button>
 </div>
 <div id="alerts"></div>
 <div class="tablewrap"><table>
@@ -167,25 +210,27 @@ function statusOf(c){var ch=carChecks(c);var exp=ch.filter(function(x){return x.
 function shortIns(s){s=String(s||'—');if(s==='—'||!s)return '—';var map={'التعاونية':'التعاونية','الراجحي':'الراجحي','الخليجية':'الخليجية','الوطنية':'الوطنية (سنيك)','سنيك':'الوطنية (سنيك)','المتوسط والخليج':'المتوسط والخليج','ملاذ':'ملاذ','سلامة':'سلامة','اتحاد الخليج':'اتحاد الخليج','الأهلي':'الأهلي','بروج':'بروج','ساب':'ساب','والية':'والاء','الدرع':'الدرع'};for(var k in map){if(s.indexOf(k)>=0)return map[k];}return s.replace('الشركة ','').replace('شركة ','');}
 
 function renderStats(){
- var tot=CARS.length,ok=0,soon=0,exp=0;
- CARS.forEach(function(c){var ch=carChecks(c);var e=ch.filter(function(x){return x.state==='expired'||x.state==='none';}).length;var s=ch.filter(function(x){return x.state==='soon';}).length;if(e)exp++;else if(s)soon++;else ok++;});
+ var tot=CARS.length,ok=0,soon=0,exp=0,unpaidV=0;
+ CARS.forEach(function(c){var ch=carChecks(c);var ex=ch.filter(function(x){return x.state==='expired'||x.state==='none';}).length;var so=ch.filter(function(x){return x.state==='soon';}).length;if(ex)exp++;else if(so)soon++;else ok++;unpaidV+=vioStats(c).unpaid;});
  g('stats').innerHTML=
   '<div class="stat"><b>'+tot+'</b><span>إجمالي المركبات</span></div>'+
   '<div class="stat"><b style="color:#7bd88f">'+ok+'</b><span>سليمة</span></div>'+
   '<div class="stat"><b style="color:#e8b84b">'+soon+'</b><span>قريبة الانتهاء</span></div>'+
-  '<div class="stat"><b style="color:#f08a8a">'+exp+'</b><span>منتهية</span></div>';
+  '<div class="stat"><b style="color:#f08a8a">'+exp+'</b><span>منتهية</span></div>'+
+  '<div class="stat"><b style="color:#f08a8a">'+unpaidV+'</b><span>مخالفات غير مسددة</span></div>';
 }
 function renderAlerts(){
  var list=[];
- CARS.forEach(function(c,i){var ch=carChecks(c).filter(function(x){return x.state!=='ok';});if(ch.length)list.push({c:c,i:i,ch:ch});});
- if(!list.length){g('alerts').innerHTML='<div class="al-ok">✓ كل المركبات سليمة — لا توجد تنبيهات تجديد قريبة</div>';return;}
- function rank(o){var m=9999;o.ch.forEach(function(x){var v=(x.state==='soon')?x.days:((x.state==='ok')?9999:(-1000-(-(x.days||0))));if(v<m)m=v;});return m;}
+ CARS.forEach(function(c,i){var ch=carChecks(c).filter(function(x){return x.state!=='ok';});var vs=vioStats(c);if(ch.length||vs.unpaid)list.push({c:c,i:i,ch:ch,vs:vs});});
+ if(!list.length){g('alerts').innerHTML='<div class="al-ok">✓ كل المركبات سليمة — لا توجد تنبيهات تجديد أو مخالفات غير مسددة</div>';return;}
+ function rank(o){var m=9999;o.ch.forEach(function(x){var v=(x.state==='soon')?x.days:-1000;if(v<m)m=v;});if(o.vs.unpaid&&m>0)m=-500;return m;}
  list.sort(function(a,b){return rank(a)-rank(b);});
  var rows=list.map(function(o){
    var pills=o.ch.map(function(x){var cls=(x.state==='soon')?'pill-soon':'pill-exp';var ic=(x.label.indexOf('رخصة')>=0)?'📋':((x.label.indexOf('فحص')>=0)?'🔧':'🛡️');var nm=x.label.replace('السير','').replace('الدوري','').trim();return '<span class="pill '+cls+'">'+ic+' '+nm+': '+e(x.txt)+'</span>';}).join('');
+   if(o.vs.unpaid)pills+='<span class="pill pill-exp">🚫 مخالفات: '+o.vs.unpaid+' غير مسددة ('+money(o.vs.unpaidSum)+')</span>';
    return '<div class="al-row" onclick="openDetail('+o.i+')"><div class="al-car">'+e(o.c.brand)+' '+e(o.c.model)+' <span class="al-plate">'+e(o.c.plate)+'</span></div><div class="al-pills">'+pills+'</div></div>';
  }).join('');
- g('alerts').innerHTML='<div class="al-card"><div class="al-head"><span>🔔 تنبيهات التجديد</span><span class="al-sub">تنبيه قبل انتهاء الرخصة أو الفحص أو التأمين بـ14 يوم</span></div>'+rows+'</div>';
+ g('alerts').innerHTML='<div class="al-card"><div class="al-head"><span>🔔 التنبيهات</span><span class="al-sub">الرخصة والفحص والتأمين قبل 14 يوم + المخالفات غير المسددة</span></div>'+rows+'</div>';
 }
 function brands(){return [...new Set(CARS.map(c=>c.brand).filter(Boolean))].sort();}
 function fillBrandFilter(){const cur=g('fb').value;g('fb').innerHTML='<option value="">كل الماركات</option>'+brands().map(b=>'<option '+(b===cur?'selected':'')+'>'+e(b)+'</option>').join('');}
@@ -232,24 +277,142 @@ function doRenewSave(i,field){
  if(field==='insurance'){var co=((g('rn_co')||{}).value||'').trim(); if(co)c.ins_co=co; c.ins_status='سارية';}
  save();render();openDetail(i);alert('✓ تم حفظ التاريخ الجديد: '+fd(v));
 }
-function openDetail(i){
- const c=CARS[i];const al=carAlerts(c);
- const img=c.form?('<img src="'+c.form+'" onclick="zoom(\''+i+'\')">'):('<div class="noimg"><div style="font-size:30px">🚗</div><div>لا توجد استمارة</div></div>');
- const R=(l,v)=>'<div class="drow"><span>'+l+'</span><b>'+e(v||'—')+'</b></div>';
- g('modalIn').innerHTML=
- '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' <span dir="auto">'+e(c.model)+'</span> <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
- '<div class="detail"><div class="dcol">'+
+/* ============ نظام سجل الأحداث للمركبات ============ */
+var EVTYPES=[
+ {k:'violation',l:'مخالفة',ic:'🚫'},
+ {k:'insurance',l:'تأمين',ic:'🛡️'},
+ {k:'inspection',l:'فحص دوري',ic:'🔧'},
+ {k:'form',l:'استمارة/رخصة سير',ic:'📋'},
+ {k:'maintenance',l:'صيانة',ic:'🛠️'},
+ {k:'oil',l:'تغيير زيت',ic:'🛢️'},
+ {k:'accident',l:'حادث',ic:'💥'},
+ {k:'other',l:'أخرى',ic:'📌'}
+];
+function evMeta(k){for(var j=0;j<EVTYPES.length;j++){if(EVTYPES[j].k===k)return EVTYPES[j];}return EVTYPES[EVTYPES.length-1];}
+function cEvents(c){return Array.isArray(c.events)?c.events:[];}
+function evSorted(c){return cEvents(c).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''));});}
+function money(n){var v=parseFloat(n);if(isNaN(v)||!v)return '—';return v.toLocaleString('en-US')+' ر.س';}
+function vioStats(c){var v=cEvents(c).filter(function(e){return e.type==='violation';});function sum(a){return a.reduce(function(t,e){return t+(parseFloat(e.amount)||0);},0);}var un=v.filter(function(e){return !e.paid;});return {count:v.length,unpaid:un.length,unpaidSum:sum(un),paidSum:sum(v.filter(function(e){return e.paid;})),total:sum(v)};}
+function stripEvImgs(a){return a.map(function(c){var o={};for(var k in c)o[k]=c[k];if(Array.isArray(o.events))o.events=o.events.map(function(ev){var m={};for(var k in ev){if(k==='img')continue;m[k]=ev[k];}return m;});return o;});}
+function mergeEvImgs(nw,old){var cm={};(old||[]).forEach(function(c){cm[c.id]={};(c.events||[]).forEach(function(ev){cm[c.id][ev.id]=ev.img;});});nw.forEach(function(c){if(Array.isArray(c.events)){var src=cm[c.id]||{};c.events.forEach(function(ev){if((!ev.img||ev.img==='')&&src[ev.id])ev.img=src[ev.id];});}});return nw;}
+function compressImg(dataURL,cb){try{var img=new Image();img.onload=function(){var mx=1280,w=img.width,h=img.height;if(w>mx||h>mx){if(w>h){h=Math.round(h*mx/w);w=mx;}else{w=Math.round(w*mx/h);h=mx;}}var cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);try{cb(cv.toDataURL('image/jpeg',0.6));}catch(e){cb(dataURL);}};img.onerror=function(){cb(dataURL);};img.src=dataURL;}catch(e){cb(dataURL);}}
+function zoomSrc(src){g('imgviewImg').src=src;g('imgview').classList.add('open');}
+var _di=0,_dtab='data';
+function dGo(key,el){_dtab=key;var ps=document.querySelectorAll('#modalIn .dpane');for(var j=0;j<ps.length;j++)ps[j].style.display=(ps[j].getAttribute('data-k')===key)?'block':'none';var ts=document.querySelectorAll('#modalIn .dtab');for(var j=0;j<ts.length;j++)ts[j].classList.remove('on');if(el)el.classList.add('on');}
+function chip(label,state,txt){var cls=(state==='ok')?'ch-ok':((state==='soon')?'ch-warn':'ch-bad');return '<div class="chip '+cls+'"><span class="chl">'+label+'</span><span class="chv">'+e(txt)+'</span></div>';}
+function evThumb(ev){return ev.img?'<img class="evthumb" src="'+ev.img+'" onclick="zoomSrc(this.src)">':'';}
+function evRowActions(i,id){return '<button class="minibtn" onclick="openEvent('+i+',\''+id+'\')">✎</button><button class="minibtn del" onclick="delEvent('+i+',\''+id+'\')">🗑</button>';}
+function evTable(c,i,types,empty){
+ var evs=evSorted(c).filter(function(ev){return types.indexOf(ev.type)>=0;});
+ if(!evs.length)return '<div class="emptybox">'+empty+' · استخدم «＋ إضافة حدث» لإضافة سجل</div>';
+ var rows=evs.map(function(ev){var m=evMeta(ev.type);return '<tr><td>'+m.ic+' '+m.l+'</td><td class="mono">'+fdBoth(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+e(ev.notes||'—')+' '+evThumb(ev)+'</td><td class="c">'+evRowActions(i,ev.id)+'</td></tr>';}).join('');
+ return '<div class="evwrap"><table class="evtab"><thead><tr><th>النوع</th><th>التاريخ</th><th>المبلغ</th><th>الجهة</th><th>المرجع</th><th>ملاحظات</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function vioPane(c,i){
+ var vs=vioStats(c);
+ var head='<div class="viosum"><div class="vcard"><b>'+vs.count+'</b><span>إجمالي المخالفات</span></div>'+
+  '<div class="vcard '+(vs.unpaid?'bad':'')+'"><b>'+vs.unpaid+'</b><span>غير مسددة</span></div>'+
+  '<div class="vcard"><b>'+money(vs.unpaidSum)+'</b><span>مبلغ غير مسدّد</span></div>'+
+  '<div class="vcard"><b>'+money(vs.total)+'</b><span>إجمالي الغرامات</span></div></div>';
+ var evs=evSorted(c).filter(function(ev){return ev.type==='violation';});
+ if(!evs.length)return head+'<div class="emptybox">لا توجد مخالفات مسجّلة · استخدم «＋ إضافة حدث» ثم اختر «مخالفة»</div>';
+ var rows=evs.map(function(ev){return '<tr><td class="mono">'+fdBoth(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+e(ev.notes||'—')+' '+evThumb(ev)+'</td><td class="c"><button class="pillbtn '+(ev.paid?'paid':'unpaid')+'" onclick="togglePaid('+i+',\''+ev.id+'\')">'+(ev.paid?'✔ مسددة':'● غير مسددة')+'</button></td><td class="c">'+evRowActions(i,ev.id)+'</td></tr>';}).join('');
+ return head+'<div class="evwrap"><table class="evtab"><thead><tr><th>التاريخ</th><th>الغرامة</th><th>الجهة</th><th>رقم المخالفة</th><th>ملاحظات</th><th>الحالة</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function timeline(c,i){
+ var evs=evSorted(c);
+ if(!evs.length)return '<div class="emptybox">لا توجد أحداث مسجّلة بعد لهذه المركبة</div>';
+ var items=evs.map(function(ev){var m=evMeta(ev.type);var ex=[];if(ev.amount&&parseFloat(ev.amount))ex.push(money(ev.amount));if(ev.party)ex.push(e(ev.party));if(ev.ref)ex.push('مرجع: '+e(ev.ref));if(ev.meter&&parseFloat(ev.meter))ex.push('العداد: '+e(ev.meter)+' كم');if(ev.type==='violation')ex.push(ev.paid?'<span style="color:#7bd88f">مسددة</span>':'<span style="color:#f08a8a">غير مسددة</span>');
+  return '<div class="tl-ev"><div class="tl-ic">'+m.ic+'</div><div class="tl-body"><div class="tl-top"><b>'+m.l+'</b><span class="tl-date mono">'+fdBoth(ev.date)+'</span></div>'+(ex.length?'<div class="tl-meta">'+ex.join(' · ')+'</div>':'')+(ev.notes?'<div class="tl-note">'+e(ev.notes)+'</div>':'')+evThumb(ev)+'<div class="tl-act">'+evRowActions(i,ev.id)+'</div></div></div>';}).join('');
+ return '<div class="tl">'+items+'</div>';
+}
+function openDetail(i,tab){
+ _di=i;var c=CARS[i];var ch=carChecks(c);var al=carAlerts(c);var vs=vioStats(c);
+ var byLabel={};ch.forEach(function(x){byLabel[x.label]=x;});
+ var lic=byLabel['رخصة السير']||{state:'none',txt:'—'};
+ var insp=byLabel['الفحص الدوري']||{state:'none',txt:'—'};
+ var ins=byLabel['التأمين']||{state:'none',txt:'—'};
+ var img=c.form?('<img src="'+c.form+'" onclick="zoom(\''+i+'\')">'):('<div class="noimg"><div style="font-size:30px">🚗</div><div>لا توجد استمارة</div></div>');
+ var R=function(l,v){return '<div class="drow"><span>'+l+'</span><b>'+e(v||'—')+'</b></div>';};
+ var vioTxt=vs.unpaid?(vs.unpaid+' غير مسددة'):(vs.count?'لا متأخرات':'لا مخالفات');
+ var chips='<div class="chips">'+chip('رخصة السير',lic.state,lic.txt)+chip('الفحص الدوري',insp.state,insp.txt)+chip('التأمين',ins.state,ins.txt)+'<div class="chip '+(vs.unpaid?'ch-bad':'ch-ok')+'"><span class="chl">المخالفات</span><span class="chv">'+e(vioTxt)+'</span></div></div>';
+ var tabs=[['data','البيانات'],['ins','التأمين والرخصة'],['insp','الفحص'],['vio','المخالفات'+(vs.unpaid?' <span class="tbadge">'+vs.unpaid+'</span>':'')],['maint','الصيانة'],['log','السجلّ الكامل']];
+ var tabbar='<div class="dtabs">'+tabs.map(function(t){return '<button class="dtab" data-k="'+t[0]+'" onclick="dGo(\''+t[0]+'\',this)">'+t[1]+'</button>';}).join('')+'<button class="dtab addev" onclick="openEvent('+i+')">＋ إضافة حدث</button></div>';
+ var paneData='<div class="dpane" data-k="data"><div class="detail"><div class="dcol">'+
    '<div class="drow"><span>رقم اللوحة</span><b dir="auto" style="font-family:monospace;color:#d8b441">'+e(c.plate)+'</b></div>'+
-   R('اللون',c.color)+R('نوع التسجيل',c.reg)+R('رقم الهيكل',c.vin)+R('الرقم التسلسلي',c.serial)+R('الوزن',(c.weight?c.weight+' كجم':'—'))+
-   R('رقم الهوية',c.hid)+renewRow('انتهاء رخصة السير',fdBoth(c.license_exp),'license',i)+renewRow('انتهاء الفحص الدوري',fdBoth(c.inspection_exp),'inspection',i)+
-   R('شركة التأمين',c.ins_co)+R('بداية التأمين',fdBoth(c.ins_start))+renewRow('انتهاء التأمين',fdBoth(c.ins_exp),'insurance',i)+R('حالة التأمين',c.ins_status)+
-   (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'<div style="margin-top:10px;color:#7bd88f;font-size:13px">✓ جميع الأوراق سارية</div>')+
- '</div><div class="formimg"><div class="lbl">رخصة السير</div>'+img+
-   '<div class="field" style="margin-top:8px"><label>تحديث صورة الرخصة</label><input type="file" accept="image/*" onchange="setForm('+i+',this)"></div>'+
- '</div></div>'+
- '<div class="actions"><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button>'+
-   '<button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button>'+
-   '<button class="btn" onclick="closeModal()">إغلاق</button></div>';
+   R('اللون',c.color)+R('نوع التسجيل',c.reg)+R('رقم الهيكل',c.vin)+R('الرقم التسلسلي',c.serial)+R('الوزن',(c.weight?c.weight+' كجم':'—'))+R('رقم الهوية',c.hid)+
+   '</div><div class="formimg"><div class="lbl">رخصة السير</div>'+img+
+   '<div class="field" style="margin-top:8px"><label>تحديث صورة الرخصة</label><input type="file" accept="image/*" onchange="setForm('+i+',this)"></div></div></div></div>';
+ var paneIns='<div class="dpane" data-k="ins"><div class="dcol">'+
+   R('شركة التأمين',c.ins_co)+R('بداية التأمين',fdBoth(c.ins_start))+renewRow('انتهاء التأمين',fdBoth(c.ins_exp),'insurance',i)+R('حالة التأمين',c.ins_status)+renewRow('انتهاء رخصة السير',fdBoth(c.license_exp),'license',i)+
+   '</div>'+evTable(c,i,['insurance','form'],'لا توجد أحداث تأمين أو استمارة')+'</div>';
+ var paneInsp='<div class="dpane" data-k="insp"><div class="dcol">'+renewRow('انتهاء الفحص الدوري',fdBoth(c.inspection_exp),'inspection',i)+'</div>'+evTable(c,i,['inspection'],'لا توجد سجلات فحص')+'</div>';
+ var paneVio='<div class="dpane" data-k="vio">'+vioPane(c,i)+'</div>';
+ var paneMaint='<div class="dpane" data-k="maint">'+evTable(c,i,['maintenance','oil','accident','other'],'لا توجد سجلات صيانة')+'</div>';
+ var paneLog='<div class="dpane" data-k="log">'+timeline(c,i)+'</div>';
+ g('modalIn').innerHTML=
+  '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' <span dir="auto">'+e(c.model)+'</span> <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
+  chips+tabbar+'<div class="dbody">'+paneData+paneIns+paneInsp+paneVio+paneMaint+paneLog+'</div>'+
+  (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'')+
+  '<div class="actions"><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button><button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button><button class="btn" onclick="closeModal()">إغلاق</button></div>';
+ g('modal').classList.add('open');
+ var want=tab||'data';var tbEl=document.querySelector('#modalIn .dtab[data-k="'+want+'"]');dGo(want,tbEl);
+}
+var _evCar=0,_evId=null,_evImg='';
+function openEvent(i,id){
+ _evCar=i;_evId=id||null;_evImg='';
+ var ev=null;if(id){ev=cEvents(CARS[i]).filter(function(x){return x.id===id;})[0]||null;}
+ if(ev)_evImg=ev.img||'';
+ var typ=(ev&&ev.type)||'violation';var dt=(ev&&ev.date)||TODAY;
+ var typeOpts=EVTYPES.map(function(t){return '<option value="'+t.k+'" '+(t.k===typ?'selected':'')+'>'+t.ic+' '+t.l+'</option>';}).join('');
+ g('modalIn').innerHTML=
+  '<div class="modal-head"><h2>'+(id?'✎ تعديل حدث':'＋ إضافة حدث')+' — '+e(CARS[i].brand)+' '+e(CARS[i].model)+'</h2><button class="x" onclick="openDetail('+i+',_dtab)">×</button></div>'+
+  '<div class="grid2">'+
+   '<div class="field"><label>نوع الحدث</label><select id="ev_type" onchange="evTypeHint()">'+typeOpts+'</select></div>'+
+   '<div class="field"><label>التاريخ (هجري)</label><input id="ev_date" value="'+e(dt)+'" placeholder="1448-03-22"></div>'+
+   '<div class="field"><label>المبلغ / الغرامة (ر.س)</label><input id="ev_amount" type="number" value="'+e(ev&&ev.amount!=null?ev.amount:'')+'" placeholder="0"></div>'+
+   '<div class="field"><label>الجهة / المصدر</label><input id="ev_party" value="'+e(ev&&ev.party||'')+'" placeholder="المرور / الورشة / شركة التأمين"></div>'+
+   '<div class="field"><label>الرقم المرجعي</label><input id="ev_ref" value="'+e(ev&&ev.ref||'')+'" placeholder="رقم المخالفة / الفاتورة"></div>'+
+   '<div class="field"><label>قراءة العداد (كم)</label><input id="ev_meter" type="number" value="'+e(ev&&ev.meter||'')+'" placeholder="للصيانة وتغيير الزيت"></div>'+
+  '</div>'+
+  '<div class="field" id="ev_paidwrap"><label>حالة السداد</label><select id="ev_paid"><option value="0" '+((ev&&ev.paid)?'':'selected')+'>غير مسددة</option><option value="1" '+((ev&&ev.paid)?'selected':'')+'>مسددة</option></select></div>'+
+  '<div class="field"><label>ملاحظات</label><textarea id="ev_notes" rows="2" style="width:100%">'+e(ev&&ev.notes||'')+'</textarea></div>'+
+  '<div class="field"><label>مرفق (صورة المخالفة / الفاتورة / تقرير الحادث)</label><input type="file" accept="image/*" onchange="evPickImg(this)"><div id="ev_imgprev" style="margin-top:6px">'+(_evImg?'<img class="evthumb big" src="'+_evImg+'" onclick="zoomSrc(this.src)">':'')+'</div></div>'+
+  '<div class="actions"><button class="btn gold" onclick="saveEvent()">💾 حفظ الحدث</button>'+(id?'<button class="btn" onclick="delEvent('+i+',\''+id+'\')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button>':'')+'<button class="btn" onclick="openDetail('+i+',_dtab)">إلغاء</button></div>';
+ g('modal').classList.add('open');evTypeHint();
+}
+function evTypeHint(){var t=(g('ev_type')||{}).value;var w=g('ev_paidwrap');if(w)w.style.display=(t==='violation')?'block':'none';}
+function evPickImg(inp){var f=inp.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){compressImg(ev.target.result,function(d){_evImg=d;var p=g('ev_imgprev');if(p)p.innerHTML='<img class="evthumb big" src="'+d+'" onclick="zoomSrc(this.src)">';});};r.readAsDataURL(f);}
+function _evTabFor(t){if(t==='violation')return 'vio';if(t==='inspection')return 'insp';if(t==='insurance'||t==='form')return 'ins';if(t==='maintenance'||t==='oil'||t==='accident'||t==='other')return 'maint';return 'log';}
+function saveEvent(){
+ var i=_evCar;var c=CARS[i];if(!Array.isArray(c.events))c.events=[];
+ var v=function(id){var el=g('ev_'+id);return el?String(el.value).trim():'';};
+ var o={type:v('type'),date:v('date'),amount:v('amount'),party:v('party'),ref:v('ref'),meter:v('meter'),notes:v('notes'),paid:(v('type')==='violation')?(((g('ev_paid')||{}).value)==='1'):false,img:_evImg};
+ if(!o.date){alert('أدخل تاريخ الحدث');return;}
+ if(_evId){var ix=c.events.map(function(x){return x.id;}).indexOf(_evId);if(ix>=0){o.id=_evId;c.events[ix]=o;}else{o.id=String(Date.now());c.events.push(o);}}
+ else{o.id=String(Date.now())+'_'+Math.floor(Math.random()*1000);c.events.push(o);}
+ save();render();openDetail(i,_evTabFor(o.type));
+}
+function delEvent(i,id){if(!confirm('حذف هذا الحدث نهائياً؟'))return;var c=CARS[i];c.events=cEvents(c).filter(function(x){return x.id!==id;});save();render();openDetail(i,_dtab);}
+function togglePaid(i,id){var c=CARS[i];cEvents(c).forEach(function(x){if(x.id===id)x.paid=!x.paid;});save();render();openDetail(i,'vio');}
+function openReport(){
+ var upRenew=[],unpaid=[];var maintTot=0,vioTot=0,vioUnpaidTot=0,evCount=0;
+ CARS.forEach(function(c,i){
+   carChecks(c).forEach(function(x){if(x.state==='soon'||x.state==='expired')upRenew.push({c:c,i:i,x:x});});
+   cEvents(c).forEach(function(ev){evCount++;if(ev.type==='violation'){vioTot+=parseFloat(ev.amount)||0;if(!ev.paid){unpaid.push({c:c,i:i,ev:ev});vioUnpaidTot+=parseFloat(ev.amount)||0;}}if(ev.type==='maintenance'||ev.type==='oil')maintTot+=parseFloat(ev.amount)||0;});
+ });
+ upRenew.sort(function(a,b){return (a.x.days==null?9999:a.x.days)-(b.x.days==null?9999:b.x.days);});
+ var kpis='<div class="viosum"><div class="vcard"><b>'+CARS.length+'</b><span>المركبات</span></div>'+
+  '<div class="vcard '+(upRenew.length?'bad':'')+'"><b>'+upRenew.length+'</b><span>تجديدات مستحقة/قريبة</span></div>'+
+  '<div class="vcard '+(unpaid.length?'bad':'')+'"><b>'+unpaid.length+'</b><span>مخالفات غير مسددة</span></div>'+
+  '<div class="vcard"><b>'+money(vioUnpaidTot)+'</b><span>مبلغ غير مسدّد</span></div>'+
+  '<div class="vcard"><b>'+money(maintTot)+'</b><span>إجمالي الصيانة</span></div></div>';
+ var ren=upRenew.length?('<div class="evwrap"><table class="evtab"><thead><tr><th>المركبة</th><th>البند</th><th>الحالة</th></tr></thead><tbody>'+upRenew.map(function(o){return '<tr onclick="openDetail('+o.i+')" style="cursor:pointer"><td>'+e(o.c.brand)+' '+e(o.c.model)+' <span class="mono">'+e(o.c.plate)+'</span></td><td>'+e(o.x.label)+'</td><td style="color:'+(o.x.state==='expired'?'#f08a8a':'#e8b84b')+'">'+e(o.x.txt)+'</td></tr>';}).join('')+'</tbody></table></div>'):'<div class="emptybox">لا توجد تجديدات مستحقة خلال المدى القريب</div>';
+ var vio=unpaid.length?('<div class="evwrap"><table class="evtab"><thead><tr><th>المركبة</th><th>التاريخ</th><th>الغرامة</th><th>رقم المخالفة</th></tr></thead><tbody>'+unpaid.map(function(o){return '<tr onclick="openDetail('+o.i+',\'vio\')" style="cursor:pointer"><td>'+e(o.c.brand)+' '+e(o.c.model)+' <span class="mono">'+e(o.c.plate)+'</span></td><td class="mono">'+fdBoth(o.ev.date)+'</td><td>'+money(o.ev.amount)+'</td><td>'+e(o.ev.ref||'—')+'</td></tr>';}).join('')+'</tbody></table></div>'):'<div class="emptybox">لا توجد مخالفات غير مسددة ✓</div>';
+ g('modalIn').innerHTML='<div class="modal-head"><h2>📊 تقرير الأسطول</h2><button class="x" onclick="closeModal()">×</button></div>'+kpis+
+  '<div class="repsec">🔔 التجديدات المستحقة والقريبة</div>'+ren+
+  '<div class="repsec">🚫 المخالفات غير المسددة</div>'+vio+
+  '<div class="actions"><button class="btn" onclick="window.print()">🖨 طباعة</button><button class="btn" onclick="closeModal()">إغلاق</button></div>';
  g('modal').classList.add('open');
 }
 function zoom(i){g('imgviewImg').src=CARS[i].form;g('imgview').classList.add('open');}
@@ -332,8 +495,8 @@ var _CFG_CARS={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-a
 var _cdb=null,_cfbReady=false;
 function setSync(){}
 function initFB(){try{if(!firebase.apps.length)firebase.initializeApp(_CFG_CARS);_cdb=firebase.firestore();_cfbReady=true;pullCloud();}catch(e){}}
-function pullCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').get().then(function(doc){if(doc.exists){var data=doc.data()||{};if(data.cars&&data.cars.length){try{CARS=attachImgs(data.cars);}catch(e){}try{idbSet('cars',stripImgs(CARS));}catch(e){}}if(data.cal==='g'||data.cal==='h'){CAL=data.cal;}try{updateCalBtn();}catch(e){}try{render();}catch(e){}}else{pushCloud();}}).catch(function(){});}catch(e){}}
-function pushCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').set({cars:stripImgs(CARS),cal:CAL,updatedAt:Date.now()}).catch(function(){});}catch(e){}}
+function pullCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').get().then(function(doc){if(doc.exists){var data=doc.data()||{};if(data.cars&&data.cars.length){try{CARS=mergeEvImgs(attachImgs(data.cars),CARS);}catch(e){}try{idbSet('cars',stripImgs(CARS));}catch(e){}}if(data.cal==='g'||data.cal==='h'){CAL=data.cal;}try{updateCalBtn();}catch(e){}try{render();}catch(e){}}else{pushCloud();}}).catch(function(){});}catch(e){}}
+function pushCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').set({cars:stripEvImgs(stripImgs(CARS)),cal:CAL,updatedAt:Date.now()}).catch(function(){});}catch(e){}}
 </script>
 <!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
 <div id="authGate" style="position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 50% -10%,#06240c 0%,#06240c 55%);direction:rtl;font-family:'Cairo',system-ui,sans-serif">
