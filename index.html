@@ -6,39 +6,187 @@
 <meta name="theme-color" content="#06240c">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg1:#06240c;--bg2:#06240c;--panel:#11331c;--line:#1d4a2c;--gold:#b8921a;--gold2:#d8b441;--cream:#f3ead0;--muted:#9db3a3;--red:#cf5050}
+:root{--bg1:#06240c;--bg2:#041c08;--panel:#11331c;--panel2:#0e2c18;--line:#1d4a2c;--gold:#b8921a;--gold2:#d8b441;--cream:#f3ead0;--muted:#9db3a3;--red:#cf5050;--green:#7bd88f}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Cairo',sans-serif;background:linear-gradient(160deg,var(--bg1),var(--bg2));color:var(--cream);min-height:100vh}
-header{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid var(--line);background:rgba(10,32,16,.6)}
-header img{width:48px;height:48px;object-fit:contain}
+body{font-family:'Cairo',sans-serif;background:radial-gradient(1100px 600px at 50% -10%,#0d2e15,#06240c 60%);color:var(--cream);min-height:100vh}
+header{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(10,32,16,.6)}
+header img{width:46px;height:46px;object-fit:contain}
 header .h-t{font-weight:800;font-size:17px}
 header .h-s{font-size:12px;color:var(--muted)}
-main{padding:26px 18px 70px;max-width:1080px;margin:0 auto}
-h1{font-size:22px;margin-bottom:6px}
-.lead{color:var(--muted);font-size:14px;line-height:1.9;margin-bottom:22px}
-.btn{background:rgba(255,255,255,.05);color:var(--cream);border:1px solid var(--line);padding:11px 18px;border-radius:12px;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;transition:.2s}
+main{padding:22px 18px 80px;max-width:1120px;margin:0 auto}
+h1{font-size:23px;margin-bottom:6px}
+.lead{color:var(--muted);font-size:14px;line-height:1.9;margin-bottom:18px}
+.btn{background:rgba(255,255,255,.05);color:var(--cream);border:1px solid var(--line);padding:10px 16px;border-radius:12px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;transition:.2s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .btn:hover{border-color:var(--gold)}
 .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1206;border-color:transparent}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px}
-table{width:100%;border-collapse:collapse;font-size:13.5px}
-th,td{padding:10px 8px;text-align:right;border-bottom:1px solid var(--line)}
-th{color:var(--gold2)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
-a.app{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;text-decoration:none;color:var(--cream);transition:.2s}
-a.app:hover{border-color:var(--gold);transform:translateY(-3px)}
-a.app .ic{font-size:30px}
-a.app .nm{font-weight:800;font-size:15px}
-a.app .ds{font-size:12px;color:var(--muted)}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#11331c;border:1px solid var(--gold);color:var(--cream);padding:11px 20px;border-radius:12px;font-size:13.5px;z-index:9999;opacity:0;transition:.3s}
+.btn.on{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1206;border-color:transparent}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{flex:1;background:transparent;border:none;outline:none;color:var(--cream);font-family:inherit;font-size:14px;padding:12px 4px}
+.search .i{color:var(--muted)}
+.managehint{display:none;background:rgba(216,180,65,.1);border:1px dashed var(--gold);color:var(--gold2);border-radius:12px;padding:10px 14px;font-size:12.5px;line-height:1.8;margin:6px 0 14px}
+body.manage .managehint{display:block}
+
+.cat{margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+.cat .cic{font-size:19px}
+.cat h2{font-size:16.5px;color:var(--gold2);font-weight:800;white-space:nowrap}
+.cat .cnt{background:rgba(216,180,65,.14);color:var(--gold2);border-radius:20px;padding:1px 10px;font-size:12px;font-weight:700}
+.cat .line{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;min-height:10px}
+body.manage .grid{outline:1px dashed rgba(216,180,65,.25);outline-offset:6px;border-radius:14px;padding:4px;min-height:92px}
+a.app{position:relative;display:flex;align-items:center;gap:12px;background:linear-gradient(160deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:16px;padding:16px;text-decoration:none;color:var(--cream);transition:.18s}
+a.app:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 10px 22px rgba(0,0,0,.25)}
+a.app .ic{flex-shrink:0;width:50px;height:50px;border-radius:14px;background:rgba(216,180,65,.1);border:1px solid rgba(216,180,65,.18);display:flex;align-items:center;justify-content:center;font-size:25px}
+a.app .tx{min-width:0}
+a.app .nm{font-weight:800;font-size:14.5px;margin-bottom:3px}
+a.app .ds{font-size:11.5px;color:var(--muted);line-height:1.5}
+a.app .hidebtn{display:none;position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;background:rgba(207,80,80,.18);border:1px solid var(--red);color:#ffb4b4;font-size:13px;line-height:1;cursor:pointer;align-items:center;justify-content:center}
+body.manage a.app{cursor:grab;border-style:dashed}
+body.manage a.app .hidebtn{display:flex}
+body.manage a.app:hover{transform:none}
+a.app.dragging{opacity:.35;border-color:var(--gold2)}
+a.app.dragover{border-color:var(--gold2);box-shadow:0 0 0 2px var(--gold2) inset}
+.grip{display:none}
+body.manage .grip{display:inline-block;position:absolute;bottom:8px;left:10px;color:var(--muted);font-size:13px}
+
+.hiddenbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0;display:none}
+.hiddenbox.show{display:block}
+.hiddenbox h3{font-size:14px;color:var(--gold2);margin-bottom:10px}
+.hrow{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);font-size:13px}
+.hrow:last-child{border-bottom:none}
+.hrow .hic{font-size:18px}
+.hrow .hn{flex:1}
+.hrow .mini{background:rgba(123,216,143,.12);border:1px solid #2e7d4e;color:var(--green);border-radius:9px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:700}
+.empty-cat{color:var(--muted);font-size:12.5px;padding:10px;grid-column:1/-1}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#11331c;border:1px solid var(--gold);color:var(--cream);padding:11px 20px;border-radius:12px;font-size:13.5px;z-index:9999;opacity:0;transition:.3s;pointer-events:none}
 .toast.show{opacity:1}
-</style><style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
+</style><style>
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
-@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
-</head><body><div data-idbar style="text-align:center;padding:10px 0 4px;background:transparent"><img src="logo_green.png?v=4" alt="شعار المكتب الإداري للشيخ سعد آل عوضه" style="height:120px;max-width:92%;object-fit:contain"></div>
+@media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}
+</style>
+</head><body>
+<div data-idbar style="text-align:center;padding:10px 0 4px;background:transparent"><img src="logo_green.png?v=4" alt="شعار المكتب الإداري للشيخ سعد آل عوضه" style="height:120px;max-width:92%;object-fit:contain"></div>
 <header><img src="logo_green.png?v=4" alt="شعار"><div><div class="h-t">لوحة التطبيقات</div><div class="h-s">سعد آل عوضة · المكتب الإداري</div></div></header>
 <main>
-<h1>لوحة تطبيقات المكتب</h1><p class="lead">كل تطبيقات المكتب الإداري في مكان واحد. اختر التطبيق للانتقال إليه.</p><div class="grid"><a class="app" href="custody_expenses_saad_alawdah.html"><div class="ic">💰</div><div class="nm">المصروفات (العهدة)</div><div class="ds">تسجيل ومتابعة المصروفات</div></a><a class="app" href="custody_expenses_archive_saad_alawdah.html"><div class="ic">🗄️</div><div class="nm">أرشيف المصروفات</div><div class="ds">سجل المصروفات المؤرشفة</div></a><a class="app" href="debtors_saad_alawdah.html"><div class="ic">🧾</div><div class="nm">السلف والمديونيات</div><div class="ds">متابعة السلف والديون</div></a><a class="app" href="bank_analytics_saad_alawdah.html"><div class="ic">🏦</div><div class="nm">الحساب البنكي العقاري</div><div class="ds">الحساب البنكي والمطابقة</div></a><a class="app" href="payroll_hr_saad_alawdah_v2.html"><div class="ic">👥</div><div class="nm">الرواتب والموارد البشرية</div><div class="ds">إدارة الموظفين والرواتب</div></a><a class="app" href="الإيجارات_الأول.html"><div class="ic">🏢</div><div class="nm">إدارة الإيجارات</div><div class="ds">العقود والإيجارات</div></a><a class="app" href="الإيجارات_التفاعلي.html"><div class="ic">📊</div><div class="nm">إدارة الإيجارات — تفاعلي</div><div class="ds">بحث وبطاقات وتسوية الحوالات</div></a><a class="app" href="إدارة_الإيجارات_الموحد.html"><div class="ic">🆕</div><div class="nm">إدارة الإيجارات — الموحّد</div><div class="ds">النسخة المدمجة: مالية وبنك وتسوية</div></a><a class="app" href="سيارات_الشيخ_سعد.html"><div class="ic">🚗</div><div class="nm">السيارات</div><div class="ds">سجل ومتابعة السيارات</div></a><a class="app" href="مؤسسة_سعد_آل_عوضة.html"><div class="ic">🏛️</div><div class="nm">مؤسسة سعد آل عوضة</div><div class="ds">بيانات المؤسسة</div></a><a class="app" href="سجل_أملاك_الشيخ_سعد_العقارية__PRO_محدثة.html"><div class="ic">🏘️</div><div class="nm">سجل الأملاك العقارية</div><div class="ds">العقارات والأملاك</div></a><a class="app" href="تقفيلة_الحساب_الرئيسي_3000.html"><div class="ic">🏗️</div><div class="nm">التقفيلة الحسابية</div><div class="ds">تقفيلة الحساب الرئيسي</div></a><a class="app" href="document_manager.html"><div class="ic">📁</div><div class="nm">مدير المستندات</div><div class="ds">حفظ وتنظيم المستندات</div></a><a class="app" href="partnerships_manager.html"><div class="ic">🤝</div><div class="nm">إدارة الشراكات</div><div class="ds">إدارة الشراكات</div></a><a class="app" href="correspondence_saad_alawdah.html"><div class="ic">✉️</div><div class="nm">المراسلات</div><div class="ds">الخطابات والمراسلات الرسمية</div></a><a class="app" href="المرجع_الإداري_المصطلحات.html"><div class="ic">📚</div><div class="nm">المرجع الإداري</div><div class="ds">المصطلحات والإجراءات والجهات</div></a><a class="app" href="backup_tool.html"><div class="ic">💾</div><div class="nm">النسخ الاحتياطي</div><div class="ds">نسخة كاملة لكل البيانات</div></a></div></main><div class="toast" id="toast"></div>
-<script>function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2400);}</script>
+<h1>لوحة تطبيقات المكتب</h1>
+<p class="lead">كل تطبيقات المكتب الإداري مرتّبة في مجموعات. اختر التطبيق للانتقال إليه، أو استخدم «ترتيب وإدارة» لإعادة ترتيبها وإخفاء ما لا تحتاجه.</p>
 
+<div class="toolbar">
+  <div class="search"><span class="i">🔍</span><input id="q" placeholder="ابحث عن تطبيق بالاسم أو الوصف…"></div>
+  <button class="btn" id="manageBtn" onclick="toggleManage()">⚙️ ترتيب وإدارة</button>
+  <button class="btn" id="hiddenBtn" onclick="toggleHidden()">🙈 المخفية <span id="hcount"></span></button>
+</div>
+<div class="managehint">وضع الترتيب مفعّل: اسحب أي تطبيق لتغيير ترتيبه أو نقله إلى مجموعة أخرى · اضغط ✕ أعلى البطاقة لإخفائه · اضغط «تم» للإنهاء. كل تغيير يُحفظ تلقائياً في هذا المتصفح.</div>
+
+<div class="hiddenbox" id="hiddenBox"></div>
+<div id="cats"></div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+var CATS=[
+  {key:'re',  nm:'العقاري',            ic:'🏢'},
+  {key:'fin', nm:'المالي والمحاسبي',    ic:'💰'},
+  {key:'corp',nm:'الشركات والشراكات',   ic:'🤝'},
+  {key:'admin',nm:'إداري وخدمات',       ic:'🗂️'}
+];
+var APPS=[
+  {id:'rent1',  href:'الإيجارات_الأول.html',                          ic:'🏢',nm:'إدارة الإيجارات',          ds:'العقود والإيجارات',            cat:'re'},
+  {id:'rentint',href:'الإيجارات_التفاعلي.html',                        ic:'📊',nm:'إدارة الإيجارات — تفاعلي',  ds:'بحث وبطاقات وتسوية الحوالات',   cat:'re'},
+  {id:'rentuni',href:'إدارة_الإيجارات_الموحد.html',                    ic:'🆕',nm:'إدارة الإيجارات — الموحّد', ds:'النسخة المدمجة: مالية وبنك وتسوية',cat:'re'},
+  {id:'props',  href:'سجل_أملاك_الشيخ_سعد_العقارية__PRO_محدثة.html',  ic:'🏘️',nm:'سجل الأملاك العقارية',    ds:'العقارات والأملاك',            cat:'re'},
+  {id:'bank',   href:'bank_analytics_saad_alawdah.html',              ic:'🏦',nm:'الحساب البنكي العقاري',   ds:'كشف الحساب والمطابقة',         cat:'fin'},
+  {id:'exp',    href:'custody_expenses_saad_alawdah.html',            ic:'💰',nm:'المصروفات (العهدة)',      ds:'تسجيل ومتابعة المصروفات',       cat:'fin'},
+  {id:'exparch',href:'custody_expenses_archive_saad_alawdah.html',    ic:'🗄️',nm:'أرشيف المصروفات',        ds:'سجل المصروفات المؤرشفة',        cat:'fin'},
+  {id:'debt',   href:'debtors_saad_alawdah.html',                     ic:'🧾',nm:'السلف والمديونيات',       ds:'متابعة السلف والديون',          cat:'fin'},
+  {id:'pay',    href:'payroll_hr_saad_alawdah_v2.html',               ic:'👥',nm:'الرواتب والموارد البشرية', ds:'إدارة الموظفين والرواتب',       cat:'fin'},
+  {id:'close',  href:'تقفيلة_الحساب_الرئيسي_3000.html',               ic:'🧮',nm:'التقفيلة الحسابية',       ds:'تقفيلة الحساب الرئيسي',         cat:'fin'},
+  {id:'corp1',  href:'مؤسسة_سعد_آل_عوضة.html',                        ic:'🏛️',nm:'مؤسسة سعد آل عوضة',       ds:'بيانات المؤسسة',               cat:'corp'},
+  {id:'partn',  href:'partnerships_manager.html',                     ic:'🤝',nm:'إدارة الشراكات',          ds:'الشركات والشراكات (نالكم)',     cat:'corp'},
+  {id:'cars',   href:'سيارات_الشيخ_سعد.html',                         ic:'🚗',nm:'السيارات',               ds:'أسطول السيارات وسجلّ الأحداث',  cat:'admin'},
+  {id:'docs',   href:'document_manager.html',                         ic:'📁',nm:'مدير المستندات',          ds:'حفظ وتنظيم المستندات',          cat:'admin'},
+  {id:'corr',   href:'correspondence_saad_alawdah.html',              ic:'✉️',nm:'المراسلات',              ds:'الخطابات والمراسلات الرسمية',   cat:'admin'},
+  {id:'ref',    href:'المرجع_الإداري_المصطلحات.html',                 ic:'📚',nm:'المرجع الإداري',          ds:'المصطلحات والإجراءات والجهات',  cat:'admin'},
+  {id:'backup', href:'backup_tool.html',                              ic:'💾',nm:'النسخ الاحتياطي',         ds:'نسخة كاملة لكل البيانات',       cat:'admin'}
+];
+var LS='SAAD_LAUNCHER_V1';
+var ST={order:APPS.map(function(a){return a.id;}),cat:{},hidden:{}};
+try{var raw=localStorage.getItem(LS);if(raw){var o=JSON.parse(raw);if(o&&o.order){ST.order=o.order;ST.cat=o.cat||{};ST.hidden=o.hidden||{};}}}catch(e){}
+// ensure any newly-added app id exists in order
+APPS.forEach(function(a){if(ST.order.indexOf(a.id)<0)ST.order.push(a.id);});
+
+var byId={};APPS.forEach(function(a){byId[a.id]=a;});
+var manage=false,dragId=null;
+function save(){try{localStorage.setItem(LS,JSON.stringify(ST));}catch(e){}}
+function catOf(id){return ST.cat[id]||byId[id].cat;}
+function el(id){return document.getElementById(id);}
+function toast(m){var t=el('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show');},2400);}
+
+function orderedIds(){ return ST.order.filter(function(id){return byId[id];}); }
+
+function render(){
+  var q=(el('q').value||'').trim().toLowerCase();
+  var host=el('cats');host.innerHTML='';
+  CATS.forEach(function(c){
+    var ids=orderedIds().filter(function(id){return catOf(id)===c.key && !ST.hidden[id];});
+    // search filter
+    var vis=ids.filter(function(id){var a=byId[id];return !q || (a.nm+' '+a.ds).toLowerCase().indexOf(q)>=0;});
+    if(q && !vis.length) return; // hide empty categories while searching
+    var sec=document.createElement('div');
+    sec.innerHTML='<div class="cat"><span class="cic">'+c.ic+'</span><h2>'+c.nm+'</h2><span class="cnt">'+ids.length+'</span><span class="line"></span></div>';
+    var grid=document.createElement('div');grid.className='grid';grid.dataset.cat=c.key;
+    (q?vis:ids).forEach(function(id){grid.appendChild(cardEl(id));});
+    if(!ids.length && !q){var e=document.createElement('div');e.className='empty-cat';e.textContent='لا تطبيقات في هذه المجموعة — اسحب تطبيقاً إلى هنا في وضع الترتيب.';grid.appendChild(e);}
+    // dropzone
+    grid.addEventListener('dragover',function(ev){if(!manage)return;ev.preventDefault();});
+    grid.addEventListener('drop',function(ev){if(!manage||!dragId)return;ev.preventDefault();dropInto(c.key,null);});
+    sec.appendChild(grid);
+    host.appendChild(sec);
+  });
+  renderHidden();
+}
+function cardEl(id){
+  var a=byId[id];
+  var card=document.createElement('a');card.className='app';card.href=a.href;card.dataset.id=id;
+  card.innerHTML='<button class="hidebtn" title="إخفاء" onclick="hideApp(event,\''+id+'\')">✕</button>'+
+    '<div class="ic">'+a.ic+'</div><div class="tx"><div class="nm">'+a.nm+'</div><div class="ds">'+a.ds+'</div></div><span class="grip">⠿ اسحب</span>';
+  card.addEventListener('click',function(ev){if(manage){ev.preventDefault();}});
+  card.setAttribute('draggable','false');
+  card.addEventListener('dragstart',function(ev){if(!manage){ev.preventDefault();return;}dragId=id;card.classList.add('dragging');try{ev.dataTransfer.setData('text/plain',id);}catch(e){}});
+  card.addEventListener('dragend',function(){dragId=null;card.classList.remove('dragging');[].forEach.call(document.querySelectorAll('.app.dragover'),function(x){x.classList.remove('dragover');});});
+  card.addEventListener('dragover',function(ev){if(!manage||!dragId||dragId===id)return;ev.preventDefault();ev.stopPropagation();card.classList.add('dragover');});
+  card.addEventListener('dragleave',function(){card.classList.remove('dragover');});
+  card.addEventListener('drop',function(ev){if(!manage||!dragId)return;ev.preventDefault();ev.stopPropagation();card.classList.remove('dragover');dropInto(catOf(id),id);});
+  return card;
+}
+function dropInto(catKey,beforeId){
+  if(!dragId)return;var id=dragId;
+  ST.cat[id]=catKey;
+  var ord=ST.order.filter(function(x){return x!==id;});
+  if(beforeId){var ix=ord.indexOf(beforeId);ord.splice(ix<0?ord.length:ix,0,id);}
+  else{ // append after last of this category
+    var lastIx=-1;ord.forEach(function(x,i){if(catOf(x)===catKey)lastIx=i;});
+    ord.splice(lastIx+1,0,id);
+  }
+  ST.order=ord;save();render();
+}
+function hideApp(ev,id){ev.preventDefault();ev.stopPropagation();ST.hidden[id]=true;save();render();toast('تم إخفاء «'+byId[id].nm+'» — يمكنك استعادته من «المخفية».');}
+function restoreApp(id){delete ST.hidden[id];save();render();toast('تمت استعادة «'+byId[id].nm+'».');}
+function renderHidden(){
+  var ids=orderedIds().filter(function(id){return ST.hidden[id];});
+  el('hcount').textContent=ids.length?('('+ids.length+')'):'';
+  var box=el('hiddenBox');
+  if(!ids.length){box.innerHTML='<h3>🙈 التطبيقات المخفية</h3><div style="color:var(--muted);font-size:13px">لا توجد تطبيقات مخفية.</div>';return;}
+  box.innerHTML='<h3>🙈 التطبيقات المخفية ('+ids.length+')</h3>'+ids.map(function(id){var a=byId[id];
+    return '<div class="hrow"><span class="hic">'+a.ic+'</span><span class="hn">'+a.nm+'</span><button class="mini" onclick="restoreApp(\''+id+'\')">↩ استعادة</button></div>';}).join('')+
+    '<div style="margin-top:12px"><button class="btn" onclick="restoreAll()">↩ استعادة الكل</button></div>';
+}
+function restoreAll(){ST.hidden={};save();render();toast('تمت استعادة جميع التطبيقات.');}
+function toggleManage(){manage=!manage;document.body.classList.toggle('manage',manage);var b=el('manageBtn');b.classList.toggle('on',manage);b.innerHTML=manage?'✅ تم':'⚙️ ترتيب وإدارة';[].forEach.call(document.querySelectorAll('.app'),function(c){c.setAttribute('draggable',manage?'true':'false');});toast(manage?'وضع الترتيب مفعّل — اسحب أو أخفِ التطبيقات.':'تم حفظ الترتيب.');}
+function toggleHidden(){el('hiddenBox').classList.toggle('show');}
+el('q').addEventListener('input',render);
+render();
+</script>
 <script src="localsave.js" defer></script>
 </body></html>
