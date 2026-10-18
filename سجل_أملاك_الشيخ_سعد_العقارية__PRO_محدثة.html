@@ -349,6 +349,12 @@ tr.clickrow{cursor:pointer} tr.clickrow:hover td{background:rgba(216,180,65,.10)
   .ptable tr.mk{background:#f6efd6!important}
   .ptable td.merged{color:#06240c!important}
 }
+/* ===== مجلدات الأراضي (قطع الأرض الواحدة) ===== */
+.pcard.landfolder{cursor:pointer;border:1.5px solid var(--gold);background:linear-gradient(180deg,rgba(184,146,26,.10),var(--panel));transition:transform .12s ease,box-shadow .12s ease}
+.pcard.landfolder:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.badge-folder{background:var(--gold)!important;color:#1a1205!important;font-weight:800}
+.folder-bar{grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:2px 2px 10px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.folder-title{font-weight:800;color:var(--cream);font-size:15px}
 </style>
 <style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
@@ -1077,6 +1083,69 @@ function exportTableExcel(){
   a.click();
   toast('تم تصدير الجدول');
 }
+/* ===== مجلدات الأراضي المقسّمة (تجميع قطع الأرض الواحدة) ===== */
+var _openFolder=null;
+function _landKey(p){ return (p.city||'')+'||'+(p.district||'')+'||'+(p.plan||''); }
+function _ja(s){ return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function _landGroups(list){
+  var m={},order=[];
+  list.forEach(function(p){ var k=_landKey(p); if(!m[k]){m[k]=[];order.push(k);} m[k].push(p); });
+  return order.map(function(k){return {key:k,items:m[k]};});
+}
+function folderCardHTML(gp){
+  var items=gp.items, p0=items[0];
+  var area=Math.round(items.reduce(function(s,p){return s+(p.area||0);},0)*100)/100;
+  var buy=items.reduce(function(s,p){return s+(p.purchasePrice||0);},0);
+  var plots=items.map(function(p){return esc(p.plot);}).filter(function(x){return x;});
+  var legalN=items.filter(function(p){return p.legal&&p.legal.trim();}).length;
+  var plotsPreview=plots.slice(0,14).join('، ')+(plots.length>14?' …':'');
+  return ''+
+  '<div class="pcard landfolder" onclick="openFolder(\''+_ja(gp.key)+'\')">'+
+    '<div class="pcard-top">'+
+      '<div class="pcard-badges">'+
+        '<span class="badge badge-folder">📁 أرض مقسّمة</span>'+
+        '<span class="badge badge-plot">'+items.length+' قطعة</span>'+
+        (legalN?'<span class="badge badge-new">⚠ '+legalN+' متابعة</span>':'')+
+      '</div>'+
+      '<div class="pcard-loc">'+esc(p0.district)+' <span class="city">— '+esc(p0.city)+'</span></div>'+
+    '</div>'+
+    '<div class="pcard-body">'+
+      '<div class="prow"><span class="k">المخطط</span><span class="v">'+esc(p0.plan||'—')+'</span></div>'+
+      '<div class="prow"><span class="k">عدد القطع</span><span class="v">'+items.length+'</span></div>'+
+      '<div class="prow"><span class="k">إجمالي المساحة</span><span class="v">'+fmt(area)+' م²</span></div>'+
+      '<div class="prow"><span class="k">إجمالي الشراء</span><span class="v '+(buy>0?'price':'zero')+'">'+(buy>0?fmt(buy)+' ريال':'—')+'</span></div>'+
+      '<div class="prow"><span class="k">القطع</span><span class="v" style="text-align:left;direction:ltr">'+plotsPreview+'</span></div>'+
+    '</div>'+
+    '<div class="pcard-foot">'+
+      '<button class="btn btn-gold btn-sm" onclick="event.stopPropagation();openFolder(\''+_ja(gp.key)+'\')">📂 فتح ومشاهدة القطع</button>'+
+    '</div>'+
+  '</div>';
+}
+function buildCardsView(list){
+  // داخل مجلد أرض محددة: اعرض قطع هذه الأرض فقط مع زر رجوع
+  if(_openFolder){
+    var inside=list.filter(function(p){return _landKey(p)===_openFolder;});
+    if(inside.length){
+      var p0=inside[0];
+      var bar='<div class="folder-bar">'+
+        '<button class="btn btn-ghost btn-sm" onclick="closeFolder()">⬅ رجوع لكل الأراضي</button>'+
+        '<span class="folder-title">📁 '+esc(p0.district)+' — '+esc(p0.city)+(p0.plan?' · مخطط '+esc(p0.plan):'')+' ('+inside.length+' قطعة)</span>'+
+      '</div>';
+      return bar+inside.map(cardHTML).join('');
+    }
+    _openFolder=null;
+  }
+  // عند وجود بحث/تصفية نشطة: اعرض كل القطع مسطّحة ليجدها البحث مباشرة
+  var qActive=(g('fSearch')&&g('fSearch').value.trim())||(g('fCity')&&g('fCity').value)||(g('fDistrict')&&g('fDistrict').value)||(g('fType')&&g('fType').value)||_onlyLegal;
+  if(qActive){ return list.map(cardHTML).join(''); }
+  // المستوى الأعلى: مجلد لكل أرض فيها أكثر من قطعة، وبطاقة مفردة لغيرها
+  return _landGroups(list).map(function(gp){
+    return gp.items.length>1 ? folderCardHTML(gp) : cardHTML(gp.items[0]);
+  }).join('');
+}
+function openFolder(k){ _openFolder=k; render(); try{window.scrollTo(0,0);}catch(e){} }
+function closeFolder(){ _openFolder=null; render(); }
+
 function render(){
   var list=applyFilters();
   // الملخص (يعكس التصفية الحالية)
@@ -1086,9 +1155,9 @@ function render(){
   g('sumLegal').textContent=fmt(list.filter(function(p){return p.legal&&p.legal.trim();}).length);
 
   var grid=g('grid'), empty=g('emptyState');
-  if(!list.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  if(!list.length){ _openFolder=null; grid.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
-  grid.innerHTML=list.map(cardHTML).join('');
+  grid.innerHTML=buildCardsView(list);
   if(_curView==='table'){ renderTable(list); }
   if(_curView==='dash' && typeof renderDash==='function'){ renderDash(list); }
 }
