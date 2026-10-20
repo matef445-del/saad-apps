@@ -355,6 +355,23 @@ tr.clickrow{cursor:pointer} tr.clickrow:hover td{background:rgba(216,180,65,.10)
 .badge-folder{background:var(--gold)!important;color:#1a1205!important;font-weight:800}
 .folder-bar{grid-column:1/-1;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:2px 2px 10px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .folder-title{font-weight:800;color:var(--cream);font-size:15px}
+/* ===== المظهر المطوّر (أخضر + ذهبي + بترولي + عاجي) — قابل للتبديل ===== */
+html[data-theme="enhanced"]{
+  --panel:#0f3a37; --panel2:#0a2d2b; --line:#1e524a;
+  --cream:#f6efdd; --muted:#a8c3b7;
+}
+html[data-theme="enhanced"] header{background:linear-gradient(135deg,#0f3a37 0%,#0a2a28 100%)}
+html[data-theme="enhanced"] .dtile,
+html[data-theme="enhanced"] .dcard{background:linear-gradient(160deg,#0f3a37,#0a2d2b);border-color:#1e524a}
+html[data-theme="enhanced"] .dtab th,
+html[data-theme="enhanced"] .dtab tr:hover td{background:#0c332f}
+html[data-theme="enhanced"] .dtab td{border-bottom-color:#1e524a}
+/* مفتاح تبديل مظهر الألوان */
+.theme-toggle{margin-right:auto;display:inline-flex;align-items:center;gap:9px;background:rgba(0,0,0,.22);border:1px solid var(--line);color:var(--cream);border-radius:999px;padding:8px 15px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;transition:.15s;white-space:nowrap}
+.theme-toggle:hover{border-color:var(--gold);color:var(--gold2)}
+.theme-toggle .tt-dot{width:12px;height:12px;border-radius:50%;background:var(--gold2);box-shadow:0 0 0 3px rgba(216,180,65,.18);transition:.15s}
+html[data-theme="enhanced"] .theme-toggle .tt-dot{background:#2bb3a3;box-shadow:0 0 0 3px rgba(43,179,163,.22)}
+@media print{.theme-toggle{display:none!important}}
 </style>
 <style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
@@ -419,6 +436,9 @@ const LOGO="logo_green.png?v=4";
       <h1>سجل أملاك الشيخ سعد علي آل عوضه العقارية</h1>
       <div class="sub">المكتب الإداري للشيخ سعد علي آل عوضه</div>
     </div>
+    <button id="themeToggle" class="theme-toggle no-print" onclick="toggleTheme()" title="تبديل مظهر الألوان بين الحالي والمطوّر">
+      <span class="tt-dot"></span><span id="themeLabel">المظهر الحالي</span>
+    </button>
   </header>
   <div class="gold-divider no-print"></div>
 
@@ -1145,6 +1165,19 @@ function buildCardsView(list){
 }
 function openFolder(k){ _openFolder=k; render(); try{window.scrollTo(0,0);}catch(e){} }
 function closeFolder(){ _openFolder=null; render(); }
+
+/* ===== تبديل مظهر الألوان: الحالي ⇄ المطوّر (اختيار يدوي محفوظ) ===== */
+function applyTheme(t){
+  if(t==='enhanced'){ document.documentElement.setAttribute('data-theme','enhanced'); }
+  else { t='current'; document.documentElement.removeAttribute('data-theme'); }
+  var lbl=document.getElementById('themeLabel'); if(lbl) lbl.textContent=(t==='enhanced'?'المظهر المطوّر':'المظهر الحالي');
+  try{ localStorage.setItem('propreg_theme', t); }catch(e){}
+}
+function toggleTheme(){
+  var on=document.documentElement.getAttribute('data-theme')==='enhanced';
+  applyTheme(on?'current':'enhanced');
+}
+(function(){ var t='current'; try{ t=localStorage.getItem('propreg_theme')||'current'; }catch(e){} applyTheme(t); })();
 
 function render(){
   var list=applyFilters();
@@ -2676,6 +2709,7 @@ window.__APP_BOOT__=function(){
   afterLoad();
   setSync('');
   initFB();
+  try{ applyTheme(localStorage.getItem('propreg_theme')||'current'); }catch(e){ try{applyTheme('current');}catch(_){} }
 };
 </script>
 <!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
