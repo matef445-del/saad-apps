@@ -400,6 +400,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="hint"><i class="ti ti-info-circle" style="font-size:14px;color:var(--gdm)"></i>
         وفق نظام العمل السعودي: <b>21 يوم</b> سنوياً لمن أمضى أقل من 5 سنوات · <b>30 يوم</b> لمن أمضى 5 سنوات فأكثر — ويُحتسب الرصيد تلقائياً بالتراكم من <b>آخر تاريخ عودة</b>. والتذكرة <b>كل سنتين لغير السعوديين</b>
       </div>
+      <div id="lv-open"></div>
       <div id="lv-return"></div>
       <div class="lv-card">
         <div class="lv-head">
@@ -1386,7 +1387,58 @@ function renderLeaves(){
         <button class="btn bdl sm" onclick="delLv(${i})"><i class="ti ti-trash"></i></button>
       </td></tr>`;
   }).join('');
+  renderOpenLeaves();
   renderLeaveReturns();
+}
+/* ── تسجيل العودة السريع: موظفون في إجازة مفتوحة (معتمدة بلا تاريخ عودة) ── */
+function _openLeaveIdx(eid){
+  var cands=[];
+  lvReqs.forEach(function(r,i){ if(r.eid===eid && r.st==='approved' && !r.returnWork && (r.from||r.lastWork)) cands.push({r:r,i:i}); });
+  if(!cands.length) return -1;
+  var today=new Date(); var td=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  function cov(r){ var f=new Date(r.from),t=new Date(r.to); if(isNaN(f)||isNaN(t))return false; return td>=new Date(f.getFullYear(),f.getMonth(),f.getDate()) && td<=new Date(t.getFullYear(),t.getMonth(),t.getDate()); }
+  cands.sort(function(a,b){ var ca=cov(a.r)?1:0, cb=cov(b.r)?1:0; if(ca!==cb)return cb-ca; return String(b.r.to||'').localeCompare(String(a.r.to||'')); });
+  return cands[0].i;
+}
+function renderOpenLeaves(){
+  var box=document.getElementById('lv-open'); if(!box) return;
+  var today=new Date().toISOString().slice(0,10);
+  var tMap={annual:'سنوية',sick:'مرضية',emergency:'طارئة',unpaid:'بدون راتب'};
+  var rows=[];
+  var tdNow=new Date(); tdNow=new Date(tdNow.getFullYear(),tdNow.getMonth(),tdNow.getDate());
+  emps.forEach(function(e){
+    var idx=_openLeaveIdx(e.id); if(idx<0) return;
+    var r=lvReqs[idx];
+    // الافتراضي: اليوم التالي لانتهاء الإجازة إن كانت منقضية، وإلا اليوم الحالي
+    var retDefault=today; var t=new Date(r.to);
+    if(!isNaN(t)){ var tD=new Date(t.getFullYear(),t.getMonth(),t.getDate()); if(tD<tdNow){ retDefault=new Date(tD.getTime()+86400000).toISOString().slice(0,10); } }
+    rows.push('<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #EAE5D5;border-radius:8px;padding:9px 12px;flex-wrap:wrap">'
+      +'<div style="display:flex;align-items:center;gap:8px"><span class="ea">'+av2(e.name)+'</span><div><div style="font-weight:600;font-size:12.5px">'+e.name+'</div>'
+      +'<div style="font-size:10.5px;color:#8A7A50">في إجازة '+(tMap[r.type]||r.type)+' ('+(r.from||'—')+' → '+(r.to||'—')+') · بلا تاريخ عودة</div></div></div>'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">'
+      +'<input type="date" id="ret-'+e.id+'" value="'+retDefault+'" style="font-size:12px;padding:5px 7px;border:1px solid #D8D0BA;border-radius:6px">'
+      +'<button class="btn bg sm" onclick="markReturn('+e.id+')"><i class="ti ti-arrow-back-up"></i> تسجيل العودة</button>'
+      +'</div></div>');
+  });
+  if(!rows.length){ box.innerHTML=''; return; }
+  box.innerHTML='<div style="background:#FBF9F1;border:1px solid #EAE5D5;border-radius:10px;padding:12px 14px;margin-bottom:12px">'
+    +'<div class="st" style="margin-bottom:9px"><i class="ti ti-user-check" style="color:var(--gold)"></i> تسجيل العودة من الإجازة ('+rows.length+')</div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px">'+rows.join('')+'</div>'
+    +'<div style="font-size:10.5px;color:#8A7A50;margin-top:8px">اختر تاريخ العودة الفعلي ثم اضغط «تسجيل العودة» — يبدأ احتساب أيام العمل من ذلك التاريخ تلقائياً، ويتراكم رصيد الإجازة من جديد.</div></div>';
+}
+function markReturn(eid){
+  var idx=_openLeaveIdx(eid); if(idx<0){ tk('لا توجد إجازة مفتوحة لهذا الموظف','var(--err)'); return; }
+  var inp=document.getElementById('ret-'+eid);
+  var dt=(inp&&inp.value)?inp.value:new Date().toISOString().slice(0,10);
+  var r=lvReqs[idx];
+  if(!r.lastWork && r.from){ var f=new Date(r.from); if(!isNaN(f)){ f.setDate(f.getDate()-1); r.lastWork=f.toISOString().slice(0,10); } }
+  r.returnWork=dt; r.st='approved';
+  var e=bid(eid)||{};
+  renderLeaves();
+  try{ if(document.getElementById('pg-payroll').classList.contains('active')) renderPayroll(); }catch(_e){}
+  try{ upDash(); }catch(_e){}
+  saveToLocal();
+  tk('✅ تم تسجيل عودة '+(e.name||'')+' بتاريخ '+dt+' — بدأ احتساب أيام العمل');
 }
 /* ── قسم «بانتظار العودة»: تذكير بمواعيد رجوع الموظفين ── */
 function renderLeaveReturns(){
