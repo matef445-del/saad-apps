@@ -268,6 +268,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         <div class="sc" style="cursor:pointer" onclick="goTo('leaves')" title="الإجازات"><div class="sl">رصيد إجازات منخفض</div><div class="sv" id="s-lowlv">—</div><div class="ss" style="color:#7A5A00">أقل من 7 أيام</div><i class="ti ti-calendar-stats si"></i></div>
         <div class="sc" style="cursor:pointer" onclick="goTo('empProfile')" title="ملفات الموظفين"><div class="sl">وثائق قرب الانتهاء</div><div class="sv" id="s-docs">—</div><div class="ss" id="s-docs-sub" style="color:var(--err)">خلال 90 يوم</div><i class="ti ti-file-alert si"></i></div>
       </div>
+      <div id="consistency-box"></div>
       <div class="cr2">
         <div class="cc"><div class="st" style="margin-bottom:11px">صافي رواتب الموظفين (بالألف ر.س)</div><div class="ba" id="bc"></div></div>
         <div class="cc">
@@ -1053,6 +1054,7 @@ function upDash(){
   /* لا نكتب ملخّص التقارير أثناء فتح صفحة التقارير حتى لا يتعارض شهر اللوحة مع شهر التقرير */
   var _rp=document.getElementById('pg-reports');
   if(!_rp||!_rp.classList.contains('active')){ S('rg',fmt(g)); S('rn',fmt(n)); }
+  try{ renderConsistency(); }catch(_e){}
   /* الرسوم */
   renderJobDist();
   renderNetBars(_y,_m);
@@ -2273,6 +2275,75 @@ function _migratePenaltiesV1(){ try{
   if(changed){ try{saveToLocal();}catch(e){} }
   return changed;
 }catch(err){ console.error('_migratePenaltiesV1',err); return false; } }
+
+/* ═══════════ لوحة فحص الاتساق: ترصد تعارضات التبويبات وتعالجها بضغطة ═══════════ */
+function renderConsistency(){
+  var box=document.getElementById('consistency-box'); if(!box) return;
+  var items=[];
+  /* 1) جزاءات مؤجّلة (غير مخصومة) */
+  (typeof disc!=='undefined'?disc:[]).forEach(function(d,i){
+    if(d && d.type!=='advance' && d.st==='deferred'){
+      var e=(typeof bid==='function'?bid(d.eid):null)||{name:'—'};
+      var ym=_discYM(d); var mLbl=ym?(MONTHS[(+ym.slice(5,7))-1]+' '+ym.slice(0,4)):'';
+      items.push({kind:'جزاء مؤجّل',color:'#7A5A00',
+        text:'جزاء على <b>'+e.name+'</b> بمبلغ '+fmt(d.amt)+' ر.س'+(mLbl?' (شهر '+mLbl+')':'')+' — غير مخصوم',
+        btn:'<button class="btn bg sm" style="font-size:10px" onclick="applyDisc('+i+')">✓ خصم الآن</button>'});
+    }
+  });
+  /* 2) أيام عمل مثبّتة يدوياً (لا تتأثّر بالإجازات) */
+  emps.forEach(function(e){
+    if(e.workDaysAuto===false){
+      items.push({kind:'تثبيت يدوي',color:'#185FA5',
+        text:'أيام عمل <b>'+e.name+'</b> مثبّتة يدوياً ('+(e.workDays)+'/'+BASE_DAYS+') — لن تتأثّر بالإجازات',
+        btn:'<button class="btn bo sm" style="font-size:10px" onclick="resetWorkDaysAuto('+e.id+')">↩ إعادة الاحتساب التلقائي</button>'});
+    }
+  });
+  /* 3) أشهر مؤرشفة اختلفت أرقامها عن الحالي */
+  (typeof payrollArchive!=='undefined'?payrollArchive:[]).forEach(function(a){
+    if(!a||typeof a.year!=='number')return;
+    var liveNet=emps.reduce(function(s,e){return s+computePay(e,a.year,a.month).net;},0);
+    var archNet=(a.totals&&a.totals.net)||0;
+    if(Math.abs(liveNet-archNet)>0.5){
+      items.push({kind:'أرشيف غير محدّث',color:'#A32D2D',
+        text:'كشف <b>'+a.period+'</b> المؤرشف ('+fmt(archNet)+') يختلف عن الأرقام الحالية ('+fmt(liveNet)+')',
+        btn:'<button class="btn bg sm" style="font-size:10px" onclick="refreshArchive('+a.id+')">🔄 تحديث الأرشيف</button>'});
+    }
+  });
+  if(!items.length){
+    box.innerHTML='<div style="background:#EAF7EF;border:1px solid #BFE6CF;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#1C7A45;font-weight:700;font-size:12.5px"><i class="ti ti-circle-check"></i> فحص الاتساق: كل التبويبات متّسقة ✓</div>';
+    return;
+  }
+  box.innerHTML='<div style="background:#FBF9F1;border:1px solid #EAE5D5;border-radius:10px;padding:12px 14px;margin-bottom:14px">'
+    +'<div class="st" style="margin-bottom:9px"><i class="ti ti-adjustments-alt" style="color:var(--gold)"></i> فحص الاتساق ('+items.length+')</div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px">'
+    +items.map(function(it){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #EAE5D5;border-right:3px solid '+it.color+';border-radius:8px;padding:8px 12px;flex-wrap:wrap"><div style="font-size:12px"><span style="color:'+it.color+';font-weight:700;font-size:10.5px">['+it.kind+'] </span>'+it.text+'</div>'+it.btn+'</div>';}).join('')
+    +'</div></div>';
+}
+function resetWorkDaysAuto(id){
+  var e=bid(id); if(!e)return;
+  if(!confirm('إعادة الاحتساب التلقائي لأيام عمل '+e.name+'؟ ستُحسب أيامه من الإجازات تلقائياً.'))return;
+  e.workDaysAuto=true;
+  if(typeof applyAutoWorkDays==='function')applyAutoWorkDays(selY(),selM());
+  if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
+  upDash(); saveToLocal(); tk('✅ تم تفعيل الاحتساب التلقائي لـ'+e.name);
+}
+function refreshArchive(id){
+  var a=(typeof payrollArchive!=='undefined'?payrollArchive:[]).find(function(x){return x.id===id;}); if(!a)return;
+  if(!confirm('تحديث كشف '+a.period+' المؤرشف بالأرقام الحالية؟'))return;
+  var y=a.year, m=a.month;
+  var rows=emps.map(function(e){ var c=computePay(e,y,m);
+    var lvD=salaryReducingLeaveDays(e.id,y,m);
+    var rsn=(e.dedReason||'')+(lvD?((e.dedReason?' + ':'')+'إجازة بدون راتب ('+lvD+'ي)'):'')+(c.penalty?((e.dedReason||lvD?' + ':'')+'جزاء ('+fmt(c.penalty)+')'):'');
+    return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:c.loanInst,ded:c.ded,penalty:c.penalty,dedReason:rsn,net:c.net};
+  });
+  a.rows=rows;
+  a.totals={sal:rows.reduce(function(s,r){return s+r.sal;},0),loan:rows.reduce(function(s,r){return s+r.loanInst;},0),ded:rows.reduce(function(s,r){return s+r.ded;},0),penalty:rows.reduce(function(s,r){return s+(r.penalty||0);},0),net:rows.reduce(function(s,r){return s+r.net;},0)};
+  a.refreshedAt=new Date().toISOString();
+  saveToLocal();
+  if(typeof renderArchive==='function')renderArchive();
+  upDash();
+  tk('✅ تم تحديث كشف '+a.period+' في الأرشيف');
+}
 
 
 function renderProfiles(search=''){
