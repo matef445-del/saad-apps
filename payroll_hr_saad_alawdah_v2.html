@@ -960,6 +960,15 @@ function _wdForMonth(e,y,m0){
   var lv=(typeof salaryReducingLeaveDays==='function')?salaryReducingLeaveDays(e.id,y,m0):0;
   return Math.max(0,BASE_DAYS-lv);
 }
+/* شهر الجزاء (YYYY-MM): من الحقل ym إن وُجد وإلا من تاريخه */
+function _discYM(d){ return d.ym || (d.dt? String(d.dt).slice(0,7) : ''); }
+/* مجموع الجزاءات «المعتمدة للخصم» لموظفٍ في شهرٍ محدّد (عدا السلف advance) */
+function penaltyDedForMonth(eid,y,m0){
+  var ym=y+'-'+('0'+(m0+1)).slice(-2);
+  return (typeof disc!=='undefined'?disc:[]).filter(function(d){
+    return d.eid===eid && d.type!=='advance' && d.st==='applied' && _discYM(d)===ym;
+  }).reduce(function(s,d){return s+(+d.amt||0);},0);
+}
 function computePay(e,y,m0){
   var dr=e.sal/BASE_DAYS;
   var wd=_wdForMonth(e,y,m0);
@@ -968,9 +977,10 @@ function computePay(e,y,m0){
   var ot=(e.ot||0)*(e.hr||0);
   var ded=e.ded||0;
   var loan=(typeof loanDedFor==='function')?loanDedFor(e.id,y,m0):0;
+  var pen=penaltyDedForMonth(e.id,y,m0);
   var grossV=e.sal+ot;
-  var netV=grossV-absDed-ded-loan;
-  return {workDays:wd,base:BASE_DAYS,absent:absent,dailyRate:dr,absenceDed:absDed,ot:ot,ded:ded,loanInst:loan,manual:(e.workDaysAuto===false),gross:grossV,net:netV};
+  var netV=grossV-absDed-ded-loan-pen;
+  return {workDays:wd,base:BASE_DAYS,absent:absent,dailyRate:dr,absenceDed:absDed,ot:ot,ded:ded,loanInst:loan,penalty:pen,manual:(e.workDaysAuto===false),gross:grossV,net:netV};
 }
 
 /* ════════════════════════════ NAV ════════════════════════════ */
@@ -1008,8 +1018,9 @@ function upDash(){
   if(typeof applyAutoWorkDays==='function')applyAutoWorkDays(_y,_m);
   var g=emps.reduce(function(s,e){return s+gross(e);},0);
   var loanMonth=emps.reduce(function(s,e){return s+loanDedFor(e.id,_y,_m);},0);
-  var dApplied=emps.reduce(function(s,e){return s+totalDed(e);},0)+loanMonth;
-  var n=emps.reduce(function(s,e){return s+net(e);},0)-loanMonth;
+  var penMonth=emps.reduce(function(s,e){return s+penaltyDedForMonth(e.id,_y,_m);},0);
+  var dApplied=emps.reduce(function(s,e){return s+totalDed(e);},0)+loanMonth+penMonth;
+  var n=emps.reduce(function(s,e){return s+net(e);},0)-loanMonth-penMonth;
   var active=emps.filter(function(e){return e.st==='active';}).length;
   var onLeave=emps.filter(function(e){return e.st==='leave';}).length;
   /* البطاقات — الصف الأول */
@@ -1207,10 +1218,11 @@ function rprow(e){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
+  const pen=penaltyDedForMonth(e.id,selY(),selM());
   const lvDays=salaryReducingLeaveDays(e.id,selY(),selM());
-  const n=net(e)-ln;
+  const n=net(e)-ln-pen;
   const dr=dailyRate(e);
-  const hasIssue=absent>0||(e.ded||0)>0;
+  const hasIssue=absent>0||(e.ded||0)>0||pen>0;
 
   const pwd=document.querySelector(`.pwd-${e.id}`);
   if(pwd){
@@ -1262,17 +1274,17 @@ function runPayroll(){
   const ex=payrollArchive.find(r=>r.year===y&&r.month===m);
   if(ex){ if(!confirm('يوجد كشف محفوظ لشهر '+period+'. استبداله بالحالي؟'))return; payrollArchive=payrollArchive.filter(r=>!(r.year===y&&r.month===m)); }
   applyAutoWorkDays(y,m);
-  const rows=emps.map(e=>{const ln=loanDedFor(e.id,y,m);const ded=(e.ded||0);const n=net(e)-ln;
+  const rows=emps.map(e=>{const ln=loanDedFor(e.id,y,m);const ded=(e.ded||0);const pen=penaltyDedForMonth(e.id,y,m);const n=net(e)-ln-pen;
     const lvD=salaryReducingLeaveDays(e.id,y,m);
-    const rsn=(e.dedReason||'')+(lvD?((e.dedReason?' + ':'')+'إجازة بدون راتب ('+lvD+'ي)'):'');
-    return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:ln,ded:ded,dedReason:rsn,net:n};});
-  const T={sal:rows.reduce((s,r)=>s+r.sal,0),loan:rows.reduce((s,r)=>s+r.loanInst,0),ded:rows.reduce((s,r)=>s+r.ded,0),net:rows.reduce((s,r)=>s+r.net,0)};
+    const rsn=(e.dedReason||'')+(lvD?((e.dedReason?' + ':'')+'إجازة بدون راتب ('+lvD+'ي)'):'')+(pen?((e.dedReason||lvD?' + ':'')+'جزاء ('+fmt(pen)+')'):'');
+    return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:ln,ded:ded,penalty:pen,dedReason:rsn,net:n};});
+  const T={sal:rows.reduce((s,r)=>s+r.sal,0),loan:rows.reduce((s,r)=>s+r.loanInst,0),ded:rows.reduce((s,r)=>s+r.ded,0),penalty:rows.reduce((s,r)=>s+(r.penalty||0),0),net:rows.reduce((s,r)=>s+r.net,0)};
   payrollArchive.push({id:Date.now(),year:y,month:m,period:period,paidAt:new Date().toISOString(),rows:rows,totals:T});
   saveToLocal();
   tk('✅ تم صرف رواتب '+period+' وحفظها في الأرشيف ('+rows.length+' موظف · صافي '+fmt(T.net)+' ر.س)');
 }
-function archRowsHTML(r){return r.rows.map(x=>`<tr><td>${x.name}<div style="font-size:10px;color:#8A7A50">${x.code}</div></td><td>${fmt(x.sal)}</td><td style="color:var(--err)">${x.loanInst?'-'+fmt(x.loanInst):'-'}</td><td style="color:var(--err)">${x.ded?'-'+fmt(x.ded):'-'}</td><td style="font-size:11px">${x.dedReason||'-'}</td><td style="font-weight:700;color:var(--gd)">${fmt(x.net)} ر.س</td></tr>`).join('');}
-function archTableHTML(r){return `<table style="width:100%;border-collapse:collapse" class="arch-t"><thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>قسط سلفة/خصم</th><th>خصومات أخرى</th><th>السبب</th><th>الصافي</th></tr></thead><tbody>${archRowsHTML(r)}</tbody><tfoot><tr style="font-weight:700"><td>الإجمالي (${r.rows.length})</td><td>${fmt(r.totals.sal)}</td><td style="color:var(--err)">-${fmt(r.totals.loan)}</td><td style="color:var(--err)">-${fmt(r.totals.ded)}</td><td>—</td><td style="color:var(--gd)">${fmt(r.totals.net)} ر.س</td></tr></tfoot></table>`;}
+function archRowsHTML(r){return r.rows.map(x=>`<tr><td>${x.name}<div style="font-size:10px;color:#8A7A50">${x.code}</div></td><td>${fmt(x.sal)}</td><td style="color:var(--err)">${x.loanInst?'-'+fmt(x.loanInst):'-'}</td><td style="color:var(--err)">${x.penalty?'-'+fmt(x.penalty):'-'}</td><td style="color:var(--err)">${x.ded?'-'+fmt(x.ded):'-'}</td><td style="font-size:11px">${x.dedReason||'-'}</td><td style="font-weight:700;color:var(--gd)">${fmt(x.net)} ر.س</td></tr>`).join('');}
+function archTableHTML(r){return `<table style="width:100%;border-collapse:collapse" class="arch-t"><thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>قسط سلفة/خصم</th><th>جزاءات</th><th>خصومات أخرى</th><th>السبب</th><th>الصافي</th></tr></thead><tbody>${archRowsHTML(r)}</tbody><tfoot><tr style="font-weight:700"><td>الإجمالي (${r.rows.length})</td><td>${fmt(r.totals.sal)}</td><td style="color:var(--err)">-${fmt(r.totals.loan)}</td><td style="color:var(--err)">-${fmt(r.totals.penalty||0)}</td><td style="color:var(--err)">-${fmt(r.totals.ded)}</td><td>—</td><td style="color:var(--gd)">${fmt(r.totals.net)} ر.س</td></tr></tfoot></table>`;}
 function renderArchive(){
   const L=document.getElementById('arch-list'); if(!L)return;
   if(!payrollArchive.length){L.innerHTML='<div style="text-align:center;color:#8A7A50;padding:24px;background:#fff;border:1px solid #EAE5D5;border-radius:9px">لا توجد كشوف مؤرشفة بعد — اذهب لكشف الرواتب واضغط «صرف الرواتب» لحفظ أول شهر.</div>';document.getElementById('arch-detail').innerHTML='';return;}
@@ -1310,7 +1322,8 @@ function showSlip(id){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
-  const n=net(e)-ln;
+  const pen=penaltyDedForMonth(e.id,selY(),selM());
+  const n=net(e)-ln-pen;
   const dr=Math.round(dailyRate(e));
   const daily=dailyRate(e);
   const lvDays=Math.min(ab,salaryReducingLeaveDays(e.id,selY(),selM()));
@@ -1323,6 +1336,7 @@ function showSlip(id){
   const otRow=op?`<div class="slr"><span style="color:#8A7A50">أجر إضافي</span><span style="color:var(--ok)">+${fmt(op)} ر.س</span></div>`:'';
   const dedRow=(e.ded||0)?`<div class="slr"><span style="color:#8A7A50">خصومات أخرى${e.dedReason?' ('+e.dedReason+')':''}</span><span style="color:var(--err)">-${fmt(e.ded)} ر.س</span></div>`:'';
   const loanRow=ln?`<div class="slr"><span style="color:#8A7A50">قسط سلفة/خصم</span><span style="color:var(--err)">-${fmt(ln)} ر.س</span></div>`:'';
+  const penRow=pen?`<div class="slr"><span style="color:#8A7A50">جزاءات/خصومات تأديبية</span><span style="color:var(--err)">-${fmt(pen)} ر.س</span></div>`:'';
   document.getElementById('slb').innerHTML=`
     <div class="slh"><img class="logo-3d-img" alt="شعار" style="width:80px;height:50px;object-fit:cover;border-radius:10px;border:2px solid var(--gold);flex-shrink:0;box-shadow:0 4px 15px rgba(201,168,76,0.4);">
     <div><div class="slorg">المكتب الإداري للشيخ سعد علي آل عوضه</div>
@@ -1338,9 +1352,10 @@ function showSlip(id){
     ${abRow}
     ${dedRow}
     ${loanRow}
+    ${penRow}
     <hr style="border:none;border-top:2px solid rgba(201,168,76,0.3);margin:6px 0">
     <div class="slr"><span style="color:#8A7A50">الإجمالي قبل الخصم</span><b>${fmt(g)} ر.س</b></div>
-    <div class="slr"><span style="color:#8A7A50">إجمالي الخصومات</span><span style="color:var(--err)">${(ab||e.ded||ln)?'-'+fmt(abD+(e.ded||0)+ln)+' ر.س':'لا يوجد'}</span></div>
+    <div class="slr"><span style="color:#8A7A50">إجمالي الخصومات</span><span style="color:var(--err)">${(ab||e.ded||ln||pen)?'-'+fmt(abD+(e.ded||0)+ln+pen)+' ر.س':'لا يوجد'}</span></div>
     <div class="slt"><span>صافي الراتب المستحق</span><span>${fmt(n)} ريال سعودي</span></div>
     <div style="text-align:center;margin-top:11px;font-size:10px;color:#8A7A50;font-family:'Amiri',serif">المكتب الإداري للشيخ سعد علي آل عوضه</div>`;
   document.getElementById('msm').classList.add('open');
@@ -1679,8 +1694,15 @@ function renderDisc(){
       +"<td><span class='bge' style='background:#FFF0E0;color:#7A3A00;font-size:10px'>"+typeLabel+"</span></td>"
       +"<td style='font-weight:700;color:var(--err)'>"+fmt(d.amt)+" ر.س"+extra+"</td>"
       +"<td>"+d.dt+"</td><td style='font-size:11px'>"+d.desc+"</td>"
-      +"<td><span class='bge bgd'>مطبق</span></td>"
-      +"<td style='display:flex;gap:3px'>"
+      +(function(){
+         if(d.type==='advance') return "<td><span class='bge bgi'>قسط شهري</span></td>";
+         var ym=_discYM(d); var mLbl=ym?(MONTHS[(+ym.slice(5,7))-1]+' '+ym.slice(0,4)):'';
+         if(d.st==='applied') return "<td><span class='bge bgd' title='مخصوم من راتب "+mLbl+"'>مخصوم · "+mLbl+"</span></td>";
+         return "<td><span class='bge bgw' title='غير مخصوم بعد'>مؤجّل</span></td>";
+       })()
+      +"<td style='display:flex;gap:3px;flex-wrap:wrap'>"
+        +((d.type!=='advance'&&d.st==='applied')?"<button class='btn bo sm' style='font-size:10px' onclick='deferDisc("+i+")' title='تأجيل الخصم'>🕒 تأجيل</button>":"")
+        +((d.type!=='advance'&&d.st!=='applied')?"<button class='btn bg sm' style='font-size:10px' onclick='applyDisc("+i+")' title='اعتماد الخصم في شهره'>✓ خصم</button>":"")
         +"<button class='btn bed sm' onclick='odm("+i+")'><i class='ti ti-edit'></i></button>"
         +"<button class='btn bdl sm' onclick='deld("+i+")'><i class='ti ti-trash'></i></button>"
       +"</td></tr>";
@@ -1776,8 +1798,11 @@ function odm(idx){
 
 function deld(i){
   if(!confirm('حذف هذا الإجراء؟'))return;
-  const d=disc[i];const e=bid(d.eid);if(e)e.ded=Math.max(0,e.ded-d.amt);
-  disc.splice(i,1);renderDisc();upDash();saveToLocal();tk('تم الحذف','var(--err)');
+  const d=disc[i];const e=bid(d.eid);
+  if(e&&d.type==='advance')e.ded=Math.max(0,e.ded-d.amt); /* السلف فقط مرتبطة بحقل الخصم */
+  disc.splice(i,1);renderDisc();upDash();
+  if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
+  saveToLocal();tk('تم الحذف','var(--err)');
 }
 
 function sdisc(){
@@ -1789,11 +1814,55 @@ function sdisc(){
   const rec={eid,amt,dt,desc,type:dtype,app:true};
   if(dtype==='days')rec.discDays=+document.getElementById('d-days').value||0;
   if(dtype==='advance'){rec.totalAdv=+document.getElementById('d-adv').value||amt;rec.months=+document.getElementById('d-adv-months').value||1;rec.monthly=amt;}
-  if(idx>=0){const old=disc[idx];const oe=bid(old.eid);if(oe)oe.ded=Math.max(0,oe.ded-old.amt);disc[idx]=rec;}
-  else disc.push(rec);
-  if(e)e.ded=(e.ded||0)+amt;
+  if(dtype==='advance'){
+    /* السلف تبقى على آليتها السابقة (قسط شهري عبر حقل الخصم) */
+    if(idx>=0){const old=disc[idx];const oe=bid(old.eid);if(oe&&old.type==='advance')oe.ded=Math.max(0,oe.ded-old.amt);disc[idx]=rec;}
+    else disc.push(rec);
+    if(e)e.ded=(e.ded||0)+amt;
+    document.getElementById('mdm').classList.remove('open');
+    renderDisc();upDash();saveToLocal();tk('✅ تم حفظ السلفة: '+desc+' - '+fmt(amt)+' ر.س');
+    return;
+  }
+  /* جزاء/خصم: يُخصم في شهره فقط، وبعد تأكيدك — مع خيار التأجيل المتاح دائماً */
+  rec.ym=(dt||'').slice(0,7);
+  var _mi=rec.ym?(+rec.ym.slice(5,7)-1):new Date().getMonth();
+  var _mLbl=(rec.ym?MONTHS[_mi]+' '+rec.ym.slice(0,4):'الشهر الحالي');
+  var _apply=confirm('خصم الجزاء ('+fmt(amt)+' ر.س) من راتب شهر '+_mLbl+' الآن؟\n\n«موافق» = يُخصم في هذا الشهر\n«إلغاء» = تأجيل الخصم (يبقى متاحاً لاعتماده لاحقاً في أي وقت)');
+  rec.st=_apply?'applied':'deferred';
+  if(idx>=0){
+    const old=disc[idx];
+    if(rec.st==='deferred'&&old.st) rec.st=rec.st; /* احترام اختيار المستخدم الحالي */
+    const oe=bid(old.eid);if(oe&&old.type==='advance')oe.ded=Math.max(0,oe.ded-old.amt); /* تنظيف أثر سلفة سابقة فقط */
+    disc[idx]=rec;
+  } else disc.push(rec);
   document.getElementById('mdm').classList.remove('open');
-  renderDisc();upDash();saveToLocal();tk('✅ تم حفظ الإجراء: '+desc+' - '+fmt(amt)+' ر.س');
+  renderDisc();upDash();
+  if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
+  saveToLocal();
+  tk(_apply?('✅ تم حفظ الجزاء وخصمه من شهر '+_mLbl):('🕒 تم حفظ الجزاء مؤجّلاً — متاح لاعتماده لاحقاً'), _apply?'var(--ok)':'var(--warn)');
+}
+/* اعتماد خصم جزاء مؤجّل (مع إمكانية اختيار الشهر) */
+function applyDisc(i){
+  var d=disc[i]; if(!d)return;
+  var ym=d.ym||(d.dt||'').slice(0,7);
+  var inp=prompt('شهر خصم الجزاء (بصيغة YYYY-MM):', ym||new Date().toISOString().slice(0,7));
+  if(!inp)return; ym=inp.trim();
+  if(!/^\d{4}-\d{2}$/.test(ym)){tk('صيغة الشهر غير صحيحة (YYYY-MM)','var(--err)');return;}
+  var mLbl=MONTHS[(+ym.slice(5,7))-1]+' '+ym.slice(0,4);
+  if(!confirm('اعتماد خصم الجزاء ('+fmt(d.amt)+' ر.س) من راتب شهر '+mLbl+'؟'))return;
+  d.st='applied'; d.ym=ym;
+  renderDisc();upDash();
+  if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
+  saveToLocal();tk('✅ تم اعتماد الخصم في '+mLbl);
+}
+/* تأجيل خصم جزاء (يبقى محفوظاً وغير مخصوم حتى تعتمده) */
+function deferDisc(i){
+  var d=disc[i]; if(!d)return;
+  if(!confirm('تأجيل خصم هذا الجزاء؟ لن يُخصم من الراتب حتى تعتمده لاحقاً.'))return;
+  d.st='deferred';
+  renderDisc();upDash();
+  if(document.getElementById('pg-payroll').classList.contains('active'))renderPayroll();
+  saveToLocal();tk('🕒 تم تأجيل الخصم — يبقى متاحاً للاعتماد','var(--warn)');
 }
 
 /* ════════════════════════════ REPORTS ════════════════════════════ */
@@ -1804,7 +1873,7 @@ function renderRep(){
     /* شهر التقرير يقود الحساب فعلياً عبر المحرّك الموحّد (يطابق كشف الرواتب والأرشيف) */
     var rm=+(document.getElementById('rep-month')||{}).value; if(isNaN(rm)) rm=(typeof selM==='function'?selM():new Date().getMonth());
     var ry=+(document.getElementById('rep-year')||{}).value || (typeof selY==='function'?selY():CY);
-    h='<tr><th>الموظف</th><th>الكود</th><th>المسمى</th><th>الراتب الأساسي</th><th>أيام الحضور</th><th>خصم الغياب</th><th>إضافي</th><th>قسط سلفة</th><th>خصومات أخرى</th><th>الصافي</th></tr>';
+    h='<tr><th>الموظف</th><th>الكود</th><th>المسمى</th><th>الراتب الأساسي</th><th>أيام الحضور</th><th>خصم الغياب</th><th>إضافي</th><th>قسط سلفة</th><th>جزاءات</th><th>خصومات أخرى</th><th>الصافي</th></tr>';
     var sumG=0,sumN=0;
     r=emps.map(function(e){
       var c=computePay(e,ry,rm);
@@ -1818,11 +1887,12 @@ function renderRep(){
         '<td style="color:var(--err)">'+(c.absenceDed>0?'-'+fmt(c.absenceDed):'-')+'</td>'+
         '<td style="color:var(--ok)">'+(c.ot?'+'+fmt(c.ot):'-')+'</td>'+
         '<td style="color:var(--err)">'+(c.loanInst?'-'+fmt(c.loanInst):'-')+'</td>'+
+        '<td style="color:var(--err)">'+(c.penalty?'-'+fmt(c.penalty):'-')+'</td>'+
         '<td style="color:var(--err)">'+(c.ded?'-'+fmt(c.ded):'-')+'</td>'+
         '<td style="font-weight:700;color:var(--gd)">'+fmt(c.net)+'</td>'+
       '</tr>';
     }).join('');
-    r+='<tr style="background:#FAF7EE"><td colspan="9" style="text-align:center;font-weight:700">الإجمالي</td><td style="font-weight:700;color:var(--gd)">'+fmt(sumN)+' ر.س</td></tr>';
+    r+='<tr style="background:#FAF7EE"><td colspan="10" style="text-align:center;font-weight:700">الإجمالي</td><td style="font-weight:700;color:var(--gd)">'+fmt(sumN)+' ر.س</td></tr>';
     var _RS=function(id,v){var el=document.getElementById(id); if(el)el.textContent=v;};
     _RS('re',emps.length); _RS('rg',fmt(sumG)); _RS('rn',fmt(sumN));
   }else if(t==='a'){
@@ -2184,6 +2254,25 @@ function ensureStaffV1(){ try{
   if(changed){ try{saveToLocal();}catch(e){} if(typeof renderProfiles==='function')renderProfiles(); if(typeof refreshUI==='function')refreshUI(); }
   return changed;
 }catch(err){ console.error('ensureStaffV1',err); return false; } }
+
+/* ترحيل الجزاءات لنموذج «الخصم في شهره» — يحافظ على الصافي:
+   كل جزاء قديم كان مخصوماً عبر الحقل المتكرّر (e.ded) يُنقل إلى شهره مع إزالة أثره
+   المتكرّر، فيبقى صافي شهره كما هو ويتوقّف تكراره في الأشهر التالية. idempotent. */
+function _migratePenaltiesV1(){ try{
+  if(typeof disc==='undefined'||!disc||!disc.length) return false;
+  var changed=false;
+  disc.forEach(function(d){
+    if(!d || d.type==='advance') return;   // السلف تبقى على آليتها
+    if(d.st) return;                        // مُرحّل مسبقاً
+    var e=(typeof bid==='function')?bid(d.eid):null;
+    if(e){ e.ded=Math.max(0,(+e.ded||0)-(+d.amt||0)); }  // إزالة الأثر المتكرّر
+    d.st='applied';
+    d.ym=(d.dt?String(d.dt).slice(0,7):'')||new Date().toISOString().slice(0,7);
+    changed=true;
+  });
+  if(changed){ try{saveToLocal();}catch(e){} }
+  return changed;
+}catch(err){ console.error('_migratePenaltiesV1',err); return false; } }
 
 
 function renderProfiles(search=''){
@@ -2570,7 +2659,7 @@ function saveToLocal(){
 
 function loadFromLocal(){
   // Try cloud first (async), then localStorage
-  loadFromCloud().then(ok => { try{ensureStaffV1();}catch(e){} if (ok) { render && render(); refreshUI && refreshUI(); renderAll && renderAll(); } if(typeof renderProfiles==='function')renderProfiles(); });
+  loadFromCloud().then(ok => { try{ensureStaffV1();}catch(e){} try{_migratePenaltiesV1();}catch(e){} if (ok) { render && render(); refreshUI && refreshUI(); renderAll && renderAll(); } if(typeof renderProfiles==='function')renderProfiles(); });
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
     if(!raw)return false;
@@ -2755,7 +2844,8 @@ function buildSlipHTML(e){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
-  const n=net(e)-ln;
+  const pen=penaltyDedForMonth(e.id,selY(),selM());
+  const n=net(e)-ln-pen;
   const dr=Math.round(dailyRate(e));
   const daily=dailyRate(e);
   const lvDays=Math.min(ab,salaryReducingLeaveDays(e.id,selY(),selM()));
@@ -2988,7 +3078,8 @@ function buildWAMsg(e){
   const op=otPay(e);
   const g=gross(e);
   const ln=loanDedFor(e.id,selY(),selM());
-  const n=net(e)-ln;
+  const pen=penaltyDedForMonth(e.id,selY(),selM());
+  const n=net(e)-ln-pen;
   const empDisc=disc.filter(d=>d.eid===e.id);
 
   // Build deduction lines
@@ -3086,6 +3177,7 @@ function downloadSlip(empId){
   // Load saved data from localStorage
   const loaded=loadFromLocal();
   try{ensureStaffV1();}catch(e){console.error(e);}
+  try{_migratePenaltiesV1();}catch(e){console.error(e);}
   if(loaded){tk('✅ تم تحميل البيانات المحفوظة');}
   checkAllExpiries();
   const vals=[18500,19000,18800,19200,19800,20100,20400,19900,20600,20800,21000,20100];
