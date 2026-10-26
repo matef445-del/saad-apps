@@ -843,6 +843,13 @@ function ensureNalkumData(){
     }
     n._nkV12=true;
   }
+  if(!n._nkV13){
+    n.expenses=n.expenses||[];
+    if(!n.expenses.some(function(x){return x.ref==='INV-47342';})){
+      n.expenses.push({id:'nx_gworkspace',date:'2026-06-01',desc:'اشتراك Google Workspace Starter (تجديد) — nalkum.com',cat:'اشتراك تقني / جوجل ووركسبيس',vendor:'شركة رقميات نت (DNET)',amount:1578.25,vat:236.74,ref:'INV-47342',status:'مدفوعة',fn:'فاتورة جوجل ووركسبيس INV47342.pdf'});
+    }
+    n._nkV13=true;
+  }
   if(typeof saveD==='function')saveD(DATA);
 }
 /* ===== نالكم — تصدير Excel / PDF ===== */
