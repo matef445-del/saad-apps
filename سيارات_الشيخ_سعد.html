@@ -105,6 +105,16 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 .acc-arw{color:var(--gold2);font-size:12px}
 .acc-body{padding:12px 16px}
 .accsel{width:100%;max-width:460px;padding:9px 11px;border-radius:10px;background:var(--bg);color:var(--cream);border:1px solid var(--line);font-family:inherit;font-size:14px;margin-bottom:10px}
+.acccarlist{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.acccarlist-h{margin:14px 0 6px;color:var(--muted);font-size:12px;font-weight:700}
+.acccar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer;transition:.12s}
+.acccar:hover{border-color:var(--gold);background:rgba(216,180,65,.06)}
+.acccar.sel{border-color:var(--gold2);background:rgba(216,180,65,.12)}
+.acccar-main{display:flex;align-items:center;gap:9px}
+.acccar-main .blogo{height:22px;width:auto}
+.acccar-st{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.acccar-st.ok{color:#7bd88f;background:rgba(123,216,143,.12)}
+.acccar-st.bad{color:#f08a8a;background:rgba(240,138,138,.12)}
 .viosum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .vcard{flex:1;min-width:110px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}
 .vcard b{display:block;font-size:17px;color:var(--gold2)}
@@ -261,7 +271,7 @@ function fillBrandFilter(){const cur=g('fb').value;g('fb').innerHTML='<option va
 /* ===== الواجهة الأمامية المنسدلة (أقسام فئوية + تسلسل السيارة) ===== */
 var _accOpen='cars',_accCar='';
 function accToggle(k){_accOpen=(_accOpen===k)?'':k;renderAccordion();}
-function accPickCar(v){_accCar=v;var b=document.getElementById('accCarBody');if(b)b.innerHTML=(v!==''&&v!=null)?accCarSummary(parseInt(v,10)):'';}
+function accPickCar(v){_accCar=v;if(typeof renderAccordion==='function')renderAccordion();}
 function accCarSummary(i){var c=CARS[i];if(!c)return '';
  var ch=(typeof carChecks==='function')?carChecks(c):[];
  var chips=ch.map(function(x){return chip(x.label,x.state,x.txt);}).join('');
@@ -283,9 +293,15 @@ function _accRows(items){
 }
 function _accGather(types){var out=[];CARS.forEach(function(c,i){(typeof cEvents==='function'?cEvents(c):[]).forEach(function(ev){if(!types||types.indexOf(ev.type)>=0)out.push({c:c,i:i,ev:ev});});});return out;}
 function accCars(){
- return '<select class="accsel" onchange="accPickCar(this.value)"><option value="">— اختر سيارة لعرض بياناتها —</option>'+
-  CARS.map(function(c,i){return '<option value="'+i+'" '+(String(i)===String(_accCar)?'selected':'')+'>'+e(c.brand)+' '+e(c.model)+' — '+e(c.plate)+'</option>';}).join('')+
-  '</select><div id="accCarBody">'+((_accCar!==''&&_accCar!=null)?accCarSummary(parseInt(_accCar,10)):'')+'</div>';
+ var sel='<select class="accsel" onchange="accPickCar(this.value)"><option value="">— اختر سيارة لعرض بياناتها —</option>'+
+  CARS.map(function(c,i){return '<option value="'+i+'" '+(String(i)===String(_accCar)?'selected':'')+'>'+e(c.brand)+' '+e(c.model)+' — '+e(c.plate)+'</option>';}).join('')+'</select>';
+ var body='<div id="accCarBody">'+((_accCar!==''&&_accCar!=null)?accCarSummary(parseInt(_accCar,10)):'')+'</div>';
+ var list='<div class="acccarlist">'+CARS.map(function(c,i){var warn=(typeof carAlerts==='function'?carAlerts(c).length:0)>0;
+   return '<div class="acccar'+(String(i)===String(_accCar)?' sel':'')+'" onclick="accPickCar(\''+i+'\')">'+
+     '<div class="acccar-main">'+(c.logo?'<img src="'+c.logo+'" class="blogo">':'<span style="font-size:18px">🚗</span>')+'<div><b>'+e(c.brand)+' '+e(c.model)+'</b><div class="muted" style="font-size:11px">'+e(c.plate)+'</div></div></div>'+
+     '<span class="acccar-st '+(warn?'bad':'ok')+'">'+(warn?'⚠ تنبيه':'✓ سليمة')+'</span></div>';
+  }).join('')+'</div>';
+ return sel+body+'<div class="acccarlist-h">أو اختر من القائمة:</div>'+list;
 }
 function accCat(types,empty){var a=_accGather(types);return a.length?_accRows(a):'<p class="muted" style="padding:8px">'+empty+'</p>';}
 function accInsurance(){
@@ -318,7 +334,8 @@ function _accSecBody(k){
  if(k==='rep')return accReport();
  return '';
 }
-function renderAccordion(){var host=document.getElementById('acc');if(!host)return;
+function _accHideOldTable(){try{var _mt=document.querySelector('.tablewrap');if(_mt){_mt.style.display='none';var _np=_mt.nextElementSibling;if(_np&&_np.tagName==='P')_np.style.display='none';}}catch(_e){}}
+function renderAccordion(){var host=document.getElementById('acc');if(!host)return;_accHideOldTable();
  var secs=[['cars','🚗 السيارات'],['vio','⚠ المخالفات'],['ins','🛡 التأمين'],['maint','🔧 الصيانة'],['insp','🔍 الفحص'],['alert','🔔 التنبيهات'],['rep','📊 التقارير']];
  host.innerHTML=secs.map(function(s){var k=s[0],open=(_accOpen===k);
   return '<div class="acc-sec'+(open?' open':'')+'"><div class="acc-head" onclick="accToggle(\''+k+'\')"><span>'+s[1]+'</span><span class="acc-arw">'+(open?'▲':'▼')+'</span></div>'+
