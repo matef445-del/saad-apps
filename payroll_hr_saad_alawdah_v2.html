@@ -1270,9 +1270,10 @@ function rprow(e){
 function upPay(){
   const _y=selY(),_m=selM();
   const _ln=emps.reduce((s,e)=>s+loanDedFor(e.id,_y,_m),0);
+  const _pen=emps.reduce((s,e)=>s+penaltyDedForMonth(e.id,_y,_m),0);
   const g=emps.reduce((s,e)=>s+gross(e),0);
-  const d=emps.reduce((s,e)=>s+totalDed(e),0)+_ln;
-  const n=emps.reduce((s,e)=>s+net(e),0)-_ln;
+  const d=emps.reduce((s,e)=>s+totalDed(e),0)+_ln+_pen;
+  const n=emps.reduce((s,e)=>s+net(e),0)-_ln-_pen;
   document.getElementById('pg2').textContent=fmt(g)+' ر.س';
   document.getElementById('pd2').textContent=fmt(d)+' ر.س';
   document.getElementById('pn2').textContent=fmt(n)+' ر.س';
