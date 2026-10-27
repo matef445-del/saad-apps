@@ -3617,80 +3617,68 @@ function buildSlipHTML(e){
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700&family=Amiri:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Tajawal',sans-serif;background:#F5F1E8;padding:20px;min-height:100vh;}
-  .page{max-width:700px;margin:0 auto;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,0.15);}
-  /* Header */
-  .hdr{background:#06240c;padding:22px 28px;display:flex;align-items:center;gap:16px;}
-  .hdr-logo{width:90px;height:62px;object-fit:cover;border-radius:8px;border:2px solid #C9A84C;}
+  body{font-family:'Tajawal',sans-serif;background:#d9dcd8;display:flex;justify-content:center;padding:16px;}
+  /* الورقة = A4 كاملة بهوامش متساوية من كل الجهات */
+  .sheet{width:210mm;height:297mm;background:#fff;padding:13mm;display:flex;flex-direction:column;box-shadow:0 6px 30px rgba(0,0,0,0.18);}
+  .inner{flex:1;display:flex;flex-direction:column;border:1px solid #ece4cf;border-radius:14px;overflow:hidden;}
+  /* الترويسة */
+  .hdr{background:#06240c;padding:20px 26px;display:flex;align-items:center;gap:16px;}
+  .hdr-logo{width:84px;height:58px;object-fit:cover;border-radius:8px;border:2px solid #C9A84C;flex-shrink:0;}
   .hdr-info{flex:1;}
-  .hdr-ar{font-family:'Amiri',serif;font-size:15px;color:#E2C074;font-weight:700;line-height:1.6;}
-  .hdr-en{font-family:'Roboto',sans-serif;font-size:11px;color:rgba(201,168,76,0.6);margin-top:2px;letter-spacing:0.5px;}
+  .hdr-ar{font-family:'Amiri',serif;font-size:16px;color:#E2C074;font-weight:700;line-height:1.5;}
+  .hdr-en{font-family:'Roboto',sans-serif;font-size:10px;color:rgba(201,168,76,0.6);margin-top:2px;letter-spacing:0.4px;}
   .hdr-badge{text-align:left;direction:ltr;}
   .hdr-badge .period-ar{font-family:'Tajawal',sans-serif;font-size:12px;color:#C9A84C;text-align:right;}
-  .hdr-badge .period-en{font-family:'Roboto',sans-serif;font-size:10px;color:rgba(201,168,76,0.5);text-align:right;margin-top:2px;}
-  /* Employee info */
-  .emp-band{background:#163A22;padding:12px 28px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .hdr-badge .period-en{font-family:'Roboto',sans-serif;font-size:9px;color:rgba(201,168,76,0.5);text-align:right;margin-top:2px;}
+  /* شريط الموظف */
+  .emp-band{background:#163A22;padding:13px 26px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
   .emp-field{display:flex;flex-direction:column;gap:2px;}
-  .emp-lbl-ar{font-size:9px;color:rgba(201,168,76,0.5);}
+  .emp-lbl-ar{font-size:9px;color:rgba(201,168,76,0.55);}
   .emp-lbl-en{font-family:'Roboto',sans-serif;font-size:8px;color:rgba(201,168,76,0.3);letter-spacing:0.3px;}
-  .emp-val{font-size:12px;color:#E2C074;font-weight:600;}
-  /* Body */
-  .body{padding:24px 28px;}
-  .section{margin-bottom:20px;}
-  .sec-title{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid rgba(13,40,24,0.1);}
+  .emp-val{font-size:13px;color:#E2C074;font-weight:600;}
+  /* المتن يتمدّد ليملأ ما بين شريط الموظف والصافي */
+  .body{flex:1;display:flex;flex-direction:column;padding:22px 26px;}
+  .section{margin-bottom:16px;}
+  .sec-title{display:flex;align-items:center;gap:8px;margin-bottom:9px;padding-bottom:7px;border-bottom:2px solid rgba(13,40,24,0.1);}
   .sec-title-ar{font-family:'Amiri',serif;font-size:14px;color:#06240c;font-weight:700;}
-  .sec-title-en{font-family:'Roboto',sans-serif;font-size:10px;color:#8A7A50;letter-spacing:0.5px;}
-  .sec-title::before{content:'';width:4px;height:18px;background:linear-gradient(to bottom,#F0D080,#8A6A20);border-radius:2px;flex-shrink:0;}
-  /* Row items */
-  .row{display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:6px;margin-bottom:3px;}
+  .sec-title-en{font-family:'Roboto',sans-serif;font-size:9px;color:#8A7A50;letter-spacing:0.4px;}
+  .sec-title::before{content:'';width:4px;height:17px;background:linear-gradient(to bottom,#F0D080,#8A6A20);border-radius:2px;flex-shrink:0;}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:6px;}
   .row:nth-child(even){background:#FAF7EE;}
   .row-lbl{display:flex;flex-direction:column;gap:1px;}
-  .row-ar{font-size:12px;color:#2A2A1A;}
+  .row-ar{font-size:12.5px;color:#2A2A1A;}
   .row-en{font-family:'Roboto',sans-serif;font-size:9px;color:#8A7A50;letter-spacing:0.3px;}
-  .row-val{font-size:12px;font-weight:600;color:#06240c;}
+  .row-val{font-size:12.5px;font-weight:600;color:#06240c;}
   .row-val.neg{color:#A32D2D;}
   .row-val.pos{color:#2E7D4F;}
-  /* Deduction table */
-  .ded-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;}
-  .ded-table th{background:#06240c;color:rgba(201,168,76,0.7);padding:7px 10px;text-align:right;font-weight:500;font-size:10px;}
-  .ded-table td{padding:7px 10px;border-bottom:1px solid #EAE5D5;}
+  .ded-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;}
+  .ded-table th{background:#06240c;color:rgba(201,168,76,0.75);padding:8px 10px;text-align:right;font-weight:500;font-size:10px;}
+  .ded-table td{padding:8px 10px;border-bottom:1px solid #EAE5D5;}
   .ded-table tr:last-child td{border-bottom:none;}
-  /* Absence alert */
-  .alert-box{background:#FEF0EF;border-right:4px solid #A32D2D;border-radius:6px;padding:10px 14px;margin-bottom:12px;}
+  .alert-box{background:#FEF0EF;border-right:4px solid #A32D2D;border-radius:6px;padding:10px 14px;margin-bottom:11px;}
   .alert-ar{font-size:11.5px;color:#A32D2D;font-weight:600;}
   .alert-en{font-family:'Roboto',sans-serif;font-size:10px;color:#C0392B;margin-top:2px;}
-  /* Total */
-  .total-box{background:#06240c;border-radius:10px;padding:16px 20px;margin-top:16px;}
+  /* فاصل مرن يدفع صندوق الصافي إلى أسفل الصفحة */
+  .spacer{flex:1;min-height:12px;}
+  .total-box{background:#06240c;border-radius:10px;padding:18px 22px;margin-top:4px;}
   .total-inner{display:flex;justify-content:space-between;align-items:center;}
-  .total-lbl-ar{font-family:'Amiri',serif;font-size:15px;color:#C9A84C;}
-  .total-lbl-en{font-family:'Roboto',sans-serif;font-size:10px;color:rgba(201,168,76,0.5);margin-top:2px;}
-  .total-val{font-size:22px;font-weight:700;color:#F0D080;text-align:left;}
-  .total-val-en{font-family:'Roboto',sans-serif;font-size:10px;color:rgba(201,168,76,0.5);text-align:left;}
-  /* Footer */
-  .ftr{background:#FAF7EE;padding:14px 28px;border-top:1px solid #EAE5D5;display:flex;justify-content:space-between;align-items:center;}
+  .total-lbl-ar{font-family:'Amiri',serif;font-size:16px;color:#C9A84C;}
+  .total-lbl-en{font-family:'Roboto',sans-serif;font-size:9px;color:rgba(201,168,76,0.5);margin-top:2px;}
+  .total-val{font-size:24px;font-weight:700;color:#F0D080;text-align:left;}
+  .total-val-en{font-family:'Roboto',sans-serif;font-size:9px;color:rgba(201,168,76,0.5);text-align:left;}
+  .ftr{background:#FAF7EE;padding:13px 26px;border-top:1px solid #EAE5D5;display:flex;justify-content:space-between;align-items:center;}
   .ftr-ar{font-family:'Amiri',serif;font-size:10px;color:#8A7A50;}
-  .ftr-en{font-family:'Roboto',sans-serif;font-size:9px;color:#AAA;letter-spacing:0.3px;}
-  /* Print */
-  @page{size:A4 portrait;margin:7mm;}
+  .ftr-en{font-family:'Roboto',sans-serif;font-size:8px;color:#AAA;letter-spacing:0.3px;}
+  @page{size:A4 portrait;margin:0;}
   @media print{
-    html,body{padding:0;margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .page{box-shadow:none;border-radius:0;max-width:100%;width:100%;page-break-inside:avoid;break-inside:avoid;}
-    /* تصغير متناسق ليخرج كامل القسيمة في صفحة واحدة */
-    .hdr{padding:12px 20px;gap:12px;} .hdr-logo{width:70px;height:48px;} .hdr-ar{font-size:13px;} .hdr-en{font-size:10px;}
-    .emp-band{padding:8px 20px;gap:8px;} .emp-val{font-size:11px;}
-    .body{padding:14px 20px;}
-    .section{margin-bottom:11px;} .sec-title{margin-bottom:7px;padding-bottom:5px;}
-    .sec-title-ar{font-size:13px;} .row{padding:4px 8px;margin-bottom:2px;} .row-ar{font-size:11px;} .row-val{font-size:11px;}
-    .ded-table th,.ded-table td{padding:5px 8px;}
-    .alert-box{padding:8px 12px;margin-bottom:9px;}
-    .total-box{padding:12px 18px;margin-top:11px;} .total-val{font-size:19px;}
-    .ftr{padding:10px 20px;}
+    html,body{background:#fff;padding:0;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sheet{width:210mm;height:297mm;box-shadow:none;}
     .no-print{display:none!important;}
   }
 </style>
 </head>
 <body>
-<div class="page">
+<div class="sheet"><div class="inner">
   <!-- Header -->
   <div class="hdr">
     <img class="hdr-logo" src="${LOGO_MAIN}" alt="Logo">
@@ -3755,7 +3743,8 @@ function buildSlipHTML(e){
       <div class="row"><div class="row-lbl"><span class="row-ar">إجمالي الخصومات</span><span class="row-en">Total Deductions</span></div><div class="row-val neg">-${fmt(totalDed(e)+ln)} ر.س</div></div>
     </div>
 
-    <!-- Net Total -->
+    <!-- فاصل مرن ثم صندوق الصافي أسفل الصفحة -->
+    <div class="spacer"></div>
     <div class="total-box">
       <div class="total-inner">
         <div><div class="total-lbl-ar">صافي الراتب المستحق</div><div class="total-lbl-en">NET SALARY DUE</div></div>
@@ -3769,27 +3758,10 @@ function buildSlipHTML(e){
     <div><div class="ftr-ar">المكتب الإداري للشيخ سعد علي آل عوضه · نظام الموارد البشرية</div><div class="ftr-en">Saad Ali Al-Awadah Administrative Office · HR System</div></div>
     <div class="ftr-en" style="text-align:left">${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</div>
   </div>
-</div>
+</div></div>
 
-<script>
-/* يضبط مقاس الورقة عند الطباعة/الحفظ ليطابق ارتفاع القسيمة تماماً — فلا يبقى فراغ أبيض أسفلها */
-(function(){
-  function fit(){
-    try{
-      var pg=document.querySelector('.page'); if(!pg)return;
-      var r=pg.getBoundingClientRect();
-      var wmm=(r.width/96*25.4).toFixed(1), hmm=(r.height/96*25.4).toFixed(1);
-      var st=document.createElement('style');
-      st.textContent='@page{size:'+wmm+'mm '+hmm+'mm;margin:0;}@media print{html,body{padding:0!important;margin:0!important;background:#fff;}.page{box-shadow:none;border-radius:0;margin:0 auto;}}';
-      document.head.appendChild(st);
-    }catch(e){}
-  }
-  if(document.readyState!=='loading') setTimeout(fit,350);
-  else window.addEventListener('DOMContentLoaded',function(){setTimeout(fit,350);});
-})();
-<\/script>
 <!-- Print/Save buttons (hidden when printing) -->
-<div class="no-print" style="max-width:700px;margin:16px auto;display:flex;gap:10px;justify-content:center;">
+<div class="no-print" style="width:210mm;max-width:100%;margin:16px auto;display:flex;gap:10px;justify-content:center;">
   <button onclick="window.print()" style="background:#06240c;color:#E2C074;border:none;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;"><span>🖨️</span> طباعة / Save as PDF</button>
   <button onclick="window.close()" style="background:#F5F1E8;color:#06240c;border:1px solid #C9A84C;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;">إغلاق / Close</button>
 </div>
@@ -3877,7 +3849,7 @@ async function shareSlipPDF(id){
   /* نلتقط القسيمة المنسّقة الكاملة (نفس تصميم «حفظ PDF») داخل إطار معزول حتى يخرج الملف بالترويسة والألوان لا سادة */
   var iframe=document.createElement('iframe');
   iframe.setAttribute('aria-hidden','true');
-  iframe.style.cssText='position:fixed;left:-10000px;top:0;width:760px;height:40px;border:0;opacity:0;pointer-events:none;';
+  iframe.style.cssText='position:fixed;left:-10000px;top:0;width:820px;height:40px;border:0;opacity:0;pointer-events:none;';
   document.body.appendChild(iframe);
   try{
     var html=buildSlipHTML(e).replace(/<div class="no-print"[\s\S]*?<\/div>\s*<\/body>/,'</body>'); /* إزالة أزرار الطباعة */
@@ -3895,19 +3867,15 @@ async function shareSlipPDF(id){
       else{ var c=0, step=function(){ if(++c>=pend.length){ clearTimeout(to); setTimeout(fin,300); } };
         pend.forEach(function(im){ im.addEventListener('load',step); im.addEventListener('error',step); }); }
     });
-    var target=idoc.querySelector('.page')||idoc.body;
+    var target=idoc.querySelector('.sheet')||idoc.body;
     iframe.style.height=(target.scrollHeight+60)+'px';
     var canvas=await html2canvas(target,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:target.scrollWidth,windowHeight:target.scrollHeight});
     var img=canvas.toDataURL('image/jpeg',0.95);
     var JS=window.jspdf.jsPDF;
-    /* الورقة بمقاس القسيمة تماماً (قصّ الورقة) — بلا فراغ أبيض أسفلها */
-    var m=14, pxToPt=72/96/2; /* الصورة مُلتقطة بمقياس 2 */
-    var cw=canvas.width*pxToPt, chh=canvas.height*pxToPt;
-    var pw=cw+m*2, ph=chh+m*2;
-    var fmt=(pw<=ph)?[pw,ph]:[ph,pw], orient=(pw<=ph)?'portrait':'landscape';
-    var pdf=new JS({unit:'pt',format:fmt,orientation:orient});
+    /* الورقة A4 كاملة؛ القسيمة نفسها تتضمّن هوامشها فتملأ الصفحة بتوازن بلا فراغ أسفل */
+    var pdf=new JS({unit:'pt',format:'a4',orientation:'portrait'});
     var W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight();
-    pdf.addImage(img,'JPEG',m,m,W-m*2,H-m*2);
+    pdf.addImage(img,'JPEG',0,0,W,H);
     var blob=pdf.output('blob');
     var period=getSelPeriod('pm','py');
     var fname='قسيمة راتب - '+e.name+' - '+period+'.pdf';
