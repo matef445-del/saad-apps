@@ -3771,6 +3771,23 @@ function buildSlipHTML(e){
   </div>
 </div>
 
+<script>
+/* يضبط مقاس الورقة عند الطباعة/الحفظ ليطابق ارتفاع القسيمة تماماً — فلا يبقى فراغ أبيض أسفلها */
+(function(){
+  function fit(){
+    try{
+      var pg=document.querySelector('.page'); if(!pg)return;
+      var r=pg.getBoundingClientRect();
+      var wmm=(r.width/96*25.4).toFixed(1), hmm=(r.height/96*25.4).toFixed(1);
+      var st=document.createElement('style');
+      st.textContent='@page{size:'+wmm+'mm '+hmm+'mm;margin:0;}@media print{html,body{padding:0!important;margin:0!important;background:#fff;}.page{box-shadow:none;border-radius:0;margin:0 auto;}}';
+      document.head.appendChild(st);
+    }catch(e){}
+  }
+  if(document.readyState!=='loading') setTimeout(fit,350);
+  else window.addEventListener('DOMContentLoaded',function(){setTimeout(fit,350);});
+})();
+<\/script>
 <!-- Print/Save buttons (hidden when printing) -->
 <div class="no-print" style="max-width:700px;margin:16px auto;display:flex;gap:10px;justify-content:center;">
   <button onclick="window.print()" style="background:#06240c;color:#E2C074;border:none;border-radius:8px;padding:10px 24px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;"><span>🖨️</span> طباعة / Save as PDF</button>
@@ -3882,11 +3899,15 @@ async function shareSlipPDF(id){
     iframe.style.height=(target.scrollHeight+60)+'px';
     var canvas=await html2canvas(target,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:target.scrollWidth,windowHeight:target.scrollHeight});
     var img=canvas.toDataURL('image/jpeg',0.95);
-    var JS=window.jspdf.jsPDF; var pdf=new JS({unit:'pt',format:'a4',orientation:'portrait'});
-    var pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight(), m=16;
-    var iw=pw-m*2, ih=iw*canvas.height/canvas.width, availH=ph-m*2;
-    if(ih>availH){ ih=availH; iw=ih*canvas.width/canvas.height; } /* تصغير متناسق لتخرج في صفحة واحدة */
-    pdf.addImage(img,'JPEG',(pw-iw)/2,m,iw,ih);
+    var JS=window.jspdf.jsPDF;
+    /* الورقة بمقاس القسيمة تماماً (قصّ الورقة) — بلا فراغ أبيض أسفلها */
+    var m=14, pxToPt=72/96/2; /* الصورة مُلتقطة بمقياس 2 */
+    var cw=canvas.width*pxToPt, chh=canvas.height*pxToPt;
+    var pw=cw+m*2, ph=chh+m*2;
+    var fmt=(pw<=ph)?[pw,ph]:[ph,pw], orient=(pw<=ph)?'portrait':'landscape';
+    var pdf=new JS({unit:'pt',format:fmt,orientation:orient});
+    var W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight();
+    pdf.addImage(img,'JPEG',m,m,W-m*2,H-m*2);
     var blob=pdf.output('blob');
     var period=getSelPeriod('pm','py');
     var fname='قسيمة راتب - '+e.name+' - '+period+'.pdf';
