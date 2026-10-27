@@ -1055,11 +1055,10 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <div class="mh"><div class="mt2"><i class="ti ti-file-invoice" style="font-size:14px"></i> قسيمة الراتب</div><button class="mc" onclick="document.getElementById('msm').classList.remove('open')">✕</button></div>
     <div class="mbd" id="slb"></div>
     <div style="padding:0 18px 16px;display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn bg" onclick="generatePDFSlip(waCurrentId)" style="flex:1;justify-content:center"><i class="ti ti-file-type-pdf"></i> فتح PDF ثنائي اللغة</button>
+      <button class="btn bg" onclick="savePDFSlip(waCurrentId)" style="flex:1;justify-content:center"><i class="ti ti-file-type-pdf"></i> حفظ PDF (صفحة واحدة)</button>
       <button class="btn bo sm" onclick="sendWAFromSlip()" title="إرسال نص عبر واتساب"><i class="ti ti-brand-whatsapp"></i> نص</button>
       <button class="btn bwa" onclick="shareSlipPDF(waCurrentId)" style="flex:1;justify-content:center"><i class="ti ti-brand-whatsapp"></i> مشاركة PDF عبر واتساب</button>
-      <button class="btn bo sm" onclick="downloadSlip(waCurrentId)"><i class="ti ti-download"></i></button>
-      <button class="btn bdk sm" onclick="generatePDFSlip(waCurrentId)" title="طباعة القسيمة المنسّقة (صفحة واحدة)"><i class="ti ti-printer"></i></button>
+      <button class="btn bo sm" onclick="savePDFSlip(waCurrentId)" title="تنزيل PDF"><i class="ti ti-download"></i></button>
     </div>
   </div>
 </div>
@@ -1200,7 +1199,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       </div>
       <div id="wa-preview" style="background:#E7FEDD;border-radius:10px;padding:11px 13px;font-size:11.5px;color:#1A3A1A;white-space:pre-line;margin-bottom:14px;border:1px solid #c3f0c3;max-height:220px;overflow-y:auto;font-family:'Tajawal',sans-serif;direction:rtl"></div>
       <div style="display:flex;gap:8px">
-        <button class="btn bg" style="flex:1;justify-content:center" onclick="generatePDFSlip(+document.getElementById('wa-emp-id').value)"><i class="ti ti-file-type-pdf"></i> تحميل PDF ثنائي اللغة</button>
+        <button class="btn bg" style="flex:1;justify-content:center" onclick="savePDFSlip(+document.getElementById('wa-emp-id').value)"><i class="ti ti-file-type-pdf"></i> حفظ PDF (صفحة واحدة)</button>
         <button class="btn bwa" style="flex:1;justify-content:center;font-size:13px" onclick="openWALink()"><i class="ti ti-brand-whatsapp"></i> فتح واتساب وإرسال</button>
         <button class="btn bo" onclick="document.getElementById('mwa').classList.remove('open')">إلغاء</button>
       </div>
@@ -1675,7 +1674,7 @@ function renderPayroll(){
     <td><span class="bge" id="pst-${e.id}"></span></td>
     <td style="display:flex;gap:3px">
       <button class="btn bo sm" onclick="showSlip(${e.id})" title="قسيمة"><i class="ti ti-file-text"></i></button>
-      <button class="btn bg sm" onclick="generatePDFSlip(${e.id})" title="PDF ثنائي اللغة"><i class="ti ti-file-type-pdf"></i></button>
+      <button class="btn bg sm" onclick="savePDFSlip(${e.id})" title="حفظ PDF (صفحة واحدة)"><i class="ti ti-file-type-pdf"></i></button>
       <button class="btn bwa sm" onclick="sendWA(${e.id})"><i class="ti ti-brand-whatsapp"></i></button>
     </td>
   </tr>`).join('');
@@ -3842,11 +3841,8 @@ ${(totalDed(e)>0)?`\n➖ *Deductions / الخصومات:*${dedLines}\n   ──�
 _HR System - Saad Ali Al-Awadah Admin Office_`;
 }
 
-async function shareSlipPDF(id){
-  var e=bid(id||waCurrentId); if(!e){tk('حدّد الموظف أولاً','var(--err)');return;}
-  if(typeof html2canvas==='undefined' || !(window.jspdf&&window.jspdf.jsPDF)){ tk('جارٍ تحميل الأدوات — أعد المحاولة بعد لحظة','var(--inf)'); return; }
-  tk('جارٍ تجهيز ملف PDF...','var(--inf)');
-  /* نلتقط القسيمة المنسّقة الكاملة (نفس تصميم «حفظ PDF») داخل إطار معزول حتى يخرج الملف بالترويسة والألوان لا سادة */
+/* يُنتج ملف PDF حقيقي للقسيمة (صفحة A4 واحدة متوازنة) — نفس المحرّك للمشاركة والحفظ والطباعة، بلا الاعتماد على طباعة المتصفح (تفادياً لصفحة فارغة أو هوامش غير متوقعة) */
+async function _slipPdfBlob(e){
   var iframe=document.createElement('iframe');
   iframe.setAttribute('aria-hidden','true');
   iframe.style.cssText='position:fixed;left:-10000px;top:0;width:820px;height:40px;border:0;opacity:0;pointer-events:none;';
@@ -3856,7 +3852,6 @@ async function shareSlipPDF(id){
     html=html.replace('<head>','<head><base href="'+location.href+'">'); /* حتى يُحمَّل الشعار (مسار نسبي) داخل الإطار */
     var idoc=iframe.contentDocument||iframe.contentWindow.document;
     idoc.open(); idoc.write(html); idoc.close();
-    /* ننتظر تحميل الشعار والخطوط قبل الالتقاط */
     await new Promise(function(res){
       var done=false, fin=function(){ if(!done){ done=true; res(); } };
       var to=setTimeout(fin,2600);
@@ -3872,24 +3867,41 @@ async function shareSlipPDF(id){
     var canvas=await html2canvas(target,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:target.scrollWidth,windowHeight:target.scrollHeight});
     var img=canvas.toDataURL('image/jpeg',0.95);
     var JS=window.jspdf.jsPDF;
-    /* الورقة A4 كاملة؛ القسيمة نفسها تتضمّن هوامشها فتملأ الصفحة بتوازن بلا فراغ أسفل */
     var pdf=new JS({unit:'pt',format:'a4',orientation:'portrait'});
     var W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight();
-    pdf.addImage(img,'JPEG',0,0,W,H);
-    var blob=pdf.output('blob');
+    pdf.addImage(img,'JPEG',0,0,W,H); /* صورة القسيمة تملأ صفحة A4 واحدة بتوازن */
     var period=getSelPeriod('pm','py');
-    var fname='قسيمة راتب - '+e.name+' - '+period+'.pdf';
-    var file=new File([blob],fname,{type:'application/pdf'});
+    return { blob:pdf.output('blob'), fname:'قسيمة راتب - '+e.name+' - '+period+'.pdf', period:period };
+  } finally { try{document.body.removeChild(iframe);}catch(_e){} }
+}
+async function shareSlipPDF(id){
+  var e=bid(id||waCurrentId); if(!e){tk('حدّد الموظف أولاً','var(--err)');return;}
+  if(typeof html2canvas==='undefined' || !(window.jspdf&&window.jspdf.jsPDF)){ tk('جارٍ تحميل الأدوات — أعد المحاولة بعد لحظة','var(--inf)'); return; }
+  tk('جارٍ تجهيز ملف PDF...','var(--inf)');
+  try{
+    var r=await _slipPdfBlob(e);
+    var file=new File([r.blob],r.fname,{type:'application/pdf'});
     if(navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file], title:fname, text:'قسيمة راتب '+e.name+' — '+period}); tk('✅ اختر واتساب من قائمة المشاركة'); }
+      try{ await navigator.share({files:[file], title:r.fname, text:'قسيمة راتب '+e.name+' — '+r.period}); tk('✅ اختر واتساب من قائمة المشاركة'); }
       catch(_c){ /* ألغى المستخدم المشاركة */ }
     } else {
-      var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname; a.click();
+      var a=document.createElement('a'); a.href=URL.createObjectURL(r.blob); a.download=r.fname; a.click();
       setTimeout(function(){try{URL.revokeObjectURL(a.href);}catch(_r){}},5000);
       tk('تم تنزيل PDF القسيمة — أرفقه في واتساب (هذا الجهاز لا يدعم المشاركة المباشرة)','var(--inf)');
     }
   }catch(err){ tk('تعذّر إنشاء PDF: '+((err&&err.message)||err),'var(--err)'); }
-  finally{ try{document.body.removeChild(iframe);}catch(_e){} }
+}
+/* حفظ القسيمة كملف PDF مباشرةً (صفحة واحدة مضبوطة) — بديل موثوق عن طباعة المتصفح */
+async function savePDFSlip(id){
+  var e=bid(id||waCurrentId); if(!e){tk('حدّد الموظف أولاً','var(--err)');return;}
+  if(typeof html2canvas==='undefined' || !(window.jspdf&&window.jspdf.jsPDF)){ tk('جارٍ تحميل الأدوات — أعد المحاولة بعد لحظة','var(--inf)'); return; }
+  tk('جارٍ تجهيز ملف PDF...','var(--inf)');
+  try{
+    var r=await _slipPdfBlob(e);
+    var a=document.createElement('a'); a.href=URL.createObjectURL(r.blob); a.download=r.fname; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){try{URL.revokeObjectURL(a.href);}catch(_r){}},5000);
+    tk('✅ تم حفظ PDF القسيمة: '+r.fname);
+  }catch(err){ tk('تعذّر إنشاء PDF: '+((err&&err.message)||err),'var(--err)'); }
 }
 function sendWA(id){
   const e=bid(id);if(!e)return;
