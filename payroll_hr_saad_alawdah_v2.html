@@ -3531,10 +3531,22 @@ function translateDesc(desc,type){
     'مخالفة مرورية - تجاوز إشارة ضوئية':'Traffic violation - Running red light',
     'مخالفة مرورية - عدم ربط الحزام':'Traffic violation - No seatbelt',
     'مخالفة مرورية - استخدام الجوال أثناء القيادة':'Traffic violation - Using phone while driving',
+    'تجاوز السرعة':'Speeding',
+    'مخالفة وقوف':'Illegal parking',
+    'تجاوز إشارة ضوئية':'Running a red light',
+    'تجاوز إشارة':'Running a red light',
+    'عدم ربط الحزام':'No seatbelt',
+    'استخدام الجوال أثناء القيادة':'Using phone while driving',
+    'استخدام الجوال':'Using phone while driving',
     // General
     'خصم من الراتب الأساسي':'Deduction from basic salary',
     'خصم مالي':'Financial deduction',
     'جزاء':'Penalty',
+    'تأخير متكرر':'Repeated lateness',
+    'تأخير':'Lateness',
+    'إنذار':'Warning',
+    'خصم إداري':'Administrative deduction',
+    'خصم':'Deduction',
   };
   // Direct match
   if(map[desc]) return map[desc];
@@ -3593,9 +3605,9 @@ function buildSlipHTML(e){
     </tr>`;
   }).join('');
   let extraRows='';
-  if(otherDed>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">خصم آخر${e.dedReason?' — '+e.dedReason:''}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Other Deduction</div></td><td><div style="font-size:11.5px;color:#444">${e.dedReason||'خصم'}</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(otherDed)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
-  if(ln>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">قسط سلفة/خصم</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Loan / Scheduled Installment</div></td><td><div style="font-size:11.5px;color:#444">قسط الشهر</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(ln)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
-  if(lvDays>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">إجازة بدون راتب (${lvDays} يوم)</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Unpaid Leave</div></td><td><div style="font-size:11.5px;color:#444">${lvDays} يوم × ${fmt(dr)} ر.س</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(lvDed)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
+  if(otherDed>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">خصم آخر${e.dedReason?' — '+e.dedReason:''}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Other Deduction</div></td><td><div style="font-size:11.5px;color:#444">${e.dedReason||'خصم'}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888;font-style:italic">${translateDesc(e.dedReason||'','money')}</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(otherDed)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
+  if(ln>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">قسط سلفة/خصم</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Loan / Scheduled Installment</div></td><td><div style="font-size:11.5px;color:#444">قسط هذا الشهر</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888;font-style:italic">This month's installment</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(ln)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
+  if(lvDays>0) extraRows+=`<tr><td><div style="font-size:12px;color:#2A2A1A;font-weight:600">إجازة بدون راتب (${lvDays} يوم)</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888">Unpaid Leave (${lvDays} days)</div></td><td><div style="font-size:11.5px;color:#444">${lvDays} يوم × ${fmt(dr)} ر.س</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#888;font-style:italic">${lvDays} day(s) × ${fmt(dr)} SAR</div></td><td style="text-align:center"><div style="color:#A32D2D;font-weight:700;font-size:13px">-${fmt(lvDed)}</div><div style="font-family:'Roboto',sans-serif;font-size:10px;color:#A32D2D">SAR / ر.س</div></td></tr>`;
 
   return`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -3659,7 +3671,22 @@ function buildSlipHTML(e){
   .ftr-ar{font-family:'Amiri',serif;font-size:10px;color:#8A7A50;}
   .ftr-en{font-family:'Roboto',sans-serif;font-size:9px;color:#AAA;letter-spacing:0.3px;}
   /* Print */
-  @media print{body{padding:0;background:#fff;}.page{box-shadow:none;border-radius:0;}.no-print{display:none!important;}}
+  @page{size:A4 portrait;margin:7mm;}
+  @media print{
+    html,body{padding:0;margin:0;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .page{box-shadow:none;border-radius:0;max-width:100%;width:100%;page-break-inside:avoid;break-inside:avoid;}
+    /* تصغير متناسق ليخرج كامل القسيمة في صفحة واحدة */
+    .hdr{padding:12px 20px;gap:12px;} .hdr-logo{width:70px;height:48px;} .hdr-ar{font-size:13px;} .hdr-en{font-size:10px;}
+    .emp-band{padding:8px 20px;gap:8px;} .emp-val{font-size:11px;}
+    .body{padding:14px 20px;}
+    .section{margin-bottom:11px;} .sec-title{margin-bottom:7px;padding-bottom:5px;}
+    .sec-title-ar{font-size:13px;} .row{padding:4px 8px;margin-bottom:2px;} .row-ar{font-size:11px;} .row-val{font-size:11px;}
+    .ded-table th,.ded-table td{padding:5px 8px;}
+    .alert-box{padding:8px 12px;margin-bottom:9px;}
+    .total-box{padding:12px 18px;margin-top:11px;} .total-val{font-size:19px;}
+    .ftr{padding:10px 20px;}
+    .no-print{display:none!important;}
+  }
 </style>
 </head>
 <body>
@@ -3828,18 +3855,37 @@ _HR System - Saad Ali Al-Awadah Admin Office_`;
 
 async function shareSlipPDF(id){
   var e=bid(id||waCurrentId); if(!e){tk('حدّد الموظف أولاً','var(--err)');return;}
-  var node=document.getElementById('slb');
-  if(!node||!node.innerHTML.trim()){ try{showSlip(e.id);}catch(_x){} node=document.getElementById('slb'); }
-  if(!node){tk('افتح القسيمة أولاً','var(--err)');return;}
   if(typeof html2canvas==='undefined' || !(window.jspdf&&window.jspdf.jsPDF)){ tk('جارٍ تحميل الأدوات — أعد المحاولة بعد لحظة','var(--inf)'); return; }
   tk('جارٍ تجهيز ملف PDF...','var(--inf)');
+  /* نلتقط القسيمة المنسّقة الكاملة (نفس تصميم «حفظ PDF») داخل إطار معزول حتى يخرج الملف بالترويسة والألوان لا سادة */
+  var iframe=document.createElement('iframe');
+  iframe.setAttribute('aria-hidden','true');
+  iframe.style.cssText='position:fixed;left:-10000px;top:0;width:760px;height:40px;border:0;opacity:0;pointer-events:none;';
+  document.body.appendChild(iframe);
   try{
-    var canvas=await html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true});
+    var html=buildSlipHTML(e).replace(/<div class="no-print"[\s\S]*?<\/div>\s*<\/body>/,'</body>'); /* إزالة أزرار الطباعة */
+    html=html.replace('<head>','<head><base href="'+location.href+'">'); /* حتى يُحمَّل الشعار (مسار نسبي) داخل الإطار */
+    var idoc=iframe.contentDocument||iframe.contentWindow.document;
+    idoc.open(); idoc.write(html); idoc.close();
+    /* ننتظر تحميل الشعار والخطوط قبل الالتقاط */
+    await new Promise(function(res){
+      var done=false, fin=function(){ if(!done){ done=true; res(); } };
+      var to=setTimeout(fin,2600);
+      try{ if(idoc.fonts&&idoc.fonts.ready){ idoc.fonts.ready.then(function(){}).catch(function(){}); } }catch(_f){}
+      var imgs=idoc.images?Array.prototype.slice.call(idoc.images):[];
+      var pend=imgs.filter(function(im){return !im.complete;});
+      if(!pend.length){ setTimeout(fin,450); }
+      else{ var c=0, step=function(){ if(++c>=pend.length){ clearTimeout(to); setTimeout(fin,300); } };
+        pend.forEach(function(im){ im.addEventListener('load',step); im.addEventListener('error',step); }); }
+    });
+    var target=idoc.querySelector('.page')||idoc.body;
+    iframe.style.height=(target.scrollHeight+60)+'px';
+    var canvas=await html2canvas(target,{scale:2,backgroundColor:'#ffffff',useCORS:true,windowWidth:target.scrollWidth,windowHeight:target.scrollHeight});
     var img=canvas.toDataURL('image/jpeg',0.95);
     var JS=window.jspdf.jsPDF; var pdf=new JS({unit:'pt',format:'a4',orientation:'portrait'});
-    var pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight(), m=22;
-    var iw=pw-m*2, ih=iw*canvas.height/canvas.width;
-    if(ih>ph-m*2){ ih=ph-m*2; iw=ih*canvas.width/canvas.height; }
+    var pw=pdf.internal.pageSize.getWidth(), ph=pdf.internal.pageSize.getHeight(), m=16;
+    var iw=pw-m*2, ih=iw*canvas.height/canvas.width, availH=ph-m*2;
+    if(ih>availH){ ih=availH; iw=ih*canvas.width/canvas.height; } /* تصغير متناسق لتخرج في صفحة واحدة */
     pdf.addImage(img,'JPEG',(pw-iw)/2,m,iw,ih);
     var blob=pdf.output('blob');
     var period=getSelPeriod('pm','py');
@@ -3854,6 +3900,7 @@ async function shareSlipPDF(id){
       tk('تم تنزيل PDF القسيمة — أرفقه في واتساب (هذا الجهاز لا يدعم المشاركة المباشرة)','var(--inf)');
     }
   }catch(err){ tk('تعذّر إنشاء PDF: '+((err&&err.message)||err),'var(--err)'); }
+  finally{ try{document.body.removeChild(iframe);}catch(_e){} }
 }
 function sendWA(id){
   const e=bid(id);if(!e)return;
