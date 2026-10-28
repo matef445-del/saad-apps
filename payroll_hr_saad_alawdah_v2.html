@@ -3511,6 +3511,16 @@ function getPeriodEN(){
   const yr=document.getElementById('py')?.value||CY;
   return (MONTHS_EN[isNaN(mi)?0:mi]||'')+' '+yr;
 }
+/* الاسم الإنجليزي للموظف لاسم ملف PDF (آمن لمشاركة واتساب — لا يتشوّش).
+   الأولوية: nameEN في ملف الموظف، ثم خريطة مضمّنة، ثم الكود. يُبقى ASCII فقط. */
+const _EMP_EN={1:'Samir Ramadan',2:'Soofullah Shah Jamal',3:'Mohammed Gulfam',4:'Ayaz Ahmed Ghaffar',5:'Amer',6:'Nawaf Al-Sulais',7:'Haris Aqar',8:'Sanwar Yamin',9:'Jashim Hussain'};
+function slipNameEN(e){
+  var p=(typeof profiles!=='undefined'&&profiles[e.id])||{};
+  var n=((p.nameEN||'')+'').trim();
+  if(!n) n=_EMP_EN[e.id]||('');
+  n=n.replace(/[^\x20-\x7E]/g,'').replace(/\s+/g,' ').trim();
+  return n||(e.code||('EMP'+e.id));
+}
 
 /* ── Translate Arabic description to English ── */
 function translateDesc(desc,type){
@@ -3871,7 +3881,7 @@ async function _slipPdfBlob(e){
     var W=pdf.internal.pageSize.getWidth(), H=pdf.internal.pageSize.getHeight();
     pdf.addImage(img,'JPEG',0,0,W,H); /* صورة القسيمة تملأ صفحة A4 واحدة بتوازن */
     var period=getSelPeriod('pm','py');
-    return { blob:pdf.output('blob'), fname:'قسيمة راتب - '+e.name+' - '+period+'.pdf', period:period };
+    return { blob:pdf.output('blob'), fname:'Salary Slip - '+slipNameEN(e)+' - '+getPeriodEN()+'.pdf', period:period };
   } finally { try{document.body.removeChild(iframe);}catch(_e){} }
 }
 async function shareSlipPDF(id){
