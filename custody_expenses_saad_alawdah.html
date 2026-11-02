@@ -211,7 +211,6 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         <button class="btn ghost sm" id="acc-btn-import" onclick="document.getElementById('xl-in').click()">📥 استيراد Excel</button>
         <button class="btn ghost sm" onclick="exportAcc()">📤 تصدير Excel</button>
         <button class="btn ghost sm" id="acc-btn-sort" onclick="sortAccByDate()">↕️ ترتيب حسب التاريخ ثم الفاتورة</button>
-        <button class="btn ghost sm" id="acc-btn-renum" onclick="renumberAccount()">🔢 إعادة ترقيم الحساب</button>
         <button class="btn ghost sm" onclick="printAcc()">🖨️ طباعة</button>
       </div>
     </div>
@@ -780,7 +779,7 @@ function initFB(){
     }).catch(function(){ setSync('off'); loadLocalOrSeed(); });
   }catch(e){ setSync('off'); loadLocalOrSeed(); }
 }
-function nextInv(){var mx=0;try{var rw=(STATE&&STATE.accounts&&STATE.accounts[CUR]&&STATE.accounts[CUR].rows)||[];for(var i=0;i<rw.length;i++){var v=parseInt(rw[i].inv,10);if(!isNaN(v)&&v>mx)mx=v;}}catch(e){}return String(mx+1);} /* ترقيم خاص بالحساب الحالي فقط */
+function nextInv(){/* رقم مرجعي عالمي فريد عبر كل الحسابات ولا يُعاد استخدامه حتى بعد الحذف — ليطابق حفظ الملفات برقم واحد في مجلد واحد */var mx=0;try{var accs=(STATE&&STATE.accounts)||{};for(var k in accs){if(!accs.hasOwnProperty(k))continue;var rw=(accs[k]&&accs[k].rows)||[];for(var i=0;i<rw.length;i++){var v=parseInt(rw[i].inv,10);if(!isNaN(v)&&v>mx)mx=v;}}var seq=parseInt(STATE&&STATE.invSeq,10);if(!isNaN(seq)&&seq>mx)mx=seq;}catch(e){}return String(mx+1);}
 function loadLocalOrSeed(){
   try{var l=localStorage.getItem('SAAD_CUSTODY_V1');
     if(l){var p=JSON.parse(l); if(p.accounts){STATE=p; afterLoad(); return;}}
@@ -795,18 +794,6 @@ function pushCloud(){
 function persist(){
   saveLocal();
   if(fbReady){setSync('sv'); clearTimeout(saveTimer); saveTimer=setTimeout(pushCloud,1400);}
-}
-function renumberAccount(){
-  var m=ACCMETA[CUR]; if(m && m.readonly){ toast('هذا الحساب للعرض فقط'); return; }
-  var acc=STATE.accounts[CUR];
-  if(!acc || !acc.rows || !acc.rows.length){ toast('لا توجد قيود'); return; }
-  if(!confirm('إعادة ترقيم قيود هذا الحساب تسلسلياً حسب التاريخ (الأقدم = 1) خاصةً بهذا الحساب وحده.\nلا يتغيّر أي مبلغ أو بيان، والمعرّف الداخلي ثابت — ويمكن التراجع بـ Ctrl+Z.\n\nمتابعة؟')) return;
-  pushUndo();
-  var ordered=sortRows(acc.rows); /* تصاعدي حسب التاريخ ثم الفاتورة */
-  ordered.forEach(function(r,i){ r.inv=String(i+1); });
-  persist();
-  try{ if(typeof refreshUI==='function')refreshUI(); else renderAcc(); }catch(e){ renderAcc(); }
-  toast('تمت إعادة ترقيم '+ordered.length+' قيد لهذا الحساب ✓');
 }
 function sortAccByDate(){
   var m=ACCMETA[CUR]; if(m && m.readonly){ toast('هذا الحساب للعرض فقط'); return; }
@@ -1189,6 +1176,7 @@ function saveEntry(){
     cat:m.simple?'':g('em-cat').value, inv:m.simple?'':g('em-inv').value.trim(), note:m.simple?'':g('em-note').value.trim(), att:currentAtt.slice()};
   if(id){var r=STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]; Object.assign(r,obj);}
   else{obj.id=nid(); STATE.accounts[CUR].rows.push(obj);}
+  try{var _iv=parseInt(obj.inv,10); if(!isNaN(_iv)){var _cur=parseInt(STATE.invSeq,10)||0; if(_iv>_cur)STATE.invSeq=_iv;}}catch(e){} /* علامة أعلى رقم أُصدر — يمنع إعادة استخدام الرقم بعد الحذف */
   persist(); closeOv(); renderAcc(); toast('تم حفظ القيد ✓');
 }
 function delEntry(id){
