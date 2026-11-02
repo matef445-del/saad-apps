@@ -3313,12 +3313,30 @@ function _mediaOf(prof,id){ var p=prof[id]||{}; return {photo:(p.photo||null), d
 /* بصمة سريعة لحجم صور الموظف (لتخطّي الرفع إن لم تتغيّر) */
 function _mh(prof,id){ var p=prof[id]||{}; var dl=(p.docs||[]).reduce(function(s,d){return s+(((d&&d.img&&d.img.length))||0);},0); return (p.photo?p.photo.length:0)+'_'+dl+'_'+((p.docs||[]).length); }
 
+/* الطابع الزمني لنسخة السحابة التي تبني عليها هذه الجلسة — حماية من كتابة نسخة قديمة فوق نسخة أحدث */
+let _cloudBaseAt=null;
+function _refreshAllUI(){ try{render&&render();}catch(_){} try{refreshUI&&refreshUI();}catch(_){} try{renderAll&&renderAll();}catch(_){} try{renderEmps&&renderEmps(emps);}catch(_){} try{upDash&&upDash();}catch(_){} try{if(typeof renderProfiles==='function')renderProfiles();}catch(_){} }
 async function saveToCloud() {
   try {
     const liteProfiles=_stripMedia(profiles);
     const mediaIds=Object.keys(profiles||{}).filter(function(id){var p=profiles[id]||{};return p.photo||(p.docs&&p.docs.length);});
-    const payload = {emps, att, lvReqs, disc, profiles:liteProfiles, loans, payrollArchive, schema:2, mediaIds:mediaIds, savedAt: new Date().toISOString()};
-    await CLOUD_DOC.set(payload);
+    const newAt=new Date().toISOString();
+    const payload = {emps, att, lvReqs, disc, profiles:liteProfiles, loans, payrollArchive, schema:2, mediaIds:mediaIds, savedAt: newAt};
+    /* حماية التزامن: لا نكتب فوق السحابة إن كانت قد تقدّمت إلى نسخة أحدث من أساس هذه الجلسة (نسخة أخرى حفظت بعدنا) */
+    let _conflict=false;
+    await db.runTransaction(async function(tx){
+      const snap=await tx.get(CLOUD_DOC);
+      if(snap.exists){ var cur=snap.data()||{}; var curAt=cur.savedAt||null;
+        if(_cloudBaseAt && curAt && new Date(curAt)>new Date(_cloudBaseAt)){ _conflict=true; return; } }
+      tx.set(CLOUD_DOC, payload);
+    });
+    if(_conflict){
+      const st=document.getElementById('save-status'); if(st){ st.textContent='⚠️ توجد نسخة أحدث على السحابة — تم التحديث بدل الكتابة فوقها'; st.style.color='rgba(230,175,70,0.95)'; }
+      try{ tk('⚠️ رُصدت نسخة أحدث على السحابة — حُدّثت البيانات لتفادي فقدان تعديلات نسخة أخرى. راجع ثم احفظ تعديلك من جديد إن لزم.'); }catch(_){}
+      try{ await loadFromCloud(true); _refreshAllUI(); }catch(_le){ console.error('conflict pull error',_le); }
+      return;
+    }
+    _cloudBaseAt=newAt;
     // كتابة سجلّ صور مستقل لكل موظف تغيّرت صوره فقط
     const writes=[];
     mediaIds.forEach(function(id){ var h=_mh(profiles,id); if(_mediaHash[id]!==h){ writes.push(MEDIA_COL.doc(String(id)).set(_mediaOf(profiles,id)).then(function(){_mediaHash[id]=h;})); } });
@@ -3328,15 +3346,16 @@ async function saveToCloud() {
   } catch(e) { console.error('Cloud save error:', e); const st=document.getElementById('save-status'); if(st){st.textContent='⚠️ تعذّر الحفظ السحابي: '+(e.code||e.message); st.style.color='rgba(230,120,120,0.95)';} }
 }
 
-async function loadFromCloud() {
+async function loadFromCloud(force) {
   try {
     const snap = await CLOUD_DOC.get();
     if (snap.exists) {
       const data = snap.data();
       if (data.emps && data.emps.length) {
         // الأحدث يفوز: إن كانت نسخة هذا الجهاز أحدث من السحابة لا نكتب فوقها
-        try{ var lraw=localStorage.getItem(STORAGE_KEY); if(lraw){ var ld=JSON.parse(lraw); if(ld&&ld.savedAt&&data.savedAt&&new Date(ld.savedAt)>new Date(data.savedAt)){ return false; } } }catch(_){}
+        try{ var lraw=localStorage.getItem(STORAGE_KEY); if(!force && lraw){ var ld=JSON.parse(lraw); if(ld&&ld.savedAt&&data.savedAt&&new Date(ld.savedAt)>new Date(data.savedAt)){ _cloudBaseAt=data.savedAt||_cloudBaseAt; return false; } } }catch(_){}
         emps = data.emps; att = data.att || att; lvReqs = data.lvReqs || lvReqs;
+        _cloudBaseAt = data.savedAt || _cloudBaseAt;
         disc = data.disc || disc; if (data.profiles) profiles = data.profiles; if (data.loans) loans = data.loans; if (data.payrollArchive) payrollArchive = data.payrollArchive;
         // schema 2: دمج الصور من السجلّات المستقلة (مع توافق خلفي للنسخ القديمة التي تحوي الصور داخل الملف)
         if (data.schema===2 || (data.mediaIds && data.mediaIds.length)) {
