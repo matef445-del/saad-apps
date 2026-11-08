@@ -391,7 +391,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <input type="hidden" id="em-id">
     <div class="mrow">
       <div class="fg"><label>التاريخ</label><input type="date" id="em-date"></div>
-      <div class="fg"><label>المبلغ (ر.س)</label><input type="number" step="0.01" id="em-amount" placeholder="0.00"></div>
+      <div class="fg"><label>المبلغ (ر.س)</label><input type="text" inputmode="decimal" id="em-amount" placeholder="0.00" dir="ltr" style="text-align:right" oninput="_normField(this)"></div>
     </div>
     <div class="fg"><label>البيان / الوصف</label><input id="em-desc" placeholder="وصف القيد"></div>
     <div class="mrow" id="em-tc">
@@ -399,7 +399,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="fg"><label>التصنيف</label><select id="em-cat"></select></div>
     </div>
     <div class="mrow" id="em-extra">
-      <div class="fg"><label>رقم الفاتورة / مرفق</label><input id="em-inv" placeholder="اختياري"></div>
+      <div class="fg"><label>رقم الفاتورة / مرفق</label><input id="em-inv" placeholder="اختياري" dir="ltr" style="text-align:right" inputmode="numeric" oninput="_normField(this)"></div>
       <div class="fg"><label>ملاحظات</label><input id="em-note" placeholder="اختياري"></div>
     </div>
     <div class="fg" id="em-att-wrap">
@@ -1164,16 +1164,22 @@ function removeAtt(i){
   var a=currentAtt[i]; currentAtt.splice(i,1); renderAttList();
   if(a){try{localStorage.removeItem('SAAD_ATT_'+a.id);}catch(e){} if(db)db.collection(ATTCOL).doc(a.id).delete().catch(function(){});}
 }
+/* توحيد الأرقام: تحويل الأرقام العربية/الفارسية إلى غربية (0-9) والفاصلة العربية ٫ إلى . — ليقبل الحقل الأرقام العربية ويُحرَّر بسلاسة */
+function toWestNum(s){ s=String(s==null?'':s);
+  s=s.replace(/[\u0660-\u0669]/g,function(d){return String.fromCharCode(d.charCodeAt(0)-0x0660+48);});
+  s=s.replace(/[\u06F0-\u06F9]/g,function(d){return String.fromCharCode(d.charCodeAt(0)-0x06F0+48);});
+  s=s.replace(/\u066B/g,'.').replace(/\u066C/g,''); return s; }
+function _normField(el){ try{ var v=el.value; var w=toWestNum(v); if(w!==v){ var pos=el.selectionStart; el.value=w; if(pos!=null){ try{el.setSelectionRange(pos,pos);}catch(_e){} } } }catch(e){} }
 function saveEntry(){
   var m=ACCMETA[CUR], id=g('em-id').value;
-  var date=normDate(g('em-date').value), amt=parseFloat(g('em-amount').value), desc=g('em-desc').value.trim();
+  var date=normDate(g('em-date').value), amt=parseFloat(toWestNum(g('em-amount').value)), desc=g('em-desc').value.trim();
   if(!date){toast('أدخل التاريخ');return;}
   if(isNaN(amt)||amt<=0){toast('أدخل مبلغاً صحيحاً');return;}
   if(!desc){toast('أدخل البيان');return;}
   pushUndo();
   var obj={date:date,amount:amt,desc:desc,
     type:m.simple?'مصروف مكتب':g('em-type').value,
-    cat:m.simple?'':g('em-cat').value, inv:m.simple?'':g('em-inv').value.trim(), note:m.simple?'':g('em-note').value.trim(), att:currentAtt.slice()};
+    cat:m.simple?'':g('em-cat').value, inv:m.simple?'':toWestNum(g('em-inv').value).trim(), note:m.simple?'':g('em-note').value.trim(), att:currentAtt.slice()};
   if(id){var r=STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]; Object.assign(r,obj);}
   else{obj.id=nid(); STATE.accounts[CUR].rows.push(obj);}
   try{var _iv=parseInt(obj.inv,10); if(!isNaN(_iv)){var _cur=parseInt(STATE.invSeq,10)||0; if(_iv>_cur)STATE.invSeq=_iv;}}catch(e){} /* علامة أعلى رقم أُصدر — يمنع إعادة استخدام الرقم بعد الحذف */
