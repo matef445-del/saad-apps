@@ -438,6 +438,23 @@ function timeline(c,i){
   return '<div class="tl-ev"><div class="tl-ic">'+m.ic+'</div><div class="tl-body"><div class="tl-top"><b>'+m.l+'</b><span class="tl-date mono">'+fdEvent(ev.date)+'</span></div>'+(ex.length?'<div class="tl-meta">'+ex.join(' · ')+'</div>':'')+(ev.notes?'<div class="tl-note">'+e(ev.notes)+'</div>':'')+evThumb(ev)+'<div class="tl-act">'+evRowActions(i,ev.id)+'</div></div></div>';}).join('');
  return '<div class="tl">'+items+'</div>';
 }
+function loadCarCustody(plate){
+  var box=document.getElementById('car-cust'); if(!box)return;
+  var cdb=_cdb; try{ if(!cdb){ if(!firebase.apps.length)firebase.initializeApp(_CFG_CARS); cdb=firebase.firestore(); } }catch(ex){}
+  if(!cdb){ box.innerHTML='<div class="muted" style="font-size:12px">تعذّر الوصول لبيانات العهد.</div>'; return; }
+  cdb.collection('custody_expenses_db').doc('state').get().then(function(snap){
+    if(!snap||!snap.exists){ box.innerHTML='<div class="muted" style="font-size:12px">تعذّر الوصول لبيانات العهد.</div>'; return; }
+    var ST={}; try{ ST=JSON.parse((snap.data()||{}).payload||'{}'); }catch(_p){}
+    var rows=((ST.accounts&&ST.accounts['3000']&&ST.accounts['3000'].rows)||[]).filter(function(r){ return r.link&&r.link.type==='veh'&&String(r.link.plate)===String(plate); });
+    if(!rows.length){ box.innerHTML='<div class="muted" style="font-size:12px">لا توجد مصروفات مربوطة بهذه السيارة في الحساب الرئيسي بعد.<br>تُربط من برنامج العهد عند الإدخال، أو من «الإعدادات ← اقتراح ربط القيود».</div>'; return; }
+    rows.sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
+    var tot=rows.reduce(function(s,r){return s+(+r.amount||0);},0);
+    var groups={}; rows.forEach(function(r){ var k=r.cat||'أخرى'; groups[k]=(groups[k]||0)+(+r.amount||0); });
+    var chips='<div class="chips">'+Object.keys(groups).map(function(k){return '<div class="chip ch-ok"><span class="chl">'+e(k)+'</span><span class="chv">'+money(groups[k])+'</span></div>';}).join('')+'</div>';
+    var tbl='<div class="evwrap"><table class="evtab"><thead><tr><th>التاريخ</th><th>البيان</th><th>التصنيف</th><th>المبلغ</th></tr></thead><tbody>'+rows.map(function(r){ return '<tr><td class="mono">'+e(r.date||'')+'</td><td>'+e(r.desc||'')+'</td><td>'+e(r.cat||'—')+'</td><td>'+money(r.amount)+'</td></tr>'; }).join('')+'</tbody><tfoot><tr><td colspan="3" style="text-align:left;font-weight:700">الإجمالي ('+rows.length+')</td><td style="font-weight:800;color:#e8b84b">'+money(tot)+'</td></tr></tfoot></table></div>';
+    box.innerHTML=chips+tbl+'<div class="muted" style="font-size:11px;margin-top:6px">تُدار هذه المصروفات من الحساب الرئيسي في برنامج العهد.</div>';
+  }).catch(function(){ box.innerHTML='<div class="muted" style="font-size:12px">خطأ في قراءة بيانات العهد.</div>'; });
+}
 function openDetail(i,tab){
  _di=i;var c=CARS[i];var ch=carChecks(c);var al=carAlerts(c);var vs=vioStats(c);
  var byLabel={};ch.forEach(function(x){byLabel[x.label]=x;});
@@ -448,7 +465,7 @@ function openDetail(i,tab){
  var R=function(l,v){return '<div class="drow"><span>'+l+'</span><b>'+e(v||'—')+'</b></div>';};
  var vioTxt=vs.unpaid?(vs.unpaid+' غير مسددة'):(vs.count?'لا متأخرات':'لا مخالفات');
  var chips='<div class="chips">'+chip('رخصة السير',lic.state,lic.txt)+chip('الفحص الدوري',insp.state,insp.txt)+chip('التأمين',ins.state,ins.txt)+'<div class="chip '+(vs.unpaid?'ch-bad':'ch-ok')+'"><span class="chl">المخالفات</span><span class="chv">'+e(vioTxt)+'</span></div></div>';
- var tabs=[['data','البيانات'],['ins','التأمين والرخصة'],['insp','الفحص'],['vio','المخالفات'+(vs.unpaid?' <span class="tbadge">'+vs.unpaid+'</span>':'')],['maint','الصيانة'],['log','السجلّ الكامل']];
+ var tabs=[['data','البيانات'],['ins','التأمين والرخصة'],['insp','الفحص'],['vio','المخالفات'+(vs.unpaid?' <span class="tbadge">'+vs.unpaid+'</span>':'')],['maint','الصيانة'],['log','السجلّ الكامل'],['cust','💵 من العهد']];
  var tabbar='<div class="dtabs">'+tabs.map(function(t){return '<button class="dtab" data-k="'+t[0]+'" onclick="dGo(\''+t[0]+'\',this)">'+t[1]+'</button>';}).join('')+'<button class="dtab addev" onclick="openEvent('+i+')">＋ إضافة حدث</button></div>';
  var paneData='<div class="dpane" data-k="data"><div class="detail"><div class="dcol">'+
    '<div class="drow"><span>رقم اللوحة</span><b dir="auto" style="font-family:monospace;color:#d8b441">'+e(c.plate)+'</b></div>'+
@@ -462,13 +479,15 @@ function openDetail(i,tab){
  var paneVio='<div class="dpane" data-k="vio">'+vioPane(c,i)+'</div>';
  var paneMaint='<div class="dpane" data-k="maint">'+evTable(c,i,['maintenance','oil','accident','other'],'لا توجد سجلات صيانة')+'</div>';
  var paneLog='<div class="dpane" data-k="log">'+timeline(c,i)+'</div>';
+ var paneCust='<div class="dpane" data-k="cust"><div id="car-cust" style="padding:4px">⏳ جاري التحميل من برنامج العهد…</div></div>';
  g('modalIn').innerHTML=
   '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' <span dir="auto">'+e(c.model)+'</span> <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
-  chips+tabbar+'<div class="dbody">'+paneData+paneIns+paneInsp+paneVio+paneMaint+paneLog+'</div>'+
+  chips+tabbar+'<div class="dbody">'+paneData+paneIns+paneInsp+paneVio+paneMaint+paneLog+paneCust+'</div>'+
   (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'')+
   '<div class="actions"><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button><button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button><button class="btn" onclick="closeModal()">إغلاق</button></div>';
  g('modal').classList.add('open');
  var want=tab||'data';var tbEl=document.querySelector('#modalIn .dtab[data-k="'+want+'"]');dGo(want,tbEl);
+ try{ loadCarCustody(c.plate); }catch(_e){}
 }
 var _evCar=0,_evId=null,_evImg='';
 function openEvent(i,id){

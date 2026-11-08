@@ -331,11 +331,11 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         رصيد أول المدة لحساب العقار 3003 = 37,675 ر.س (بداية مايو 2026)
       </div>
     </div>
-    <div class="sec"><h2>🔗 ربط القيود بالموظفين</h2>
+    <div class="sec"><h2>🔗 ربط القيود بالموظفين والسيارات</h2>
       <div style="font-size:13px;color:var(--muted);line-height:2.1;margin-bottom:12px">
-        يربط قيود الحساب الرئيسي (رواتب/تذاكر/سلف…) بموظفيها، فتظهر الحركة المالية داخل ملف كل موظف في برنامج الموارد. الأداة تقترح لكل قيد غير مربوط أقرب موظف بالاسم، وتعتمدها أنت بعد المراجعة (فردياً أو دفعةً) — ويمكن التراجع بـ Ctrl+Z.
+        يربط قيود الحساب الرئيسي بموظفيها أو سياراتها، فتظهر الحركة المالية داخل ملف كل موظف (برنامج الموارد) وكل سيارة (برنامج السيارات). عند الإدخال اختر «ربط بـ» ثم الموظف أو السيارة. والأداة أدناه تقترح لكل قيد غير مربوط أقرب موظف بالاسم أو سيارة باللوحة/الماركة، وتعتمدها أنت بعد المراجعة (فردياً أو دفعةً) — ويمكن التراجع بـ Ctrl+Z.
       </div>
-      <button class="btn gold sm" onclick="openLinkTool()">🔗 اقتراح ربط القيود القديمة بالموظفين</button>
+      <button class="btn gold sm" onclick="openLinkTool()">🔗 اقتراح ربط القيود القديمة (موظف/سيارة)</button>
     </div>
     <div class="sec"><h2>📎 مرفقات الفواتير</h2>
       <div style="font-size:13px;color:var(--muted);line-height:2.1">
@@ -405,7 +405,8 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="fg"><label>التصنيف</label><select id="em-cat"></select></div>
     </div>
     <div class="mrow" id="em-link">
-      <div class="fg"><label>👤 ربط بموظف (اختياري)</label><select id="em-emp"></select></div>
+      <div class="fg"><label>🔗 ربط بـ (اختياري)</label><select id="em-link-type" onchange="onLinkTypeChange()"><option value="">— بدون —</option><option value="emp">👤 موظف</option><option value="veh">🚗 سيارة</option></select></div>
+      <div class="fg"><label>الاسم / المركبة</label><select id="em-link-ref"></select></div>
     </div>
     <div class="mrow" id="em-extra">
       <div class="fg"><label>رقم الفاتورة / مرفق</label><input id="em-inv" placeholder="اختياري" dir="ltr" style="text-align:right" inputmode="numeric" oninput="_normField(this)"></div>
@@ -776,7 +777,7 @@ function setSync(state){
 function initFB(){
   try{
     if(!firebase.apps.length) firebase.initializeApp(FB);
-    db=firebase.firestore(); fbReady=true; try{loadEmpList();}catch(_e){}
+    db=firebase.firestore(); fbReady=true; try{loadEmpList();loadVehList();}catch(_e){}
     db.collection(COLLECTION).doc(DOCID).get().then(function(doc){
       if(doc.exists && doc.data() && doc.data().payload){
         try{var p=JSON.parse(doc.data().payload);
@@ -1050,7 +1051,7 @@ function renderAcc(){
       : '<td><div class="t-act"><button class="iconb" data-act="edit" data-id="'+r.id+'">✏️</button><button class="iconb" data-act="del" data-id="'+r.id+'">🗑️</button></div></td>');
     var peBadge = r._indep ? ' <span class="chip" style="background:#11331c;color:var(--gold2);border:1px solid var(--gold2);font-size:10px">مستقلة</span>'
                 : (r._ref ? ' <span class="chip" style="background:#3a1212;color:#f0a8a8;border:1px solid #cf5050;font-size:10px">مرجعية — قبل القيد</span>' : '');
-    var empBadge = (r.link&&r.link.type==='emp'&&r.link.name) ? ' <span class="chip" style="background:#11331c;color:#9cc3ef;border:1px solid #2f6db3;font-size:10px">👤 '+esc(r.link.name)+'</span>' : '';
+    var empBadge = (r.link&&r.link.name) ? ' <span class="chip" style="background:#11331c;color:#9cc3ef;border:1px solid #2f6db3;font-size:10px">'+(r.link.type==='veh'?'🚗':'👤')+' '+esc(r.link.name)+'</span>' : '';
     return '<tr><td class="t-seq">'+seq+'</td><td>'+dfmt(r.date)+'</td><td class="t-desc">'+esc(r.desc)+peBadge+empBadge+(r.note?'<br><span style="font-size:11px;color:var(--muted)">'+esc(r.note)+'</span>':'')+'</td>'+chip+'<td class="t-amt '+inCls+'">'+(r._dir>0?'+':'−')+fmt(r.amount)+'</td><td class="t-bal">'+fmt(r._bal)+'</td>'+invc+act+'<td class="t-invno">'+invNo+'</td></tr>';
   }).join('');
   tbl.innerHTML=head+body;
@@ -1085,7 +1086,7 @@ function openEntry(id){
     currentAtt=[];
   }
   g('em-att-prog').textContent=''; renderAttList();
-  try{ g('em-link').style.display=m.simple?'none':'flex'; if(!(_EMPLIST&&_EMPLIST.length)){loadEmpList();} var _er=id?STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]:null; fillEmpSelect(_er&&_er.link&&_er.link.type==='emp'?_er.link.id:''); }catch(_e){}
+  try{ g('em-link').style.display=m.simple?'none':'flex'; var _er=id?STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]:null; _setEntryLinkUI(_er&&_er.link?_er.link:null); }catch(_e){}
   g('ov-entry').classList.add('show');
 }
 function fillCatSelect(){
@@ -1188,8 +1189,7 @@ function saveEntry(){
   if(isNaN(amt)||amt<=0){toast('أدخل مبلغاً صحيحاً');return;}
   if(!desc){toast('أدخل البيان');return;}
   pushUndo();
-  var _empSel=g('em-emp'), _link=null;
-  if(!m.simple && _empSel && _empSel.value){ var _le=(_EMPLIST||[]).filter(function(x){return String(x.id)===String(_empSel.value);})[0]; if(_le)_link={type:'emp',id:_le.id,name:_le.name}; }
+  var _link=_readEntryLink(m);
   var obj={date:date,amount:amt,desc:desc,link:_link,
     type:m.simple?'مصروف مكتب':g('em-type').value,
     cat:m.simple?'':g('em-cat').value, inv:m.simple?'':toWestNum(g('em-inv').value).trim(), note:m.simple?'':g('em-note').value.trim(), att:currentAtt.slice()};
@@ -1911,29 +1911,53 @@ function renderSearch(){
 }
 
 /* ============ SETTINGS ============ */
-/* ===== ربط القيود بالموظفين ===== */
-var _EMPLIST=[];
-function loadEmpList(){ try{ if(!db)return; db.collection('saad_apps').doc('payroll_data').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _EMPLIST=((d&&d.emps)||[]).map(function(e){return {id:e.id,name:e.name,code:e.code};}); try{fillEmpSelect();}catch(_e){} } }).catch(function(){}); }catch(e){} }
-function fillEmpSelect(sel){ var el=g('em-emp'); if(!el)return; var cur=(sel!=null?sel:el.value); el.innerHTML='<option value="">— بدون —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(cur!=null&&cur!=='')el.value=String(cur); }
+/* ===== ربط القيود (موظف / سيارة) ===== */
+var _EMPLIST=[], _VEHLIST=[];
+function loadEmpList(){ try{ if(!db)return; db.collection('saad_apps').doc('payroll_data').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _EMPLIST=((d&&d.emps)||[]).map(function(e){return {id:e.id,name:e.name};}); try{ if(g('em-link-type')&&g('em-link-type').value==='emp') fillLinkRef('emp',g('em-link-ref').value); }catch(_e){} } }).catch(function(){}); }catch(e){} }
+function loadVehList(){ try{ if(!db)return; db.collection('cars_db').doc('main').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _VEHLIST=((d&&d.cars)||[]).filter(function(c){return c&&c.plate;}).map(function(c){ var nm=((c.brand||'')+' '+(c.model||'')).trim()||String(c.plate); return {plate:String(c.plate),name:nm,label:nm+' — '+c.plate}; }); try{ if(g('em-link-type')&&g('em-link-type').value==='veh') fillLinkRef('veh',g('em-link-ref').value); }catch(_e){} } }).catch(function(){}); }catch(e){} }
+function fillLinkRef(type,val){ var el=g('em-link-ref'); if(!el)return;
+  if(type==='emp'){ el.innerHTML='<option value="">— اختر الموظف —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="'+esc(String(e.id))+'">'+esc(e.name)+'</option>';}).join(''); }
+  else if(type==='veh'){ el.innerHTML='<option value="">— اختر السيارة —</option>'+(_VEHLIST||[]).map(function(v){return '<option value="'+esc(v.plate)+'">'+esc(v.label)+'</option>';}).join(''); }
+  else { el.innerHTML='<option value="">—</option>'; }
+  if(val!=null&&val!=='')el.value=String(val);
+}
+function onLinkTypeChange(){ var t=g('em-link-type').value; if(t==='emp'&&!(_EMPLIST&&_EMPLIST.length))loadEmpList(); if(t==='veh'&&!(_VEHLIST&&_VEHLIST.length))loadVehList(); fillLinkRef(t,''); }
+function _setEntryLinkUI(lnk){ var t=lnk?lnk.type:''; g('em-link-type').value=t||''; if(t==='emp'&&!(_EMPLIST&&_EMPLIST.length))loadEmpList(); if(t==='veh'&&!(_VEHLIST&&_VEHLIST.length))loadVehList(); fillLinkRef(t, lnk?(t==='emp'?lnk.id:lnk.plate):''); }
+function _readEntryLink(m){ if(m.simple)return null; var t=g('em-link-type').value, v=g('em-link-ref').value; if(!t||!v)return null;
+  if(t==='emp'){ var e=(_EMPLIST||[]).filter(function(x){return String(x.id)===String(v);})[0]; return e?{type:'emp',id:e.id,name:e.name}:null; }
+  if(t==='veh'){ var c=(_VEHLIST||[]).filter(function(x){return String(x.plate)===String(v);})[0]; return c?{type:'veh',plate:c.plate,name:c.name}:null; }
+  return null;
+}
 function _normTxt(s){ return String(s||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه'); }
 function _empTokens(name){ var stop=['عبد','الله','بن','ال','احمد','محمد','سيد','عقار','شاه','جمال']; return _normTxt(name).split(/\s+/).filter(function(t){return t.length>=3 && stop.indexOf(t)<0;}); }
 function _suggestEmpFor(desc){ var d=_normTxt(desc); var best=null,bs=0; (_EMPLIST||[]).forEach(function(e){ var tk=_empTokens(e.name); var sc=0; tk.forEach(function(t){ if(d.indexOf(t)>=0)sc++; }); if(sc>bs){bs=sc;best=e;} }); return bs>0?best:null; }
+function _digits(s){ return String(s||'').replace(/[^0-9]/g,''); }
+function _suggestVehFor(desc){ var d=_normTxt(desc); var dd=_digits(desc); var best=null,bs=0;
+  (_VEHLIST||[]).forEach(function(v){ var sc=0; var pd=_digits(v.plate); if(pd.length>=3 && dd.indexOf(pd)>=0) sc+=2; _normTxt(v.name).split(/\s+/).filter(function(t){return t.length>=3;}).forEach(function(t){ if(d.indexOf(t)>=0)sc++; }); if(sc>bs){bs=sc;best=v;} });
+  return bs>0?best:null;
+}
 function openLinkTool(){
-  if(!(_EMPLIST&&_EMPLIST.length)){ loadEmpList(); toast('يجري تحميل قائمة الموظفين… أعد الضغط بعد ثانية'); return; }
+  if(!(_EMPLIST&&_EMPLIST.length))loadEmpList();
+  if(!(_VEHLIST&&_VEHLIST.length))loadVehList();
+  if(!(_EMPLIST&&_EMPLIST.length)&&!(_VEHLIST&&_VEHLIST.length)){ toast('يجري تحميل القوائم… أعد الضغط بعد ثانية'); return; }
   var rows=((STATE.accounts&&STATE.accounts['3000']&&STATE.accounts['3000'].rows)||[]);
   var items=[];
-  rows.forEach(function(r){ if(r.link&&r.link.type==='emp')return; var sug=_suggestEmpFor(r.desc); if(!sug)return; items.push({id:r.id,date:r.date,desc:r.desc,amount:r.amount,sug:sug.id}); });
+  rows.forEach(function(r){ if(r.link&&r.link.type)return; var se=_suggestEmpFor(r.desc), sv=_suggestVehFor(r.desc);
+    if(se){ items.push({id:r.id,date:r.date,desc:r.desc,amount:r.amount,type:'emp',sug:se.id}); }
+    else if(sv){ items.push({id:r.id,date:r.date,desc:r.desc,amount:r.amount,type:'veh',sug:sv.plate}); } });
   if(!items.length){ toast('لا توجد قيود غير مربوطة يمكن اقتراح ربطها'); return; }
   var mdl=document.getElementById('linkToolMdl');
   if(!mdl){ mdl=document.createElement('div'); mdl.id='linkToolMdl'; mdl.className='ov'; mdl.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:20px'; document.body.appendChild(mdl); }
-  var trs=items.map(function(it,i){
-    var sel='<select data-emp="'+i+'" style="width:100%">'+'<option value="">— بدون —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="'+e.id+'"'+(String(e.id)===String(it.sug)?' selected':'')+'>'+esc(e.name)+'</option>';}).join('')+'</select>';
-    return '<tr style="border-bottom:1px solid #22402b"><td style="padding:5px;text-align:center"><input type="checkbox" data-chk="'+i+'" checked></td><td style="padding:5px">'+dfmt(it.date)+'</td><td style="padding:5px">'+esc(it.desc)+'</td><td style="padding:5px;text-align:left" dir="ltr">'+fmt(it.amount)+'</td><td style="padding:5px;min-width:170px">'+sel+'</td></tr>';
+  var trs=items.map(function(it,i){ var opts,icon;
+    if(it.type==='emp'){ icon='👤'; opts='<option value="">— بدون —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="emp:'+esc(String(e.id))+'"'+(String(e.id)===String(it.sug)?' selected':'')+'>'+esc(e.name)+'</option>';}).join(''); }
+    else { icon='🚗'; opts='<option value="">— بدون —</option>'+(_VEHLIST||[]).map(function(v){return '<option value="veh:'+esc(v.plate)+'"'+(String(v.plate)===String(it.sug)?' selected':'')+'>'+esc(v.label)+'</option>';}).join(''); }
+    var sel='<select data-ref="'+i+'" style="width:100%">'+opts+'</select>';
+    return '<tr style="border-bottom:1px solid #22402b"><td style="padding:5px;text-align:center"><input type="checkbox" data-chk="'+i+'" checked></td><td style="padding:5px;text-align:center">'+icon+'</td><td style="padding:5px">'+dfmt(it.date)+'</td><td style="padding:5px">'+esc(it.desc)+'</td><td style="padding:5px;text-align:left" dir="ltr">'+fmt(it.amount)+'</td><td style="padding:5px;min-width:180px">'+sel+'</td></tr>';
   }).join('');
-  mdl.innerHTML='<div class="modal" style="max-width:840px;width:100%">'
-    +'<h3>🔗 اقتراح ربط القيود بالموظفين ('+items.length+')</h3>'
-    +'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">راجِع الاقتراحات، عدّل أي موظف أو أزل التحديد، ثم اعتمد. يمكن التراجع بـ Ctrl+Z.</div>'
-    +'<div style="max-height:60vh;overflow:auto;border:1px solid #22402b;border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#11331c;color:var(--gold2)"><th style="padding:6px"><input type="checkbox" id="lt-all" checked></th><th style="padding:6px">التاريخ</th><th style="padding:6px">البيان</th><th style="padding:6px">المبلغ</th><th style="padding:6px">الموظف</th></tr></thead><tbody>'+trs+'</tbody></table></div>'
+  mdl.innerHTML='<div class="modal" style="max-width:880px;width:100%">'
+    +'<h3>🔗 اقتراح ربط القيود (موظف/سيارة) ('+items.length+')</h3>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">راجِع الاقتراحات، عدّل أو أزل التحديد، ثم اعتمد. يمكن التراجع بـ Ctrl+Z.</div>'
+    +'<div style="max-height:60vh;overflow:auto;border:1px solid #22402b;border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#11331c;color:var(--gold2)"><th style="padding:6px"><input type="checkbox" id="lt-all" checked></th><th style="padding:6px">النوع</th><th style="padding:6px">التاريخ</th><th style="padding:6px">البيان</th><th style="padding:6px">المبلغ</th><th style="padding:6px">الربط</th></tr></thead><tbody>'+trs+'</tbody></table></div>'
     +'<div class="mfoot" style="margin-top:12px;display:flex;gap:8px"><button class="btn gold" onclick="applyLinkTool()">✅ اعتماد المحدّد</button><button class="btn ghost" onclick="document.getElementById(\'linkToolMdl\').remove()">إلغاء</button></div>'
     +'</div>';
   mdl.style.display='flex';
@@ -1945,15 +1969,14 @@ function applyLinkTool(){
   var items=window._linkItems||[]; var n=0;
   if(typeof pushUndo==='function')pushUndo();
   var byId={}; ((STATE.accounts['3000']&&STATE.accounts['3000'].rows)||[]).forEach(function(r){byId[r.id]=r;});
-  items.forEach(function(it,i){
-    var chk=mdl.querySelector('[data-chk="'+i+'"]'); var sel=mdl.querySelector('[data-emp="'+i+'"]');
-    if(!chk||!chk.checked||!sel||!sel.value)return;
-    var e=(_EMPLIST||[]).filter(function(x){return String(x.id)===String(sel.value);})[0]; if(!e)return;
-    var r=byId[it.id]; if(!r)return; r.link={type:'emp',id:e.id,name:e.name}; n++;
+  items.forEach(function(it,i){ var chk=mdl.querySelector('[data-chk="'+i+'"]'); var sel=mdl.querySelector('[data-ref="'+i+'"]');
+    if(!chk||!chk.checked||!sel||!sel.value)return; var v=sel.value; var r=byId[it.id]; if(!r)return;
+    if(v.indexOf('emp:')===0){ var e=(_EMPLIST||[]).filter(function(x){return String(x.id)===v.slice(4);})[0]; if(e){r.link={type:'emp',id:e.id,name:e.name};n++;} }
+    else if(v.indexOf('veh:')===0){ var c=(_VEHLIST||[]).filter(function(x){return String(x.plate)===v.slice(4);})[0]; if(c){r.link={type:'veh',plate:c.plate,name:c.name};n++;} }
   });
   if(typeof persist==='function')persist();
   try{ renderAcc(); }catch(e){}
-  mdl.remove(); toast('تم ربط '+n+' قيد بالموظفين ✓ (يمكن التراجع)');
+  mdl.remove(); toast('تم ربط '+n+' قيد ✓ (يمكن التراجع)');
 }
 function renderSet(){
   var html='';
