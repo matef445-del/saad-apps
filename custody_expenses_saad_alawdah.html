@@ -331,6 +331,12 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         رصيد أول المدة لحساب العقار 3003 = 37,675 ر.س (بداية مايو 2026)
       </div>
     </div>
+    <div class="sec"><h2>🔗 ربط القيود بالموظفين</h2>
+      <div style="font-size:13px;color:var(--muted);line-height:2.1;margin-bottom:12px">
+        يربط قيود الحساب الرئيسي (رواتب/تذاكر/سلف…) بموظفيها، فتظهر الحركة المالية داخل ملف كل موظف في برنامج الموارد. الأداة تقترح لكل قيد غير مربوط أقرب موظف بالاسم، وتعتمدها أنت بعد المراجعة (فردياً أو دفعةً) — ويمكن التراجع بـ Ctrl+Z.
+      </div>
+      <button class="btn gold sm" onclick="openLinkTool()">🔗 اقتراح ربط القيود القديمة بالموظفين</button>
+    </div>
     <div class="sec"><h2>📎 مرفقات الفواتير</h2>
       <div style="font-size:13px;color:var(--muted);line-height:2.1">
         مرفقات الفواتير تُحفظ تلقائياً في قاعدة البيانات الحالية — لا حاجة لأي إعداد أو خدمة إضافية أو بطاقة دفع.<br>
@@ -397,6 +403,9 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
     <div class="mrow" id="em-tc">
       <div class="fg"><label>النوع</label><select id="em-type" onchange="syncCatForType()"></select></div>
       <div class="fg"><label>التصنيف</label><select id="em-cat"></select></div>
+    </div>
+    <div class="mrow" id="em-link">
+      <div class="fg"><label>👤 ربط بموظف (اختياري)</label><select id="em-emp"></select></div>
     </div>
     <div class="mrow" id="em-extra">
       <div class="fg"><label>رقم الفاتورة / مرفق</label><input id="em-inv" placeholder="اختياري" dir="ltr" style="text-align:right" inputmode="numeric" oninput="_normField(this)"></div>
@@ -767,7 +776,7 @@ function setSync(state){
 function initFB(){
   try{
     if(!firebase.apps.length) firebase.initializeApp(FB);
-    db=firebase.firestore(); fbReady=true;
+    db=firebase.firestore(); fbReady=true; try{loadEmpList();}catch(_e){}
     db.collection(COLLECTION).doc(DOCID).get().then(function(doc){
       if(doc.exists && doc.data() && doc.data().payload){
         try{var p=JSON.parse(doc.data().payload);
@@ -1041,7 +1050,8 @@ function renderAcc(){
       : '<td><div class="t-act"><button class="iconb" data-act="edit" data-id="'+r.id+'">✏️</button><button class="iconb" data-act="del" data-id="'+r.id+'">🗑️</button></div></td>');
     var peBadge = r._indep ? ' <span class="chip" style="background:#11331c;color:var(--gold2);border:1px solid var(--gold2);font-size:10px">مستقلة</span>'
                 : (r._ref ? ' <span class="chip" style="background:#3a1212;color:#f0a8a8;border:1px solid #cf5050;font-size:10px">مرجعية — قبل القيد</span>' : '');
-    return '<tr><td class="t-seq">'+seq+'</td><td>'+dfmt(r.date)+'</td><td class="t-desc">'+esc(r.desc)+peBadge+(r.note?'<br><span style="font-size:11px;color:var(--muted)">'+esc(r.note)+'</span>':'')+'</td>'+chip+'<td class="t-amt '+inCls+'">'+(r._dir>0?'+':'−')+fmt(r.amount)+'</td><td class="t-bal">'+fmt(r._bal)+'</td>'+invc+act+'<td class="t-invno">'+invNo+'</td></tr>';
+    var empBadge = (r.link&&r.link.type==='emp'&&r.link.name) ? ' <span class="chip" style="background:#11331c;color:#9cc3ef;border:1px solid #2f6db3;font-size:10px">👤 '+esc(r.link.name)+'</span>' : '';
+    return '<tr><td class="t-seq">'+seq+'</td><td>'+dfmt(r.date)+'</td><td class="t-desc">'+esc(r.desc)+peBadge+empBadge+(r.note?'<br><span style="font-size:11px;color:var(--muted)">'+esc(r.note)+'</span>':'')+'</td>'+chip+'<td class="t-amt '+inCls+'">'+(r._dir>0?'+':'−')+fmt(r.amount)+'</td><td class="t-bal">'+fmt(r._bal)+'</td>'+invc+act+'<td class="t-invno">'+invNo+'</td></tr>';
   }).join('');
   tbl.innerHTML=head+body;
   tbl.querySelectorAll('[data-act]').forEach(function(b){
@@ -1075,6 +1085,7 @@ function openEntry(id){
     currentAtt=[];
   }
   g('em-att-prog').textContent=''; renderAttList();
+  try{ g('em-link').style.display=m.simple?'none':'flex'; if(!(_EMPLIST&&_EMPLIST.length)){loadEmpList();} var _er=id?STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]:null; fillEmpSelect(_er&&_er.link&&_er.link.type==='emp'?_er.link.id:''); }catch(_e){}
   g('ov-entry').classList.add('show');
 }
 function fillCatSelect(){
@@ -1177,7 +1188,9 @@ function saveEntry(){
   if(isNaN(amt)||amt<=0){toast('أدخل مبلغاً صحيحاً');return;}
   if(!desc){toast('أدخل البيان');return;}
   pushUndo();
-  var obj={date:date,amount:amt,desc:desc,
+  var _empSel=g('em-emp'), _link=null;
+  if(!m.simple && _empSel && _empSel.value){ var _le=(_EMPLIST||[]).filter(function(x){return String(x.id)===String(_empSel.value);})[0]; if(_le)_link={type:'emp',id:_le.id,name:_le.name}; }
+  var obj={date:date,amount:amt,desc:desc,link:_link,
     type:m.simple?'مصروف مكتب':g('em-type').value,
     cat:m.simple?'':g('em-cat').value, inv:m.simple?'':toWestNum(g('em-inv').value).trim(), note:m.simple?'':g('em-note').value.trim(), att:currentAtt.slice()};
   if(id){var r=STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]; Object.assign(r,obj);}
@@ -1898,6 +1911,50 @@ function renderSearch(){
 }
 
 /* ============ SETTINGS ============ */
+/* ===== ربط القيود بالموظفين ===== */
+var _EMPLIST=[];
+function loadEmpList(){ try{ if(!db)return; db.collection('saad_apps').doc('payroll_data').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _EMPLIST=((d&&d.emps)||[]).map(function(e){return {id:e.id,name:e.name,code:e.code};}); try{fillEmpSelect();}catch(_e){} } }).catch(function(){}); }catch(e){} }
+function fillEmpSelect(sel){ var el=g('em-emp'); if(!el)return; var cur=(sel!=null?sel:el.value); el.innerHTML='<option value="">— بدون —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="'+e.id+'">'+esc(e.name)+'</option>';}).join(''); if(cur!=null&&cur!=='')el.value=String(cur); }
+function _normTxt(s){ return String(s||'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه'); }
+function _empTokens(name){ var stop=['عبد','الله','بن','ال','احمد','محمد','سيد','عقار','شاه','جمال']; return _normTxt(name).split(/\s+/).filter(function(t){return t.length>=3 && stop.indexOf(t)<0;}); }
+function _suggestEmpFor(desc){ var d=_normTxt(desc); var best=null,bs=0; (_EMPLIST||[]).forEach(function(e){ var tk=_empTokens(e.name); var sc=0; tk.forEach(function(t){ if(d.indexOf(t)>=0)sc++; }); if(sc>bs){bs=sc;best=e;} }); return bs>0?best:null; }
+function openLinkTool(){
+  if(!(_EMPLIST&&_EMPLIST.length)){ loadEmpList(); toast('يجري تحميل قائمة الموظفين… أعد الضغط بعد ثانية'); return; }
+  var rows=((STATE.accounts&&STATE.accounts['3000']&&STATE.accounts['3000'].rows)||[]);
+  var items=[];
+  rows.forEach(function(r){ if(r.link&&r.link.type==='emp')return; var sug=_suggestEmpFor(r.desc); if(!sug)return; items.push({id:r.id,date:r.date,desc:r.desc,amount:r.amount,sug:sug.id}); });
+  if(!items.length){ toast('لا توجد قيود غير مربوطة يمكن اقتراح ربطها'); return; }
+  var mdl=document.getElementById('linkToolMdl');
+  if(!mdl){ mdl=document.createElement('div'); mdl.id='linkToolMdl'; mdl.className='ov'; mdl.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:20px'; document.body.appendChild(mdl); }
+  var trs=items.map(function(it,i){
+    var sel='<select data-emp="'+i+'" style="width:100%">'+'<option value="">— بدون —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="'+e.id+'"'+(String(e.id)===String(it.sug)?' selected':'')+'>'+esc(e.name)+'</option>';}).join('')+'</select>';
+    return '<tr style="border-bottom:1px solid #22402b"><td style="padding:5px;text-align:center"><input type="checkbox" data-chk="'+i+'" checked></td><td style="padding:5px">'+dfmt(it.date)+'</td><td style="padding:5px">'+esc(it.desc)+'</td><td style="padding:5px;text-align:left" dir="ltr">'+fmt(it.amount)+'</td><td style="padding:5px;min-width:170px">'+sel+'</td></tr>';
+  }).join('');
+  mdl.innerHTML='<div class="modal" style="max-width:840px;width:100%">'
+    +'<h3>🔗 اقتراح ربط القيود بالموظفين ('+items.length+')</h3>'
+    +'<div style="font-size:12px;color:var(--muted);margin-bottom:8px">راجِع الاقتراحات، عدّل أي موظف أو أزل التحديد، ثم اعتمد. يمكن التراجع بـ Ctrl+Z.</div>'
+    +'<div style="max-height:60vh;overflow:auto;border:1px solid #22402b;border-radius:8px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#11331c;color:var(--gold2)"><th style="padding:6px"><input type="checkbox" id="lt-all" checked></th><th style="padding:6px">التاريخ</th><th style="padding:6px">البيان</th><th style="padding:6px">المبلغ</th><th style="padding:6px">الموظف</th></tr></thead><tbody>'+trs+'</tbody></table></div>'
+    +'<div class="mfoot" style="margin-top:12px;display:flex;gap:8px"><button class="btn gold" onclick="applyLinkTool()">✅ اعتماد المحدّد</button><button class="btn ghost" onclick="document.getElementById(\'linkToolMdl\').remove()">إلغاء</button></div>'
+    +'</div>';
+  mdl.style.display='flex';
+  var all=document.getElementById('lt-all'); if(all){ all.onchange=function(){ mdl.querySelectorAll('[data-chk]').forEach(function(c){c.checked=all.checked;}); }; }
+  window._linkItems=items;
+}
+function applyLinkTool(){
+  var mdl=document.getElementById('linkToolMdl'); if(!mdl)return;
+  var items=window._linkItems||[]; var n=0;
+  if(typeof pushUndo==='function')pushUndo();
+  var byId={}; ((STATE.accounts['3000']&&STATE.accounts['3000'].rows)||[]).forEach(function(r){byId[r.id]=r;});
+  items.forEach(function(it,i){
+    var chk=mdl.querySelector('[data-chk="'+i+'"]'); var sel=mdl.querySelector('[data-emp="'+i+'"]');
+    if(!chk||!chk.checked||!sel||!sel.value)return;
+    var e=(_EMPLIST||[]).filter(function(x){return String(x.id)===String(sel.value);})[0]; if(!e)return;
+    var r=byId[it.id]; if(!r)return; r.link={type:'emp',id:e.id,name:e.name}; n++;
+  });
+  if(typeof persist==='function')persist();
+  try{ renderAcc(); }catch(e){}
+  mdl.remove(); toast('تم ربط '+n+' قيد بالموظفين ✓ (يمكن التراجع)');
+}
 function renderSet(){
   var html='';
   ['3000','3001','3002','3003'].forEach(function(k){
