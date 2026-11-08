@@ -1329,6 +1329,23 @@ function revertHistory(pid,i){ var p=findProp(pid); if(!p||!p.history||!p.histor
   var back=[]; (e.changes||[]).forEach(function(c){ back.push({f:c.f,old:p[c.f]==null?'':p[c.f],nw:c.old}); p[c.f]=c.old; });
   addHistory(p,{at:new Date().toISOString().slice(0,10),src:'تراجع يدوي',title:'استرجاع ما قبل: '+(e.title||''),changes:back});
   STATE.updatedAt=Date.now(); saveLocal(); render(); openDetail(pid); toast('تم الاسترجاع ✓'); }
+function loadPropCustody(pid){
+  var box=document.getElementById('prop-cust'); if(!box)return;
+  var cdb=(typeof _db!=='undefined'&&_db)?_db:null; try{ if(!cdb){ if(!firebase.apps.length)firebase.initializeApp(_CFG); cdb=firebase.firestore(); } }catch(ex){}
+  if(!cdb){ box.innerHTML='<div class="dx-mini">تعذّر الوصول لبيانات العهد.</div>'; return; }
+  cdb.collection('custody_expenses_db').doc('state').get().then(function(snap){
+    if(!snap||!snap.exists){ box.innerHTML='<div class="dx-mini">تعذّر الوصول لبيانات العهد.</div>'; return; }
+    var ST={}; try{ ST=JSON.parse((snap.data()||{}).payload||'{}'); }catch(_p){}
+    var rows=((ST.accounts&&ST.accounts['3000']&&ST.accounts['3000'].rows)||[]).filter(function(r){ return r.link&&r.link.type==='prop'&&String(r.link.id)===String(pid); });
+    if(!rows.length){ box.innerHTML='<div class="dx-mini">لا توجد مصروفات مربوطة بهذا العقار في الحساب الرئيسي بعد.<br>تُربط من برنامج العهد عند الإدخال، أو من «الإعدادات ← اقتراح ربط القيود».</div>'; return; }
+    rows.sort(function(a,b){ return String(b.date||'').localeCompare(String(a.date||'')); });
+    var tot=rows.reduce(function(s,r){return s+(+r.amount||0);},0);
+    var groups={}; rows.forEach(function(r){ var k=r.cat||'أخرى'; groups[k]=(groups[k]||0)+(+r.amount||0); });
+    var chips=Object.keys(groups).map(function(k){return '<span style="display:inline-block;background:rgba(216,180,65,.14);color:#e9c46a;border:1px solid rgba(216,180,65,.3);border-radius:20px;padding:3px 10px;margin:2px;font-size:12px">'+esc(k)+': <b>'+fmt(groups[k])+'</b></span>';}).join('');
+    var tbl='<table class="dtab" style="width:100%;margin-top:8px"><tr><th>التاريخ</th><th>البيان</th><th>التصنيف</th><th>المبلغ</th></tr>'+rows.map(function(r){return '<tr><td>'+esc(r.date||'')+'</td><td>'+esc(r.desc||'')+'</td><td>'+esc(r.cat||'—')+'</td><td>'+fmt(r.amount)+' ر.س</td></tr>';}).join('')+'<tr style="font-weight:800;color:#e9c46a"><td colspan="3">الإجمالي ('+rows.length+')</td><td>'+fmt(tot)+' ر.س</td></tr></table>';
+    box.innerHTML='<div style="margin-bottom:6px">'+chips+'</div>'+tbl+'<div class="dx-mini" style="margin-top:6px">تُدار هذه المصروفات من الحساب الرئيسي في برنامج العهد.</div>';
+  }).catch(function(){ box.innerHTML='<div class="dx-mini">خطأ في قراءة بيانات العهد.</div>'; });
+}
 function openDetail(id){
   var p=findProp(id); if(!p)return; _detailCur=p;
   g('detailTitle').textContent='قطعة '+p.plot+' — '+p.district+(p.city?' — '+p.city:'');
@@ -1344,7 +1361,7 @@ function openDetail(id){
     (p.mergedGroup?'<span class="dx-badge gold">🔗 مدمج: '+esc(p.mergedGroup)+'</span>':'')+'</div>';
   var lastBox=lu?'<div class="dx-last">🕓 <b>آخر تحديث:</b> '+esc(lu.at)+' — '+esc(lu.src)+'<br>'+esc(lu.title||'')+((lu.changes||[]).length?' ('+lu.changes.length+' تغيير) — <a href="javascript:dxTab(\'hist\')" style="color:#d8b441">عرض التفاصيل</a>':'')+'</div>'
                :'<div class="dx-last">🕓 لا يوجد سجل تحديثات لهذا العقار بعد — بياناته كما أُدخلت أول مرة.</div>';
-  var tabs='<div class="dx-tabs">'+[['data','📋 البيانات'],['docs','📄 الصكوك والصحائف'],['notes','📝 الملاحظات والقيود'+((legal||rs.length)?' ⚠':'')],['hist','🕓 سجل التحديثات ('+hist.length+')']]
+  var tabs='<div class="dx-tabs">'+[['data','📋 البيانات'],['docs','📄 الصكوك والصحائف'],['notes','📝 الملاحظات والقيود'+((legal||rs.length)?' ⚠':'')],['hist','🕓 سجل التحديثات ('+hist.length+')'],['cust','💵 من العهد']]
     .map(function(t){ return '<button class="dx-tab" data-t="'+t[0]+'" onclick="dxTab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('')+'</div>';
   // البيانات
   var data='<div class="detail-grid">'+
@@ -1381,8 +1398,10 @@ function openDetail(id){
       hist.map(function(e,i){ return (i===0?'<div class="dx-mini" style="color:#d8b441;font-weight:800;margin-bottom:4px">آخر تحديث</div>':(i===1?'<div class="dx-mini" style="font-weight:800;margin:4px 0">ما قبله</div>':''))+_evHTML(e,i===0,p.id); }).join('')+'</div>'; }
   g('detailBody').innerHTML=badges+lastBox+tabs+
     '<div class="dx-pane" data-t="data">'+data+'</div><div class="dx-pane" data-t="docs">'+docs+'</div>'+
-    '<div class="dx-pane" data-t="notes">'+notes+'</div><div class="dx-pane" data-t="hist">'+hh+'</div>';
+    '<div class="dx-pane" data-t="notes">'+notes+'</div><div class="dx-pane" data-t="hist">'+hh+'</div>'+
+    '<div class="dx-pane" data-t="cust"><div id="prop-cust" style="padding:4px;color:#8a9bb5">⏳ جاري التحميل من برنامج العهد…</div></div>';
   dxTab('data');
+  try{ loadPropCustody(p.id); }catch(_e){}
   openModal('detailModal');
 }
 function editFromDetail(){ if(_detailCur){ closeModal('detailModal'); openEdit(_detailCur.id); } }
