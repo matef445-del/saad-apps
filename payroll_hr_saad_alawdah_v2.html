@@ -2870,6 +2870,8 @@ function _migratePenaltiesV1(){ try{
 }catch(err){ console.error('_migratePenaltiesV1',err); return false; } }
 
 /* ═══════════ لوحة فحص الاتساق: ترصد تعارضات التبويبات وتعالجها بضغطة ═══════════ */
+/* هل كان الموظف على رأس العمل في شهرٍ محدّد؟ (يستثني من لم يُباشر بعد حتى لا يُحتسب في شهور سابقة لتوظيفه) */
+function _employedInMonth(e,y,m0){ var h=(e&&e.hire)?String(e.hire).slice(0,7):''; if(!h)return true; var ym=y+'-'+('0'+(m0+1)).slice(-2); return h<=ym; }
 function renderConsistency(){
   var box=document.getElementById('consistency-box'); if(!box) return;
   var items=[];
@@ -2894,7 +2896,7 @@ function renderConsistency(){
   /* 3) أشهر مؤرشفة اختلفت أرقامها عن الحالي */
   (typeof payrollArchive!=='undefined'?payrollArchive:[]).forEach(function(a){
     if(!a||typeof a.year!=='number')return;
-    var liveNet=emps.reduce(function(s,e){return s+computePay(e,a.year,a.month).net;},0);
+    var liveNet=emps.filter(function(e){return _employedInMonth(e,a.year,a.month);}).reduce(function(s,e){return s+computePay(e,a.year,a.month).net;},0);
     var archNet=(a.totals&&a.totals.net)||0;
     if(Math.abs(liveNet-archNet)>0.5){
       items.push({kind:'أرشيف غير محدّث',color:'#A32D2D',
@@ -2924,7 +2926,7 @@ function refreshArchive(id){
   var a=(typeof payrollArchive!=='undefined'?payrollArchive:[]).find(function(x){return x.id===id;}); if(!a)return;
   if(!confirm('تحديث كشف '+a.period+' المؤرشف بالأرقام الحالية؟'))return;
   var y=a.year, m=a.month;
-  var rows=emps.map(function(e){ var c=computePay(e,y,m);
+  var rows=emps.filter(function(e){return _employedInMonth(e,y,m);}).map(function(e){ var c=computePay(e,y,m);
     var lvD=salaryReducingLeaveDays(e.id,y,m);
     var rsn=(e.dedReason||'')+(lvD?((e.dedReason?' + ':'')+'إجازة بدون راتب ('+lvD+'ي)'):'')+(c.penalty?((e.dedReason||lvD?' + ':'')+'جزاء ('+fmt(c.penalty)+')'):'');
     return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:c.loanInst,ded:c.ded,penalty:c.penalty,dedReason:rsn,net:c.net};
