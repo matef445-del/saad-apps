@@ -408,6 +408,10 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
       <div class="fg"><label>🔗 ربط بـ (اختياري)</label><select id="em-link-type" onchange="onLinkTypeChange()"><option value="">— بدون —</option><option value="emp">👤 موظف</option><option value="veh">🚗 سيارة</option><option value="prop">🏠 عقار</option></select></div>
       <div class="fg"><label>الاسم / المركبة</label><select id="em-link-ref"></select></div>
     </div>
+    <div class="mrow" id="em-charge-row">
+      <div class="fg"><label>💸 تحميل على موظف (خصم من راتبه — اختياري)</label><select id="em-charge-emp"><option value="">— بدون —</option></select></div>
+      <div class="fg"><label>&nbsp;</label><div style="font-size:11px;color:var(--muted);line-height:1.6;padding-top:6px">يُوسَم القيد باسم الموظف فيظهر كـ«خصم مقترح» في برنامج الرواتب — لا يُخصم من هنا، والقيد يبقى مصروفاً على العهد.</div></div>
+    </div>
     <div class="mrow" id="em-extra">
       <div class="fg"><label>رقم الفاتورة / مرفق</label><input id="em-inv" placeholder="اختياري" dir="ltr" style="text-align:right" inputmode="numeric" oninput="_normField(this)"></div>
       <div class="fg"><label>ملاحظات</label><input id="em-note" placeholder="اختياري"></div>
@@ -1052,7 +1056,8 @@ function renderAcc(){
     var peBadge = r._indep ? ' <span class="chip" style="background:#11331c;color:var(--gold2);border:1px solid var(--gold2);font-size:10px">مستقلة</span>'
                 : (r._ref ? ' <span class="chip" style="background:#3a1212;color:#f0a8a8;border:1px solid #cf5050;font-size:10px">مرجعية — قبل القيد</span>' : '');
     var empBadge = (r.link&&r.link.name) ? ' <span class="chip" style="background:#11331c;color:#9cc3ef;border:1px solid #2f6db3;font-size:10px">'+(r.link.type==='veh'?'🚗':(r.link.type==='prop'?'🏠':'👤'))+' '+esc(r.link.name)+'</span>' : '';
-    return '<tr><td class="t-seq">'+seq+'</td><td>'+dfmt(r.date)+'</td><td class="t-desc">'+esc(r.desc)+peBadge+empBadge+(r.note?'<br><span style="font-size:11px;color:var(--muted)">'+esc(r.note)+'</span>':'')+'</td>'+chip+'<td class="t-amt '+inCls+'">'+(r._dir>0?'+':'−')+fmt(r.amount)+'</td><td class="t-bal">'+fmt(r._bal)+'</td>'+invc+act+'<td class="t-invno">'+invNo+'</td></tr>';
+    var chgBadge = (r.empCharge&&r.empCharge.name) ? ' <span class="chip" style="background:#2a1f10;color:#e8b84b;border:1px solid #6b5518;font-size:10px">💸 محمّل على: '+esc(r.empCharge.name)+'</span>' : '';
+    return '<tr><td class="t-seq">'+seq+'</td><td>'+dfmt(r.date)+'</td><td class="t-desc">'+esc(r.desc)+peBadge+empBadge+chgBadge+(r.note?'<br><span style="font-size:11px;color:var(--muted)">'+esc(r.note)+'</span>':'')+'</td>'+chip+'<td class="t-amt '+inCls+'">'+(r._dir>0?'+':'−')+fmt(r.amount)+'</td><td class="t-bal">'+fmt(r._bal)+'</td>'+invc+act+'<td class="t-invno">'+invNo+'</td></tr>';
   }).join('');
   tbl.innerHTML=head+body;
   tbl.querySelectorAll('[data-act]').forEach(function(b){
@@ -1087,6 +1092,7 @@ function openEntry(id){
   }
   g('em-att-prog').textContent=''; renderAttList();
   try{ g('em-link').style.display=m.simple?'none':'flex'; var _er=id?STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]:null; _setEntryLinkUI(_er&&_er.link?_er.link:null); }catch(_e){}
+  try{ if(!(_EMPLIST&&_EMPLIST.length))loadEmpList(); var _ec=id?(STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]||{}):{}; _pendingCharge=(_ec.empCharge&&_ec.empCharge.id!=null)?String(_ec.empCharge.id):''; fillChargeEmp(_pendingCharge); if(g('em-charge-row'))g('em-charge-row').style.display=m.simple?'none':'flex'; }catch(_e){}
   g('ov-entry').classList.add('show');
 }
 function fillCatSelect(){
@@ -1190,7 +1196,9 @@ function saveEntry(){
   if(!desc){toast('أدخل البيان');return;}
   pushUndo();
   var _link=_readEntryLink(m);
-  var obj={date:date,amount:amt,desc:desc,link:_link,
+  var _chv=(g('em-charge-emp')&&g('em-charge-emp').value)||''; var _empCharge=null;
+  if(_chv){ var _ce=(_EMPLIST||[]).filter(function(x){return String(x.id)===String(_chv);})[0]; if(_ce)_empCharge={id:_ce.id,name:_ce.name}; }
+  var obj={date:date,amount:amt,desc:desc,link:_link,empCharge:_empCharge,
     type:m.simple?'مصروف مكتب':g('em-type').value,
     cat:m.simple?'':g('em-cat').value, inv:m.simple?'':toWestNum(g('em-inv').value).trim(), note:m.simple?'':g('em-note').value.trim(), att:currentAtt.slice()};
   if(id){var r=STATE.accounts[CUR].rows.filter(function(x){return x.id===id;})[0]; Object.assign(r,obj);}
@@ -1913,7 +1921,9 @@ function renderSearch(){
 /* ============ SETTINGS ============ */
 /* ===== ربط القيود (موظف / سيارة / عقار) ===== */
 var _EMPLIST=[], _VEHLIST=[], _PROPLIST=[];
-function loadEmpList(){ try{ if(!db)return; db.collection('saad_apps').doc('payroll_data').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _EMPLIST=((d&&d.emps)||[]).map(function(e){return {id:e.id,name:e.name};}); _refLive('emp'); } }).catch(function(){}); }catch(e){} }
+var _pendingCharge='';
+function fillChargeEmp(val){ var el=g('em-charge-emp'); if(!el)return; el.innerHTML='<option value="">— بدون —</option>'+(_EMPLIST||[]).map(function(e){return '<option value="'+esc(String(e.id))+'">'+esc(e.name)+'</option>';}).join(''); if(val!=null&&val!=='')el.value=String(val); }
+function loadEmpList(){ try{ if(!db)return; db.collection('saad_apps').doc('payroll_data').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _EMPLIST=((d&&d.emps)||[]).map(function(e){return {id:e.id,name:e.name};}); _refLive('emp'); try{ if(g('em-charge-emp')&&g('ov-entry')&&g('ov-entry').classList.contains('show')) fillChargeEmp(_pendingCharge); }catch(_e){} } }).catch(function(){}); }catch(e){} }
 function loadVehList(){ try{ if(!db)return; db.collection('cars_db').doc('main').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _VEHLIST=((d&&d.cars)||[]).filter(function(c){return c&&c.plate;}).map(function(c){ var nm=((c.brand||'')+' '+(c.model||'')).trim()||String(c.plate); return {plate:String(c.plate),name:nm,label:nm+' — '+c.plate}; }); _refLive('veh'); } }).catch(function(){}); }catch(e){} }
 function _propLabel(p){ return [p.propType,p.district,(p.plot?('قطعة '+p.plot):''),p.city].filter(Boolean).join(' — ')||('عقار '+(p.id||'')); }
 function loadPropList(){ try{ if(!db)return; db.collection('property_registry_db').doc('main').get().then(function(snap){ if(snap.exists){ var d=snap.data(); _PROPLIST=((d&&d.props)||[]).filter(function(p){return p&&p.id;}).map(function(p){ return {id:String(p.id),name:_propLabel(p),label:_propLabel(p),district:p.district||'',city:p.city||'',plot:String(p.plot||''),propType:p.propType||''}; }); _refLive('prop'); } }).catch(function(){}); }catch(e){} }

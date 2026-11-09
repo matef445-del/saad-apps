@@ -2491,6 +2491,7 @@ function openEmp360(id){
     +_e360sec('🪪 البيانات الشخصية والوثائق', '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 18px">'+per+'</div>'+docsHtml)
     +_e360sec('💰 الراتب والخصومات (الشهر الحالي)', sal)
     +_e360sec('💵 الحركة المالية من الحساب الرئيسي (العهد)', '<div id="emp-fin-'+id+'" style="color:#8A7A50;font-size:12px">⏳ جاري التحميل من برنامج العهد…</div>')
+    +_e360sec('💸 خصومات مقترحة من العهد (مخالفات/مصروفات محمّلة عليه)', '<div id="emp-charges-'+id+'" style="color:#8A7A50;font-size:12px">⏳ جاري التحميل…</div>')
     +_e360sec('🏖️ الإجازات', lvHtml)
     +_e360sec('🏦 السلف', lnHtml)
     +_e360sec('⚖️ المخالفات/الخصومات التأديبية', dcHtml)
@@ -2500,6 +2501,81 @@ function openEmp360(id){
     +'</div></div>';
   m.innerHTML=html; m.style.display='flex';
   try{ loadEmpFinance(id); }catch(_e){}
+  try{ loadEmpCharges(id); }catch(_e){}
+}
+/* ====== خصومات مقترحة من العهد (empCharge) → خصم من الراتب عبر disc ====== */
+var _empChargesCache={};
+function _cesc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+async function loadEmpCharges(id){
+  var box=document.getElementById('emp-charges-'+id); if(!box)return;
+  try{
+    var snap=await db.collection('custody_expenses_db').doc('state').get();
+    if(!snap||!snap.exists){ box.innerHTML='<div style="color:#8A7A50;font-size:12px">تعذّر الوصول لبيانات برنامج العهد.</div>'; return; }
+    var ST={}; try{ ST=JSON.parse((snap.data()||{}).payload||'{}'); }catch(_p){ ST={}; }
+    var rows=((ST.accounts&&ST.accounts['3000']&&ST.accounts['3000'].rows)||[]).filter(function(r){ return r&&r.empCharge&&String(r.empCharge.id)===String(id); });
+    _empChargesCache[id]={}; rows.forEach(function(r){ _empChargesCache[id][r.id]=r; });
+    var proc={}; (typeof disc!=='undefined'?disc:[]).forEach(function(d){ if(d&&d.srcCharge)proc[d.srcCharge]=d.st; });
+    if(!rows.length){ box.innerHTML='<div style="color:#8A7A50;font-size:12px">لا توجد مخالفات أو مصروفات محمّلة على هذا الموظف من العهد.<br><span style="font-size:11px">تُحمّل من برنامج العهد عبر حقل «💸 تحميل على موظف» عند تسجيل المصروف.</span></div>'; return; }
+    var pending=rows.filter(function(r){return !proc[r.id];});
+    var done=rows.filter(function(r){return proc[r.id];});
+    var cy,cm; try{cy=selY();}catch(_e){cy=new Date().getFullYear();} try{cm=selM();}catch(_e){cm=new Date().getMonth();}
+    var curYM=cy+'-'+('0'+(cm+1)).slice(-2);
+    var html='';
+    if(pending.length){
+      html+='<div style="font-size:12px;color:#7A5A00;font-weight:700;margin-bottom:6px">بنود بانتظار اعتمادك ('+pending.length+'):</div>';
+      html+=pending.map(function(r){ var car=(r.link&&r.link.name)?r.link.name:''; var amt=(+r.amount||0);
+        return '<div style="border:1px solid #E3DCC4;border-radius:10px;padding:10px;margin-bottom:8px;background:#FFFDF6">'
+          +'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b style="color:#06240c">'+_cesc(r.desc||'مصروف')+'</b><span style="color:#8A7A50;font-size:12px">'+_cesc(r.date||'')+(car?' · 🚗 '+_cesc(car):'')+' · '+fmt(amt)+' ر.س</span></div>'
+          +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:8px">'
+            +'<div><div style="font-size:11px;color:#8A7A50">المبلغ</div><input id="chg-amt-'+r.id+'" type="number" value="'+amt+'" style="width:100px;padding:5px;border:1px solid #E3DCC4;border-radius:7px"></div>'
+            +'<div><div style="font-size:11px;color:#8A7A50">عدد الأقساط</div><input id="chg-inst-'+r.id+'" type="number" min="1" value="1" style="width:72px;padding:5px;border:1px solid #E3DCC4;border-radius:7px"></div>'
+            +'<div><div style="font-size:11px;color:#8A7A50">شهر البدء</div><input id="chg-ym-'+r.id+'" type="month" value="'+curYM+'" style="padding:5px;border:1px solid #E3DCC4;border-radius:7px"></div>'
+            +'<button onclick="applyEmpCharge('+id+',\''+r.id+'\')" style="background:#06240c;color:#f0d080;border:0;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer">✅ اعتماد الخصم</button>'
+            +'<button onclick="ignoreEmpCharge('+id+',\''+r.id+'\')" style="background:#EDEAD9;color:#8A7A50;border:0;border-radius:8px;padding:8px 12px;cursor:pointer">تجاهل</button>'
+          +'</div></div>';
+      }).join('');
+    } else { html+='<div style="color:#5a7a4a;font-size:12px;margin-bottom:6px">لا بنود بانتظار الاعتماد ✓</div>'; }
+    if(done.length){
+      html+='<div style="font-size:12px;color:#8A7A50;font-weight:700;margin:10px 0 6px">بنود مُعالَجة ('+done.length+'):</div>';
+      html+=done.map(function(r){ var stt=proc[r.id]; var lbl=(stt==='applied')?'<span style="color:#06240c;font-weight:700">✅ مُعتمد (مخصوم)</span>':'<span style="color:#8A7A50">🚫 مُتجاهَل</span>';
+        return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#8A7A50;padding:5px 0;border-bottom:1px dashed #eee"><span>'+_cesc(r.desc||'')+' · '+fmt(r.amount)+' ر.س</span><span>'+lbl+' <button onclick="undoEmpCharge('+id+',\''+r.id+'\')" style="background:none;border:0;color:#b00020;cursor:pointer;font-size:11px;text-decoration:underline">تراجع</button></span></div>';
+      }).join('');
+    }
+    box.innerHTML=html;
+  }catch(e){ box.innerHTML='<div style="color:#b00020;font-size:12px">خطأ في قراءة بيانات العهد: '+((e&&e.message)||'')+'</div>'; }
+}
+function applyEmpCharge(eid,rowId){
+  var r=(_empChargesCache[eid]||{})[rowId]; if(!r){tk('تعذّر العثور على البند — أعد فتح الملف','var(--err)');return;}
+  var amt=parseFloat((document.getElementById('chg-amt-'+rowId)||{}).value)||0;
+  var inst=Math.max(1,parseInt((document.getElementById('chg-inst-'+rowId)||{}).value,10)||1);
+  var ym=(document.getElementById('chg-ym-'+rowId)||{}).value||'';
+  if(amt<=0){tk('أدخل مبلغاً صحيحاً','var(--err)');return;}
+  if(!ym){tk('حدّد شهر البدء','var(--err)');return;}
+  var e=bid(eid)||{name:''};
+  if(!confirm('اعتماد خصم '+fmt(amt)+' ر.س على '+e.name+(inst>1?(' على '+inst+' أقساط'):'')+' ابتداءً من '+ym+'؟\nسيُخصم تلقائياً من راتب الشهر/الأشهر المحدّدة.'))return;
+  var car=(r.link&&r.link.name)?(' — '+r.link.name):'';
+  var per=Math.round(amt/inst); var parts=ym.split('-'); var yy=+parts[0], mm=(+parts[1])-1;
+  for(var k=0;k<inst;k++){
+    var sm=mm+k; var sy=yy+Math.floor(sm/12); var smm=((sm%12)+12)%12;
+    var pym=sy+'-'+('0'+(smm+1)).slice(-2);
+    var pamt=(k===inst-1)?(amt-per*(inst-1)):per;
+    disc.push({id:Date.now()+k, eid:eid, type:'traffic', desc:'خصم من العهد: '+(r.desc||'مصروف')+car+(inst>1?(' (قسط '+(k+1)+'/'+inst+')'):''), amt:pamt, ym:pym, dt:((r.date||'')+'').slice(0,10)||new Date().toISOString().slice(0,10), st:'applied', app:true, srcCharge:rowId});
+  }
+  saveToLocal();
+  tk('✅ تم اعتماد الخصم ('+fmt(amt)+' ر.س)');
+  try{loadEmpCharges(eid);}catch(_e){} try{if(typeof renderDisc==='function')renderDisc();}catch(_e){} try{upPay();}catch(_e){} try{upDash();}catch(_e){}
+}
+function ignoreEmpCharge(eid,rowId){
+  if(!confirm('تجاهل هذا البند؟ لن يُخصم من الراتب، ويمكنك التراجع لاحقاً.'))return;
+  disc.push({id:Date.now(), eid:eid, type:'void', desc:'تجاهل خصم من العهد', amt:0, ym:'', dt:new Date().toISOString().slice(0,10), st:'void', srcCharge:rowId});
+  saveToLocal();
+  try{loadEmpCharges(eid);}catch(_e){}
+}
+function undoEmpCharge(eid,rowId){
+  if(!confirm('التراجع عن معالجة هذا البند؟ ستُحذف الخصومات المرتبطة به ويعود للبنود المعلّقة.'))return;
+  disc=disc.filter(function(d){return d.srcCharge!==rowId;});
+  saveToLocal();
+  try{loadEmpCharges(eid);}catch(_e){} try{if(typeof renderDisc==='function')renderDisc();}catch(_e){} try{upPay();}catch(_e){} try{upDash();}catch(_e){}
 }
 
 

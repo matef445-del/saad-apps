@@ -510,6 +510,7 @@ function loadAllCustody(cb){
 function carExpense(plate){ if(!_custodyByPlate)return null; return _custodyByPlate[String(plate)]||{total:0,count:0}; }
 /* ===== بطاقات السيارات (الواجهة الأمامية) ===== */
 function _csState(st){return st==='ok'?'ok':(st==='soon'?'soon':'bad');}
+function goCust(){ var t=document.querySelector('#modalIn .dtab[data-k="cust"]'); if(t)dGo('cust',t); }
 function renderCarCards(){
  var host=g('carGrid'); if(!host)return;
  var q=(g('q').value||'').trim(),fb=g('fb').value,fs=g('fs').value;
@@ -533,7 +534,7 @@ function renderCarCards(){
      '<div class="cc-i '+_csState(ins.state)+'"><span class="cl">🛡 التأمين</span><span class="cv">'+e(ins.txt)+'</span></div>'+
      '<div class="cc-i '+_csState(insp.state)+'"><span class="cl">🔍 الفحص</span><span class="cv">'+e(insp.txt)+'</span></div>'+
      '<div class="cc-i '+(vs.unpaid?'bad':'ok')+'"><span class="cl">🚫 المخالفات</span><span class="cv">'+(vs.unpaid?vs.unpaid+' غير مسددة':(vs.count?'لا متأخرات':'لا مخالفات'))+'</span></div>'+
-     '<div class="cc-i gold"><span class="cl">💵 المصروفات</span><span class="cv">'+(ex===null?'…':(ex.total?money(ex.total):'—'))+'</span></div>';
+     '<div class="cc-i gold" style="cursor:pointer" title="عرض بيان المصروفات" onclick="event.stopPropagation();openDetail('+i+',\'cust\')"><span class="cl">💵 المصروفات ›</span><span class="cv">'+(ex===null?'…':(ex.total?money(ex.total):'—'))+'</span></div>';
    var logo=c.logo?'<img src="'+c.logo+'" class="cc-logo">':'<div class="cc-logoph">🚗</div>';
    return '<div class="carCard '+cardcls+'" onclick="openDetail('+i+')">'+
      '<div class="cc-top">'+logo+'<div class="cc-ttl"><b>'+e(c.brand)+' '+e(c.model)+'</b><div class="cc-sub">'+e(c.year||'')+(c.color?' · '+e(c.color):'')+'</div></div></div>'+
@@ -554,7 +555,7 @@ function openDetail(i,tab){
    '<div class="cs '+_csState(ins.state)+'"><div class="l">🛡 التأمين</div><div class="v">'+e(ins.txt)+'</div></div>'+
    '<div class="cs '+_csState(insp.state)+'"><div class="l">🔍 الفحص</div><div class="v">'+e(insp.txt)+'</div></div>'+
    '<div class="cs '+(vs.unpaid?'bad':'ok')+'"><div class="l">🚫 مخالفات غير مدفوعة</div><div class="v">'+(vs.unpaid?vs.unpaid+' · '+money(vs.unpaidSum):'لا يوجد')+'</div></div>'+
-   '<div class="cs gold"><div class="l">💵 إجمالي المصروفات</div><div class="v" id="sum-exp">'+(_exc===null?'…':(_exc.total?money(_exc.total):'—'))+'</div></div>'+
+   '<div class="cs gold" style="cursor:pointer" title="عرض بيان المصروفات" onclick="goCust()"><div class="l">💵 إجمالي المصروفات ›</div><div class="v" id="sum-exp">'+(_exc===null?'…':(_exc.total?money(_exc.total):'—'))+'</div></div>'+
  '</div>';
  var tabs=[['data','البيانات'],['ins','التأمين والرخصة'],['insp','الفحص'],['vio','المخالفات'+(vs.unpaid?' <span class="tbadge">'+vs.unpaid+'</span>':'')],['maint','الصيانة'],['log','السجلّ الكامل'],['cust','💵 من العهد']];
  var tabbar='<div class="dtabs">'+tabs.map(function(t){return '<button class="dtab" data-k="'+t[0]+'" onclick="dGo(\''+t[0]+'\',this)">'+t[1]+'</button>';}).join('')+'<button class="dtab addev" onclick="openEvent('+i+')">＋ إضافة حدث</button></div>';
