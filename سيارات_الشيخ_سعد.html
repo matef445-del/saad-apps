@@ -143,7 +143,8 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 @media print{
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;background:transparent!important;color:#000!important}
  body{background:#fff!important;padding:0}
- .toolbar,.x,.actions,#alerts,.stats{display:none!important}
+ .toolbar,.x,.actions,#alerts,.stats,.carGrid,#acc{display:none!important}
+ .printonly{display:block!important}
  .tablewrap,table,th,td{border-color:#999!important}
  thead tr{background:#eee!important}
  th,td{color:#000!important}
@@ -167,6 +168,39 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 td.cell-bad{background:#3a1616;color:#f2b0b0;font-weight:600}
 td.cell-soon{background:#3a2e10;color:#eccb5f;font-weight:600}
 .renewbtn{background:#1a3325;color:#d8b441;border:1px solid #b8921a;border-radius:7px;font-size:11px;padding:2px 9px;cursor:pointer;margin-right:6px;font-family:inherit}.renewbtn:hover{background:#224230}
+/* ===== الواجهة الجديدة: بطاقات السيارات + صفحة السيارة الكاملة ===== */
+.carGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:14px;margin:4px 0 14px}
+.carCard{background:linear-gradient(160deg,#12241a,#0d1812);border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:11px}
+.carCard:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.3)}
+.carCard.warn{border-color:#6b5518}
+.carCard.bad{border-color:#6b2020}
+.cc-top{display:flex;align-items:center;gap:10px}
+.cc-logo{width:44px;height:44px;object-fit:contain;border-radius:11px;background:#fff;padding:2px;flex-shrink:0}
+.cc-logoph{width:44px;height:44px;border-radius:11px;background:#0e2e15;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:23px;flex-shrink:0}
+.cc-ttl{min-width:0;flex:1}
+.cc-ttl b{display:block;font-size:15px;color:var(--cream);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-ttl .cc-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.cc-plate{font-family:monospace;color:var(--gold2);direction:ltr;font-size:13px;background:#06240c;border:1px solid var(--line);border-radius:8px;padding:3px 10px;display:inline-block}
+.cc-ind{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cc-i{background:#0e2e15;border:1px solid var(--line);border-radius:10px;padding:7px 9px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cc-i .cl{font-size:10.5px;color:var(--muted)}
+.cc-i .cv{font-size:12.5px;font-weight:700;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-i.ok{border-color:#1f5233}.cc-i.ok .cv{color:#7bd88f}
+.cc-i.soon{border-color:#6b5518;background:#241f10}.cc-i.soon .cv{color:#e8b84b}
+.cc-i.bad{border-color:#6b2020;background:#241010}.cc-i.bad .cv{color:#f08a8a}
+.cc-i.gold{border-color:#6b5518}.cc-i.gold .cv{color:#d8b441}
+.modal.wide{max-width:1120px;min-height:86vh}
+.carsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px;margin-bottom:14px}
+.cs{background:var(--panel);border:1px solid var(--line);border-right:4px solid var(--gold);border-radius:12px;padding:10px 12px}
+.cs .l{font-size:11.5px;color:var(--muted)}
+.cs .v{font-size:16px;font-weight:800;margin-top:4px;color:var(--cream)}
+.cs.ok{border-right-color:#1f5233}.cs.ok .v{color:#7bd88f}
+.cs.soon{border-right-color:#6b5518}.cs.soon .v{color:#e8b84b}
+.cs.bad{border-right-color:#6b2020}.cs.bad .v{color:#f08a8a}
+.cs.gold{border-right-color:var(--gold)}.cs.gold .v{color:#d8b441}
+.backbtn{background:#1a3325;border:1px solid var(--gold);color:var(--gold2);border-radius:9px;padding:7px 13px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.backbtn:hover{background:#224230}
+.printonly{display:none}
 </style><style>/* حد أقصى لحجم الشعار الموحّد لمنع تضخّمه في شاشات التحميل والطباعة */
 img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;height:auto;object-fit:contain}
 @media print{img[src*="logo_green"],img[src*="logo_badge"]{max-height:70px}}</style>
@@ -186,14 +220,15 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
  <button class="btn" onclick="window.print()">🖨 طباعة</button>
  <button class="btn" onclick="exportXls()">⬇ Excel</button><button class="btn" onclick="openReport()">📊 تقرير الأسطول</button><button class="btn" id="calbtn" onclick="toggleCal()">🗓 عرض ميلادي</button>
 </div>
-<div class="acc" id="acc"></div>
+<div class="carGrid" id="carGrid"></div>
+<div class="acc" id="acc" style="display:none"></div>
 <div id="alerts"></div>
-<div class="tablewrap"><table>
+<div class="tablewrap printonly"><table>
 <thead><tr>
 <th>الماركة</th><th>الموديل</th><th class="c">السنة</th><th>اللون</th><th class="c">رقم اللوحة</th>
 <th class="c">انتهاء الرخصة</th><th class="c">انتهاء الفحص</th><th>التأمين</th>
 </tr></thead><tbody id="tb"></tbody></table></div>
-<p style="text-align:center;color:#6f8578;font-size:11px;margin-top:12px">اضغط على أي سيارة لعرض استمارتها وتفاصيلها الكاملة · البيانات تُحفظ تلقائيًا في متصفحك</p>
+<p class="printonly" style="text-align:center;color:#6f8578;font-size:11px;margin-top:12px">اضغط على أي سيارة لعرض استمارتها وتفاصيلها الكاملة · البيانات تُحفظ تلقائيًا في متصفحك</p>
 </div>
 
 <div class="modal-bg" id="modal"><div class="modal" id="modalIn"></div></div>
@@ -344,7 +379,7 @@ function renderAccordion(){var host=document.getElementById('acc');if(!host)retu
 }
 
 function render(){
- fillBrandFilter();renderStats();renderAlerts();if(typeof renderAccordion==='function'){try{renderAccordion();}catch(_e){}}
+ fillBrandFilter();renderStats();renderAlerts();try{renderCarCards();}catch(_e){}
  const q=(g('q').value||'').trim(),fb=g('fb').value,fs=g('fs').value;
  let list=CARS.map((c,i)=>({c,i})).filter(({c})=>{
   if(fb&&c.brand!==fb)return false;
@@ -367,6 +402,7 @@ function gregToHijri(y,m,d){var dt=new Date(Date.UTC(y,m-1,d));var p=new Intl.Da
 function addYear365(hstr){var p=hstr.split('-').map(Number);var g=hijriToGreg(p[0],p[1],p[2]);var dt=new Date(Date.UTC(g.y,g.m-1,g.d)+365*86400000);return gregToHijri(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
 function insCompanies(){var s={};CARS.forEach(function(c){if(c.ins_co&&c.ins_co!=='—')s[c.ins_co]=1;});INSCOS.forEach(function(x){s[x]=1;});return Object.keys(s);}
 function renew(i,field){
+ try{g('modalIn').classList.remove('wide');}catch(_w){}
  var c=CARS[i];var M={license:['license_exp','رخصة السير'],inspection:['inspection_exp','الفحص الدوري'],insurance:['ins_exp','التأمين']};
  var fld=M[field][0],nm=M[field][1];
  var cur=norm(c[fld]);var base=cur||norm(TODAY);var nu=addYear365(base);
@@ -455,6 +491,55 @@ function loadCarCustody(plate){
     box.innerHTML=chips+tbl+'<div class="muted" style="font-size:11px;margin-top:6px">تُدار هذه المصروفات من الحساب الرئيسي في برنامج العهد.</div>';
   }).catch(function(){ box.innerHTML='<div class="muted" style="font-size:12px">خطأ في قراءة بيانات العهد.</div>'; });
 }
+/* ===== إجمالي مصروفات كل سيارة من برنامج العهد (قراءة واحدة مخزّنة) ===== */
+var _custodyByPlate=null;
+function loadAllCustody(cb){
+  var cdb=_cdb; try{ if(!cdb){ if(!firebase.apps.length)firebase.initializeApp(_CFG_CARS); cdb=firebase.firestore(); } }catch(ex){}
+  if(!cdb){ _custodyByPlate={}; if(cb)cb(); return; }
+  cdb.collection('custody_expenses_db').doc('state').get().then(function(snap){
+    var map={};
+    if(snap&&snap.exists){
+      var ST={}; try{ ST=JSON.parse((snap.data()||{}).payload||'{}'); }catch(_p){}
+      var rows=((ST.accounts&&ST.accounts['3000']&&ST.accounts['3000'].rows)||[]);
+      rows.forEach(function(r){ if(r&&r.link&&r.link.type==='veh'&&r.link.plate){ var p=String(r.link.plate); if(!map[p])map[p]={total:0,count:0}; map[p].total+=(+r.amount||0); map[p].count++; } });
+    }
+    _custodyByPlate=map; if(cb)cb();
+  }).catch(function(){ _custodyByPlate={}; if(cb)cb(); });
+}
+function carExpense(plate){ if(!_custodyByPlate)return null; return _custodyByPlate[String(plate)]||{total:0,count:0}; }
+/* ===== بطاقات السيارات (الواجهة الأمامية) ===== */
+function _csState(st){return st==='ok'?'ok':(st==='soon'?'soon':'bad');}
+function renderCarCards(){
+ var host=g('carGrid'); if(!host)return;
+ var q=(g('q').value||'').trim(),fb=g('fb').value,fs=g('fs').value;
+ var list=CARS.map(function(c,i){return {c:c,i:i};}).filter(function(o){var c=o.c;
+   if(fb&&c.brand!==fb)return false;
+   var warn=carAlerts(c).length>0;
+   if(fs==='ok'&&warn)return false; if(fs==='warn'&&!warn)return false;
+   if(q&&!(((c.brand||'')+(c.model||'')+(c.plate||'')).indexOf(q)>=0))return false;
+   return true;});
+ if(!list.length){host.innerHTML='<div class="emptybox" style="grid-column:1/-1">لا توجد نتائج مطابقة</div>';return;}
+ host.innerHTML=list.map(function(o){var c=o.c,i=o.i;
+   var ch=carChecks(c);var by={};ch.forEach(function(x){by[x.label]=x;});
+   var ins=by['التأمين']||{state:'none',txt:'—'};
+   var insp=by['الفحص الدوري']||{state:'none',txt:'—'};
+   var vs=vioStats(c);
+   var ex=carExpense(c.plate);
+   var hasExp=ch.some(function(x){return x.state==='expired'||x.state==='none';})||vs.unpaid>0;
+   var hasSoon=ch.some(function(x){return x.state==='soon';});
+   var cardcls=hasExp?'bad':(hasSoon?'warn':'');
+   var ind=
+     '<div class="cc-i '+_csState(ins.state)+'"><span class="cl">🛡 التأمين</span><span class="cv">'+e(ins.txt)+'</span></div>'+
+     '<div class="cc-i '+_csState(insp.state)+'"><span class="cl">🔍 الفحص</span><span class="cv">'+e(insp.txt)+'</span></div>'+
+     '<div class="cc-i '+(vs.unpaid?'bad':'ok')+'"><span class="cl">🚫 المخالفات</span><span class="cv">'+(vs.unpaid?vs.unpaid+' غير مسددة':(vs.count?'لا متأخرات':'لا مخالفات'))+'</span></div>'+
+     '<div class="cc-i gold"><span class="cl">💵 المصروفات</span><span class="cv">'+(ex===null?'…':(ex.total?money(ex.total):'—'))+'</span></div>';
+   var logo=c.logo?'<img src="'+c.logo+'" class="cc-logo">':'<div class="cc-logoph">🚗</div>';
+   return '<div class="carCard '+cardcls+'" onclick="openDetail('+i+')">'+
+     '<div class="cc-top">'+logo+'<div class="cc-ttl"><b>'+e(c.brand)+' '+e(c.model)+'</b><div class="cc-sub">'+e(c.year||'')+(c.color?' · '+e(c.color):'')+'</div></div></div>'+
+     '<div><span class="cc-plate">'+e(c.plate)+'</span></div>'+
+     '<div class="cc-ind">'+ind+'</div></div>';
+ }).join('');
+}
 function openDetail(i,tab){
  _di=i;var c=CARS[i];var ch=carChecks(c);var al=carAlerts(c);var vs=vioStats(c);
  var byLabel={};ch.forEach(function(x){byLabel[x.label]=x;});
@@ -463,8 +548,13 @@ function openDetail(i,tab){
  var ins=byLabel['التأمين']||{state:'none',txt:'—'};
  var img=c.form?('<img src="'+c.form+'" onclick="zoom(\''+i+'\')">'):('<div class="noimg"><div style="font-size:30px">🚗</div><div>لا توجد استمارة</div></div>');
  var R=function(l,v){return '<div class="drow"><span>'+l+'</span><b>'+e(v||'—')+'</b></div>';};
- var vioTxt=vs.unpaid?(vs.unpaid+' غير مسددة'):(vs.count?'لا متأخرات':'لا مخالفات');
- var chips='<div class="chips">'+chip('رخصة السير',lic.state,lic.txt)+chip('الفحص الدوري',insp.state,insp.txt)+chip('التأمين',ins.state,ins.txt)+'<div class="chip '+(vs.unpaid?'ch-bad':'ch-ok')+'"><span class="chl">المخالفات</span><span class="chv">'+e(vioTxt)+'</span></div></div>';
+ var _exc=carExpense(c.plate);
+ var chips='<div class="carsum">'+
+   '<div class="cs '+_csState(ins.state)+'"><div class="l">🛡 التأمين</div><div class="v">'+e(ins.txt)+'</div></div>'+
+   '<div class="cs '+_csState(insp.state)+'"><div class="l">🔍 الفحص</div><div class="v">'+e(insp.txt)+'</div></div>'+
+   '<div class="cs '+(vs.unpaid?'bad':'ok')+'"><div class="l">🚫 مخالفات غير مدفوعة</div><div class="v">'+(vs.unpaid?vs.unpaid+' · '+money(vs.unpaidSum):'لا يوجد')+'</div></div>'+
+   '<div class="cs gold"><div class="l">💵 إجمالي المصروفات</div><div class="v" id="sum-exp">'+(_exc===null?'…':(_exc.total?money(_exc.total):'—'))+'</div></div>'+
+ '</div>';
  var tabs=[['data','البيانات'],['ins','التأمين والرخصة'],['insp','الفحص'],['vio','المخالفات'+(vs.unpaid?' <span class="tbadge">'+vs.unpaid+'</span>':'')],['maint','الصيانة'],['log','السجلّ الكامل'],['cust','💵 من العهد']];
  var tabbar='<div class="dtabs">'+tabs.map(function(t){return '<button class="dtab" data-k="'+t[0]+'" onclick="dGo(\''+t[0]+'\',this)">'+t[1]+'</button>';}).join('')+'<button class="dtab addev" onclick="openEvent('+i+')">＋ إضافة حدث</button></div>';
  var paneData='<div class="dpane" data-k="data"><div class="detail"><div class="dcol">'+
@@ -484,13 +574,16 @@ function openDetail(i,tab){
   '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' <span dir="auto">'+e(c.model)+'</span> <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
   chips+tabbar+'<div class="dbody">'+paneData+paneIns+paneInsp+paneVio+paneMaint+paneLog+paneCust+'</div>'+
   (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'')+
-  '<div class="actions"><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button><button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button><button class="btn" onclick="closeModal()">إغلاق</button></div>';
+  '<div class="actions"><button class="backbtn" onclick="closeModal()">← رجوع لكل السيارات</button><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button><button class="btn" onclick="openEvent('+i+')">＋ إضافة حدث</button><button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button></div>';
+ g('modalIn').classList.add('wide');
  g('modal').classList.add('open');
  var want=tab||'data';var tbEl=document.querySelector('#modalIn .dtab[data-k="'+want+'"]');dGo(want,tbEl);
  try{ loadCarCustody(c.plate); }catch(_e){}
+ if(_exc===null){ try{ loadAllCustody(function(){ var _el=g('sum-exp'); if(_el){ var e2=carExpense(c.plate); _el.textContent=e2&&e2.total?money(e2.total):'—'; } try{renderCarCards();}catch(_e2){} }); }catch(_e){} }
 }
 var _evCar=0,_evId=null,_evImg='';
 function openEvent(i,id){
+ try{g('modalIn').classList.remove('wide');}catch(_w){}
  _evCar=i;_evId=id||null;_evImg='';
  var ev=null;if(id){ev=cEvents(CARS[i]).filter(function(x){return x.id===id;})[0]||null;}
  if(ev)_evImg=ev.img||'';
@@ -527,6 +620,7 @@ function saveEvent(){
 function delEvent(i,id){if(!confirm('حذف هذا الحدث نهائياً؟'))return;var c=CARS[i];c.events=cEvents(c).filter(function(x){return x.id!==id;});save();render();openDetail(i,_dtab);}
 function togglePaid(i,id){var c=CARS[i];cEvents(c).forEach(function(x){if(x.id===id)x.paid=!x.paid;});save();render();openDetail(i,'vio');}
 function openReport(){
+ try{g('modalIn').classList.remove('wide');}catch(_w){}
  var upRenew=[],unpaid=[];var maintTot=0,vioTot=0,vioUnpaidTot=0,evCount=0;
  CARS.forEach(function(c,i){
    carChecks(c).forEach(function(x){if(x.state==='soon'||x.state==='expired')upRenew.push({c:c,i:i,x:x});});
@@ -548,7 +642,7 @@ function openReport(){
 }
 function zoom(i){g('imgviewImg').src=CARS[i].form;g('imgview').classList.add('open');}
 function setForm(i,inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{CARS[i].form=ev.target.result;save();openDetail(i);render();};r.readAsDataURL(f);}
-function closeModal(){g('modal').classList.remove('open');}
+function closeModal(){g('modal').classList.remove('open');var _m=g('modalIn');if(_m)_m.classList.remove('wide');}
 function delCar(i){if(!confirm('حذف '+CARS[i].brand+' '+CARS[i].model+' ('+CARS[i].plate+')؟'))return;CARS.splice(i,1);save();closeModal();render();}
 
 const COLORS=['أبيض','أسود','فضي','رمادي','ذهبي','أزرق','أحمر','بني','أخضر'];
@@ -556,6 +650,7 @@ const REGS=['خاص','نقل خاص','أجرة','نقل عام','دراجة','د
 const INSCOS=['شركة التعاونية للتأمين','شركة الراجحي للتأمين التعاوني','الشركة الخليجية العامة للتأمين التعاوني','الشركة الوطنية للتأمين التعاوني (سنيك)','شركة المتوسط والخليج للتأمين التعاوني','شركة ملاذ للتأمين','شركة سلامة للتأمين'];
 function opts(arr,v){return arr.map(x=>'<option '+(x===v?'selected':'')+'>'+e(x)+'</option>').join('');}
 function openForm(i){
+ try{g('modalIn').classList.remove('wide');}catch(_w){}
  const c=(i!=null)?CARS[i]:{brand:'',model:'',year:'',color:'أبيض',plate:'',reg:'خاص',serial:'',hid:'1018492759',license_exp:'',inspection_exp:'',ins_co:'',ins_start:'',ins_exp:'',ins_status:'سارية',vin:'',weight:''};
  const F=(l,id,v,ph)=>'<div class="field"><label>'+l+'</label><input id="f_'+id+'" value="'+e(v)+'" placeholder="'+(ph||'')+'"></div>';
  g('modalIn').innerHTML=
@@ -625,7 +720,7 @@ idbInit(function(){idbGet('cal',function(cv){if(cv==='g'||cv==='h')CAL=cv;idbGet
 var _CFG_CARS={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-apps-4544f.firebaseapp.com",projectId:"my-apps-4544f",storageBucket:"my-apps-4544f.appspot.com",messagingSenderId:"956890008527",appId:"1:956890008527:web:c862fe7f1da7b62f62e0ba"};
 var _cdb=null,_cfbReady=false;
 function setSync(){}
-function initFB(){try{if(!firebase.apps.length)firebase.initializeApp(_CFG_CARS);_cdb=firebase.firestore();_cfbReady=true;pullCloud();}catch(e){}}
+function initFB(){try{if(!firebase.apps.length)firebase.initializeApp(_CFG_CARS);_cdb=firebase.firestore();_cfbReady=true;pullCloud();try{loadAllCustody(function(){try{renderCarCards();}catch(e){}});}catch(e){}}catch(e){}}
 function pullCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').get().then(function(doc){if(doc.exists){var data=doc.data()||{};if(data.cars&&data.cars.length){try{CARS=mergeEvImgs(attachImgs(data.cars),CARS);}catch(e){}try{idbSet('cars',stripImgs(CARS));}catch(e){}}if(data.cal==='g'||data.cal==='h'){CAL=data.cal;}try{updateCalBtn();}catch(e){}try{render();}catch(e){}}else{pushCloud();}}).catch(function(){});}catch(e){}}
 function pushCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').set({cars:stripEvImgs(stripImgs(CARS)),cal:CAL,updatedAt:Date.now()}).catch(function(){});}catch(e){}}
 </script>
