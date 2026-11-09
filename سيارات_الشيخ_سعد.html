@@ -143,7 +143,7 @@ td .mono{font-family:monospace;color:var(--gold2);direction:ltr;display:inline-b
 @media print{
  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;background:transparent!important;color:#000!important}
  body{background:#fff!important;padding:0}
- .toolbar,.x,.actions,#alerts,.stats,.carGrid,#acc{display:none!important}
+ .toolbar,.x,.actions,#alerts,.stats,.carGrid,#acc,.modal-bg,.imgview{display:none!important}
  .printonly{display:block!important}
  .tablewrap,table,th,td{border-color:#999!important}
  thead tr{background:#eee!important}
@@ -400,17 +400,18 @@ function render(){
 function renewRow(label,val,field,i){return '<div class="drow"><span>'+label+'</span><b>'+e(val||'—')+' <button class="renewbtn" onclick="renew('+i+',\''+field+'\')">🔄 تجديد</button></b></div>';}
 function gregToHijri(y,m,d){var dt=new Date(Date.UTC(y,m-1,d));var p=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'UTC'}).formatToParts(dt);var o={};for(var k=0;k<p.length;k++)o[p[k].type]=p[k].value;return o.year+'-'+o.month+'-'+o.day;}
 function addYear365(hstr){var p=hstr.split('-').map(Number);var g=hijriToGreg(p[0],p[1],p[2]);var dt=new Date(Date.UTC(g.y,g.m-1,g.d)+365*86400000);return gregToHijri(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
+function addYearsG(hstr,yrs){var p=hstr.split('-').map(Number);var g=hijriToGreg(p[0],p[1],p[2]);var dt=new Date(Date.UTC(g.y,g.m-1,g.d)+Math.round((yrs||1)*365)*86400000);return gregToHijri(dt.getUTCFullYear(),dt.getUTCMonth()+1,dt.getUTCDate());}
 function insCompanies(){var s={};CARS.forEach(function(c){if(c.ins_co&&c.ins_co!=='—')s[c.ins_co]=1;});INSCOS.forEach(function(x){s[x]=1;});return Object.keys(s);}
 function renew(i,field){
  try{g('modalIn').classList.remove('wide');}catch(_w){}
  var c=CARS[i];var M={license:['license_exp','رخصة السير'],inspection:['inspection_exp','الفحص الدوري'],insurance:['ins_exp','التأمين']};
  var fld=M[field][0],nm=M[field][1];
- var cur=norm(c[fld]);var base=cur||norm(TODAY);var nu=addYear365(base);
+ var cur=norm(c[fld]);var base=cur||norm(TODAY);var _yrs=(field==='license')?3:1;var nu=addYearsG(base,_yrs);
  var extra=(field==='insurance')?('<div class="field"><label>شركة التأمين</label><select id="rn_co">'+insCompanies().map(function(x){return '<option '+(x===c.ins_co?'selected':'')+'>'+e(x)+'</option>';}).join('')+'</select></div>'):'';
  g('modalIn').innerHTML='<div class="modal-head"><h2>🔄 تجديد '+nm+' — '+e(c.brand)+' '+e(c.model)+'</h2><button class="x" onclick="openDetail('+i+')">×</button></div>'+
    '<div style="max-width:460px;margin:6px auto">'+extra+
    '<div class="field"><label>تاريخ الانتهاء الجديد (هجري) — قابل للتعديل يدوياً</label><input id="rn_date" value="'+e(nu)+'" placeholder="1450-03-30"></div>'+
-   '<div style="background:#12241a;border:1px solid #1f5233;border-radius:10px;padding:10px;color:#7bd88f;font-size:12.5px;margin-bottom:12px">القيمة المقترحة سنة كاملة (365 يوم)، ويمكنك تغييرها لأي تاريخ قبل الحفظ.</div>'+
+   '<div style="background:#12241a;border:1px solid #1f5233;border-radius:10px;padding:10px;color:#7bd88f;font-size:12.5px;margin-bottom:12px">'+(_yrs===3?'القيمة المقترحة ٣ سنوات — مدة تجديد الاستمارة (رخصة السير) في المملكة':'القيمة المقترحة سنة كاملة (365 يوم)')+'، ويمكنك تغييرها لأي تاريخ قبل الحفظ.</div>'+
    '<div class="actions"><button class="btn gold" onclick="doRenewSave('+i+',\''+field+'\')">💾 حفظ</button><button class="btn" onclick="openDetail('+i+')">إلغاء</button></div></div>';
  g('modal').classList.add('open');
 }
@@ -574,7 +575,7 @@ function openDetail(i,tab){
   '<div class="modal-head"><h2>'+(c.logo?'<img src="'+c.logo+'" class="blogo big">':'🚗')+' '+e(c.brand)+' <span dir="auto">'+e(c.model)+'</span> <span class="muted" style="font-size:13px">'+e(c.year)+'</span></h2><button class="x" onclick="closeModal()">×</button></div>'+
   chips+tabbar+'<div class="dbody">'+paneData+paneIns+paneInsp+paneVio+paneMaint+paneLog+paneCust+'</div>'+
   (al.length?'<div style="margin-top:10px;background:#2a2410;border:1px solid #6b5518;border-radius:10px;padding:10px;color:#e8b84b;font-size:12.5px">⚠ '+al.map(e).join('<br>⚠ ')+'</div>':'')+
-  '<div class="actions"><button class="backbtn" onclick="closeModal()">← رجوع لكل السيارات</button><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button><button class="btn" onclick="openEvent('+i+')">＋ إضافة حدث</button><button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button></div>';
+  '<div class="actions"><button class="backbtn" onclick="closeModal()">← رجوع لكل السيارات</button><button class="btn gold" onclick="openForm('+i+')">✎ تعديل البيانات</button><button class="btn" onclick="openEvent('+i+')">＋ إضافة حدث</button><button class="btn" onclick="printCar('+i+')">🖨 طباعة بيانات السيارة</button><button class="btn" onclick="delCar('+i+')" style="border-color:#6b2020;color:#f0a">🗑 حذف</button></div>';
  g('modalIn').classList.add('wide');
  g('modal').classList.add('open');
  var want=tab||'data';var tbEl=document.querySelector('#modalIn .dtab[data-k="'+want+'"]');dGo(want,tbEl);
@@ -639,6 +640,51 @@ function openReport(){
   '<div class="repsec">🚫 المخالفات غير المسددة</div>'+vio+
   '<div class="actions"><button class="btn" onclick="window.print()">🖨 طباعة</button><button class="btn" onclick="closeModal()">إغلاق</button></div>';
  g('modal').classList.add('open');
+}
+function printCar(i){
+ var c=CARS[i]; if(!c)return;
+ var ch=carChecks(c);var by={};ch.forEach(function(x){by[x.label]=x;});
+ var ins=by['التأمين']||{txt:'—',state:'none'},insp=by['الفحص الدوري']||{txt:'—',state:'none'},lic=by['رخصة السير']||{txt:'—',state:'none'};
+ var vs=vioStats(c);var ex=(typeof carExpense==='function')?carExpense(c.plate):null;
+ var st=function(s){return s==='ok'?'#1f7a3a':(s==='soon'?'#9a7d12':'#b02a2a');};
+ var row=function(l,v){return '<tr><td class="l">'+e(l)+'</td><td class="v">'+e(v==null||v===''?'—':v)+'</td></tr>';};
+ var dataRows=row('الماركة',c.brand)+row('الموديل',c.model)+row('سنة الصنع',c.year)+row('اللون',c.color)+row('رقم اللوحة',c.plate)+row('نوع التسجيل',c.reg)+row('رقم الهيكل (VIN)',c.vin)+row('الرقم التسلسلي',c.serial)+row('الوزن',c.weight?c.weight+' كجم':'—')+row('رقم الهوية',c.hid);
+ var insRows=row('شركة التأمين',c.ins_co)+row('بداية التأمين',fdBoth(c.ins_start))+row('انتهاء التأمين',fdBoth(c.ins_exp))+row('حالة التأمين',c.ins_status)+row('انتهاء الاستمارة (رخصة السير)',fdBoth(c.license_exp))+row('انتهاء الفحص الدوري',fdBoth(c.inspection_exp));
+ var vios=evSorted(c).filter(function(ev){return ev.type==='violation';});
+ var vioTbl=vios.length?('<table class="ev"><thead><tr><th>التاريخ</th><th>الغرامة</th><th>الجهة</th><th>رقم المخالفة</th><th>الحالة</th></tr></thead><tbody>'+vios.map(function(ev){return '<tr><td>'+fdEvent(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.ref||'—')+'</td><td>'+(ev.paid?'مسددة':'غير مسددة')+'</td></tr>';}).join('')+'</tbody></table>'):'<div class="empty">لا توجد مخالفات مسجّلة</div>';
+ var maint=evSorted(c).filter(function(ev){return ['maintenance','oil','accident','other','inspection','form'].indexOf(ev.type)>=0;});
+ var mTbl=maint.length?('<table class="ev"><thead><tr><th>النوع</th><th>التاريخ</th><th>المبلغ</th><th>الجهة</th><th>ملاحظات</th></tr></thead><tbody>'+maint.map(function(ev){var m=evMeta(ev.type);return '<tr><td>'+m.l+'</td><td>'+fdEvent(ev.date)+'</td><td>'+money(ev.amount)+'</td><td>'+e(ev.party||'—')+'</td><td>'+e(ev.notes||'—')+'</td></tr>';}).join('')+'</tbody></table>'):'<div class="empty">لا توجد سجلات صيانة</div>';
+ var expHtml=(ex&&ex.total)?('إجمالي المصروفات المربوطة من العهد: <b>'+money(ex.total)+'</b> ('+ex.count+' قيد)'):'لا توجد مصروفات مربوطة بهذه السيارة في العهد';
+ var img=c.form?('<h2>صورة الاستمارة</h2><div class="imgsec"><img src="'+c.form+'"></div>'):'';
+ var w=window.open('','_blank'); if(!w){alert('اسمح بالنوافذ المنبثقة لإتمام الطباعة');return;}
+ var html='<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>بيانات السيارة — '+e(c.brand)+' '+e(c.model)+'</title>'+
+  '<style>*{box-sizing:border-box}body{font-family:"Segoe UI","Tahoma",sans-serif;direction:rtl;text-align:right;color:#111;margin:22px;font-size:13px}'+
+  'h1{font-size:18px;margin:0 0 2px;text-align:center}.sub{text-align:center;color:#555;font-size:12px;margin-bottom:14px}'+
+  '.sum{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 16px}.sc{flex:1;min-width:120px;border:1px solid #ccc;border-radius:8px;padding:8px}.sc .cl{font-size:11px;color:#666}.sc .cv{font-size:14px;font-weight:bold;margin-top:3px}'+
+  'h2{font-size:14px;border-right:4px solid #b8921a;padding-right:8px;margin:16px 0 6px}'+
+  'table{width:100%;border-collapse:collapse;margin-bottom:4px}td,th{border:1px solid #bbb;padding:5px 8px;text-align:right}'+
+  'td.l{background:#f4f4f4;width:40%;color:#444}table.ev th{background:#eee}'+
+  '.empty{color:#777;padding:6px}.imgsec img{max-width:360px;border:1px solid #999;border-radius:6px}'+
+  '.foot{margin-top:18px;text-align:center;color:#888;font-size:11px}@media print{body{margin:10mm}}</style></head><body>'+
+  '<h1>بيانات السيارة — '+e(c.brand)+' '+e(c.model)+' '+e(c.year||'')+'</h1>'+
+  '<div class="sub">المكتب الإداري للشيخ سعد علي آل عوضه — سجل المركبات · رقم اللوحة: '+e(c.plate)+'</div>'+
+  '<div class="sum">'+
+   '<div class="sc"><div class="cl">التأمين</div><div class="cv" style="color:'+st(ins.state)+'">'+e(ins.txt)+'</div></div>'+
+   '<div class="sc"><div class="cl">الفحص</div><div class="cv" style="color:'+st(insp.state)+'">'+e(insp.txt)+'</div></div>'+
+   '<div class="sc"><div class="cl">الاستمارة</div><div class="cv" style="color:'+st(lic.state)+'">'+e(lic.txt)+'</div></div>'+
+   '<div class="sc"><div class="cl">مخالفات غير مسددة</div><div class="cv">'+(vs.unpaid?vs.unpaid+' · '+money(vs.unpaidSum):'لا يوجد')+'</div></div>'+
+   '<div class="sc"><div class="cl">إجمالي المصروفات</div><div class="cv">'+(ex&&ex.total?money(ex.total):'—')+'</div></div>'+
+  '</div>'+
+  '<h2>البيانات الأساسية</h2><table>'+dataRows+'</table>'+
+  '<h2>التأمين والاستمارة والفحص</h2><table>'+insRows+'</table>'+
+  '<h2>المخالفات</h2>'+vioTbl+
+  '<h2>الصيانة والسجلات</h2>'+mTbl+
+  '<h2>المصروفات من العهد</h2><div style="padding:6px 2px">'+expHtml+'</div>'+
+  img+
+  '<div class="foot">طُبع بتاريخ '+new Date().toLocaleDateString('en-GB')+'</div>'+
+  '<scr'+'ipt>window.onload=function(){setTimeout(function(){try{window.print();}catch(e){}},350);};</scr'+'ipt>'+
+  '</body></html>';
+ w.document.open();w.document.write(html);w.document.close();
 }
 function zoom(i){g('imgviewImg').src=CARS[i].form;g('imgview').classList.add('open');}
 function setForm(i,inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{CARS[i].form=ev.target.result;save();openDetail(i);render();};r.readAsDataURL(f);}
