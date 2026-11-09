@@ -2894,25 +2894,30 @@ function renderConsistency(){
     }
   });
   /* 3) أشهر مؤرشفة اختلفت أرقامها عن الحالي */
+  var keptArch=[];
   (typeof payrollArchive!=='undefined'?payrollArchive:[]).forEach(function(a){
     if(!a||typeof a.year!=='number')return;
     var liveNet=emps.filter(function(e){return _employedInMonth(e,a.year,a.month);}).reduce(function(s,e){return s+computePay(e,a.year,a.month).net;},0);
     var archNet=(a.totals&&a.totals.net)||0;
     if(Math.abs(liveNet-archNet)>0.5){
+      if(a.keptAsPaid){ keptArch.push(a); return; }
       items.push({kind:'أرشيف غير محدّث',color:'#A32D2D',
         text:'كشف <b>'+a.period+'</b> المؤرشف ('+fmt(archNet)+') يختلف عن الأرقام الحالية ('+fmt(liveNet)+')',
-        btn:'<button class="btn bg sm" style="font-size:10px" onclick="refreshArchive('+a.id+')">🔄 تحديث الأرشيف</button>'});
+        btn:'<button class="btn bo sm" style="font-size:10px" onclick="showArchiveDiff('+a.id+')">📋 تفاصيل الفرق</button> <button class="btn bg sm" style="font-size:10px;background:#1C7A45;color:#fff" onclick="keepArchive('+a.id+')">✅ إبقاء وحفظ كما صُرف</button> <button class="btn bo sm" style="font-size:10px" onclick="refreshArchive('+a.id+')">🔄 تحديث الأرشيف</button>'});
     }
   });
-  if(!items.length){
+  var keptHtml = keptArch.length ? ('<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #E3DCC4"><div style="font-size:11px;color:#1C7A45;font-weight:700;margin-bottom:5px">✓ كشوف محفوظة كما صُرفت ('+keptArch.length+'):</div>'+keptArch.map(function(a){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11.5px;color:#5a7a4a;padding:4px 0"><span>'+a.period+' — '+fmt((a.totals&&a.totals.net)||0)+' ر.س (محفوظ كما صُرف)</span><button class="btn bo sm" style="font-size:10px" onclick="unkeepArchive('+a.id+')">↩ إلغاء الإبقاء</button></div>';}).join('')+'</div>') : '';
+  if(!items.length && !keptArch.length){
     box.innerHTML='<div style="background:#EAF7EF;border:1px solid #BFE6CF;border-radius:10px;padding:10px 14px;margin-bottom:14px;color:#1C7A45;font-weight:700;font-size:12.5px"><i class="ti ti-circle-check"></i> فحص الاتساق: كل التبويبات متّسقة ✓</div>';
     return;
   }
   box.innerHTML='<div style="background:#FBF9F1;border:1px solid #EAE5D5;border-radius:10px;padding:12px 14px;margin-bottom:14px">'
     +'<div class="st" style="margin-bottom:9px"><i class="ti ti-adjustments-alt" style="color:var(--gold)"></i> فحص الاتساق ('+items.length+')</div>'
-    +'<div style="display:flex;flex-direction:column;gap:6px">'
-    +items.map(function(it){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #EAE5D5;border-right:3px solid '+it.color+';border-radius:8px;padding:8px 12px;flex-wrap:wrap"><div style="font-size:12px;color:#2b2317;line-height:1.6"><span style="color:'+it.color+';font-weight:700;font-size:10.5px">['+it.kind+'] </span>'+it.text+'</div>'+it.btn+'</div>';}).join('')
-    +'</div></div>';
+    +(items.length?('<div style="display:flex;flex-direction:column;gap:6px">'
+    +items.map(function(it){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #EAE5D5;border-right:3px solid '+it.color+';border-radius:8px;padding:8px 12px;flex-wrap:wrap"><div style="font-size:12px;color:#2b2317;line-height:1.6"><span style="color:'+it.color+';font-weight:700;font-size:10.5px">['+it.kind+'] </span>'+it.text+'</div><div style="display:flex;gap:4px;flex-wrap:wrap">'+it.btn+'</div></div>';}).join('')
+    +'</div>'):'<div style="font-size:12px;color:#1C7A45">لا تنبيهات جديدة ✓</div>')
+    +keptHtml
+    +'</div>';
 }
 function resetWorkDaysAuto(id){
   var e=bid(id); if(!e)return;
@@ -2938,6 +2943,37 @@ function refreshArchive(id){
   if(typeof renderArchive==='function')renderArchive();
   upDash();
   tk('✅ تم تحديث كشف '+a.period+' في الأرشيف');
+}
+/* إبقاء كشف مؤرشف كما صُرف فعلاً (إيقاف تنبيه اختلافه) — قابل للإلغاء */
+function keepArchive(id){
+  var a=(typeof payrollArchive!=='undefined'?payrollArchive:[]).find(function(x){return x.id===id;}); if(!a)return;
+  if(!confirm('إبقاء كشف '+a.period+' كما صُرف فعلاً، وإيقاف تنبيه اختلافه عن الأرقام الحالية؟\nلن تتغيّر أرقامه المؤرشفة، ويمكنك إلغاء الإبقاء لاحقاً.'))return;
+  a.keptAsPaid=true; a.keptAt=new Date().toISOString();
+  saveToLocal(); renderConsistency(); try{if(typeof renderArchive==='function')renderArchive();}catch(_e){}
+  tk('✅ تم إبقاء كشف '+a.period+' كما صُرف');
+}
+function unkeepArchive(id){
+  var a=(typeof payrollArchive!=='undefined'?payrollArchive:[]).find(function(x){return x.id===id;}); if(!a)return;
+  a.keptAsPaid=false;
+  saveToLocal(); renderConsistency(); try{if(typeof renderArchive==='function')renderArchive();}catch(_e){}
+  tk('↩ أُلغي الإبقاء لكشف '+a.period);
+}
+/* تفاصيل فرق كشف مؤرشف: مقارنة صافي كل موظف بين المؤرشف والحساب الحالي */
+function showArchiveDiff(id){
+  var a=(typeof payrollArchive!=='undefined'?payrollArchive:[]).find(function(x){return x.id===id;}); if(!a)return;
+  var y=a.year,m=a.month;
+  var archB={}; (a.rows||[]).forEach(function(r){ archB[r.eid]={name:r.name,net:(+r.net||0)}; });
+  var liveB={}; emps.filter(function(e){return _employedInMonth(e,y,m);}).forEach(function(e){ liveB[e.id]={name:e.name,net:computePay(e,y,m).net}; });
+  var ids={}; Object.keys(archB).forEach(function(k){ids[k]=1;}); Object.keys(liveB).forEach(function(k){ids[k]=1;});
+  var drows=[]; Object.keys(ids).forEach(function(k){ var av=archB[k],lv=liveB[k]; var an=av?av.net:null, ln=lv?lv.net:null; if(an!==ln){ drows.push({name:(av&&av.name)||(lv&&lv.name)||('#'+k), an:an, ln:ln}); } });
+  var archNet=(a.totals&&a.totals.net)||0; var liveNet=emps.filter(function(e){return _employedInMonth(e,y,m);}).reduce(function(s,e){return s+computePay(e,y,m).net;},0);
+  var body='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="background:#EDEAD9;color:#06240c"><th style="padding:6px;text-align:right">الموظف</th><th style="padding:6px">الصافي المؤرشف</th><th style="padding:6px">الصافي الحالي</th><th style="padding:6px">الفرق</th><th style="padding:6px">الحالة</th></tr></thead><tbody>'
+    +(drows.length?drows.map(function(r){ var diff=(r.ln==null?0:r.ln)-(r.an==null?0:r.an); var note=(r.ln==null)?'غير موجود حالياً (غادر؟)':(r.an==null?'جديد — لم يكن في الكشف':'تغيّر الصافي'); var col=diff<0?'#A32D2D':(diff>0?'#185FA5':'#8A7A50'); return '<tr><td style="padding:6px;border-bottom:1px solid #eee">'+_cesc(r.name)+'</td><td style="padding:6px;border-bottom:1px solid #eee;text-align:center">'+(r.an==null?'—':fmt(r.an))+'</td><td style="padding:6px;border-bottom:1px solid #eee;text-align:center">'+(r.ln==null?'—':fmt(r.ln))+'</td><td style="padding:6px;border-bottom:1px solid #eee;text-align:center;color:'+col+';font-weight:700">'+(diff>0?'+':'')+fmt(diff)+'</td><td style="padding:6px;border-bottom:1px solid #eee;font-size:11px;color:#8A7A50">'+note+'</td></tr>'; }).join(''):'<tr><td colspan="5" style="padding:10px;text-align:center;color:#8A7A50">لا فروق على مستوى الموظفين</td></tr>')
+    +'</tbody><tfoot><tr style="background:#FAF7EE;font-weight:700"><td style="padding:6px">الإجمالي</td><td style="padding:6px;text-align:center">'+fmt(archNet)+'</td><td style="padding:6px;text-align:center">'+fmt(liveNet)+'</td><td style="padding:6px;text-align:center;color:'+((liveNet-archNet)<0?'#A32D2D':'#185FA5')+'">'+((liveNet-archNet)>0?'+':'')+fmt(liveNet-archNet)+'</td><td></td></tr></tfoot></table>';
+  var ov=document.getElementById('archDiffOv');
+  if(!ov){ ov=document.createElement('div'); ov.id='archDiffOv'; ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100000;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px'; ov.onclick=function(ev){if(ev.target===ov)ov.style.display='none';}; document.body.appendChild(ov); }
+  ov.innerHTML='<div style="background:#F6F3E9;border-radius:14px;max-width:680px;width:100%;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.4)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:800;color:#06240c;font-size:15px">📋 تفاصيل فرق كشف '+a.period+'</div><button onclick="document.getElementById(\'archDiffOv\').style.display=\'none\'" style="background:#EDEAD9;border:0;border-radius:8px;width:32px;height:32px;cursor:pointer">✕</button></div>'+body+'<div style="font-size:11.5px;color:#8A7A50;margin-top:10px;line-height:1.7">«الصافي المؤرشف» = ما صُرف فعلاً وقتها. «الحالي» = ما يحسبه البرنامج الآن لمن كان على رأس العمل في الشهر. الفرق السالب يعني مبلغاً صُرف وقتها ولم يعد يُحتسب (موظف غادر أو تغيّر راتبه/خصمه). الأصل إبقاء المؤرشف كما صُرف.</div></div>';
+  ov.style.display='flex';
 }
 
 
