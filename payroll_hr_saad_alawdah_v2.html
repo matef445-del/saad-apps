@@ -1774,9 +1774,44 @@ function runPayroll(){
     const rsn=(e.dedReason||'')+(lvD?((e.dedReason?' + ':'')+'إجازة بدون راتب ('+lvD+'ي)'):'')+(pen?((e.dedReason||lvD?' + ':'')+'جزاء ('+fmt(pen)+')'):'');
     return {eid:e.id,name:e.name,code:e.code,job:e.job,sal:e.sal,loanInst:ln,ded:ded,penalty:pen,dedReason:rsn,net:n};});
   const T={sal:rows.reduce((s,r)=>s+r.sal,0),loan:rows.reduce((s,r)=>s+r.loanInst,0),ded:rows.reduce((s,r)=>s+r.ded,0),penalty:rows.reduce((s,r)=>s+(r.penalty||0),0),net:rows.reduce((s,r)=>s+r.net,0)};
-  payrollArchive.push({id:Date.now(),year:y,month:m,period:period,paidAt:new Date().toISOString(),rows:rows,totals:T});
-  saveToLocal();
-  tk('✅ تم صرف رواتب '+period+' وحفظها في الأرشيف ('+rows.length+' موظف · صافي '+fmt(T.net)+' ر.س)');
+  var __entry={id:Date.now(),year:y,month:m,period:period,paidAt:new Date().toISOString(),rows:rows,totals:T};
+  payrollArchive.push(__entry);
+  tk('✅ تم صرف رواتب '+period+' ('+rows.length+' موظف · صافي '+fmt(T.net)+' ر.س) — جارٍ الأرشفة والتأكيد…');
+  try{ renderArchive(); }catch(_e){} try{ upDash(); }catch(_e){}
+  archiveMonthMerge(__entry,y,m);
+}
+/* أرشفة كشف الشهر بحفظٍ دمجيّ على مستوى الحقل (payrollArchive فقط) — لا يُحذف ولا يمسّ بقية البيانات، ثم تأكيد بإعادة القراءة */
+async function archiveMonthMerge(entry,y,m){
+  /* حفظ محلي فوري */
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({emps,att,lvReqs,disc,profiles,loans,payrollArchive,savedAt:new Date().toISOString()})); }catch(_e){}
+  if(typeof db==='undefined'||!db){ try{tk('💾 حُفظ محلياً (تعذّر الاتصال السحابي)','var(--warn)');}catch(_e){} return; }
+  var key=y+'-'+m;
+  try{
+    var newAt=new Date().toISOString();
+    var mergedArch=null;
+    await db.runTransaction(async function(tx){
+      var snap=await tx.get(CLOUD_DOC);
+      var cloud=(snap&&snap.exists?snap.data():{})||{};
+      var merged={};
+      (Array.isArray(cloud.payrollArchive)?cloud.payrollArchive:[]).forEach(function(r){ if(r&&typeof r.year==='number') merged[r.year+'-'+r.month]=r; });
+      (Array.isArray(payrollArchive)?payrollArchive:[]).forEach(function(r){ if(r&&typeof r.year==='number' && merged[r.year+'-'+r.month]===undefined) merged[r.year+'-'+r.month]=r; });
+      merged[key]=entry; /* كشف هذا الشهر هو المعتمد */
+      mergedArch=Object.keys(merged).map(function(k){return merged[k];});
+      tx.set(CLOUD_DOC,{payrollArchive:mergedArch, savedAt:newAt},{merge:true});
+    });
+    if(mergedArch){ payrollArchive=mergedArch; }
+    _cloudBaseAt=newAt;
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({emps,att,lvReqs,disc,profiles,loans,payrollArchive,savedAt:newAt})); }catch(_e){}
+    try{ renderArchive(); }catch(_e){} try{ upDash(); }catch(_e){}
+    /* تأكيد: إعادة قراءة السحابة والتحقّق من وجود كشف الشهر */
+    var vs=await CLOUD_DOC.get(); var vd=(vs&&vs.exists?vs.data():{})||{};
+    var ok=(Array.isArray(vd.payrollArchive)?vd.payrollArchive:[]).some(function(r){return r&&r.year===y&&r.month===m;});
+    var st=document.getElementById('save-status');
+    if(ok){ tk('✅ تم أرشفة كشف '+entry.period+' وتأكيده على السحابة','var(--ok)'); if(st){st.textContent='☁️ مؤرشف ومؤكّد: '+entry.period; st.style.color='rgba(80,200,120,0.95)';} }
+    else { tk('⚠️ لم يتأكّد حفظ الأرشفة على السحابة — أعد المحاولة','var(--warn)'); }
+  }catch(e){
+    try{ tk('⚠️ تعذّر الحفظ السحابي للأرشفة: '+((e&&(e.code||e.message))||'')+' (محفوظ محلياً)','var(--err)'); }catch(_e){}
+  }
 }
 function archRowsHTML(r){return r.rows.map(x=>`<tr><td>${x.name}<div style="font-size:10px;color:#8A7A50">${x.code}</div></td><td>${fmt(x.sal)}</td><td style="color:var(--err)">${x.loanInst?'-'+fmt(x.loanInst):'-'}</td><td style="color:var(--err)">${x.penalty?'-'+fmt(x.penalty):'-'}</td><td style="color:var(--err)">${x.ded?'-'+fmt(x.ded):'-'}</td><td style="font-size:11px">${x.dedReason||'-'}</td><td style="font-weight:700;color:var(--gd)">${fmt(x.net)} ر.س</td></tr>`).join('');}
 function archTableHTML(r){return `<table style="width:100%;border-collapse:collapse" class="arch-t"><thead><tr><th>الموظف</th><th>الراتب الأساسي</th><th>قسط سلفة/خصم</th><th>جزاءات</th><th>خصومات أخرى</th><th>السبب</th><th>الصافي</th></tr></thead><tbody>${archRowsHTML(r)}</tbody><tfoot><tr style="font-weight:700"><td>الإجمالي (${r.rows.length})</td><td>${fmt(r.totals.sal)}</td><td style="color:var(--err)">-${fmt(r.totals.loan)}</td><td style="color:var(--err)">-${fmt(r.totals.penalty||0)}</td><td style="color:var(--err)">-${fmt(r.totals.ded)}</td><td>—</td><td style="color:var(--gd)">${fmt(r.totals.net)} ر.س</td></tr></tfoot></table>`;}
