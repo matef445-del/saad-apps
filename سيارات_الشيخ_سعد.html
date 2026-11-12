@@ -240,6 +240,10 @@ const LS='saad_cars_v7';['saad_cars_v4','saad_cars_v5','saad_cars_v6'].forEach(f
 function stripImgs(a){var by={};SEED.forEach(function(s){by[s.id]=s;});return a.map(function(c){var s=by[c.id];var o={};for(var k in c){if((k==='form'||k==='logo')&&s&&c[k]&&s[k]===c[k])continue;o[k]=c[k];}return o;});}
 function attachImgs(a){var by={};SEED.forEach(function(s){by[s.id]=s;});a.forEach(function(c){var s=by[c.id];if(s){if(!c.form)c.form=s.form;if(!c.logo)c.logo=s.logo;}});return a;}
 let CARS=JSON.parse(JSON.stringify(SEED));
+/* سيارة ابن الشيخ سعد (أسامة) — بذرة تُضاف تلقائياً إن لم تكن موجودة (مطابقة باللوحة) */
+var _NEWCAR_ADH={ id:'car_adh4883', brand:'جمس', model:'أتوبيس', year:'2004', color:'ذهبي', plate:'أ د ح 4883', reg:'نقل خاص', serial:'29694600', vin:'1GJGG25U641190509', hid:'1109154714', weight:'', license_exp:'', inspection_exp:'', ins_co:'شركة الاتحاد التجاري للتأمين التعاوني', ins_start:'1448-07-09', ins_exp:'1449-07-20', ins_status:'سارية', owner:'أسامة بن سعد بن علي آل عوضه القحطاني', note:'سيارة ابن الشيخ سعد — المكتب يتولى التأمين والفحص وتجديد الرخصة', events:[], alert:'' };
+function _normPlate(p){return String(p||'').replace(/\s+/g,'');}
+function ensureCarsV1(){ try{ if(!Array.isArray(CARS))return; var want=_NEWCAR_ADH; var exists=CARS.some(function(c){return c&&_normPlate(c.plate)===_normPlate(want.plate);}); if(!exists){ CARS.push(JSON.parse(JSON.stringify(want))); try{save();}catch(e){} } }catch(e){} }
 var _db=null;
 function idbInit(cb){try{var r=indexedDB.open('saad_cars_store',1);r.onupgradeneeded=function(e){e.target.result.createObjectStore('kv');};r.onsuccess=function(e){_db=e.target.result;cb();};r.onerror=function(){cb();};}catch(e){cb();}}
 function idbGet(k,cb){if(!_db){cb(null);return;}try{var rq=_db.transaction('kv','readonly').objectStore('kv').get(k);rq.onsuccess=function(){cb(rq.result);};rq.onerror=function(){cb(null);};}catch(e){cb(null);}}
@@ -768,7 +772,7 @@ var _CFG_CARS={apiKey:"AIzaSyBnbzqr2VL-oa9fENHF53thIXrdzDzqEaA",authDomain:"my-a
 var _cdb=null,_cfbReady=false;
 function setSync(){}
 function initFB(){try{if(!firebase.apps.length)firebase.initializeApp(_CFG_CARS);_cdb=firebase.firestore();_cfbReady=true;pullCloud();try{loadAllCustody(function(){try{renderCarCards();}catch(e){}});}catch(e){}}catch(e){}}
-function pullCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').get().then(function(doc){if(doc.exists){var data=doc.data()||{};if(data.cars&&data.cars.length){try{CARS=mergeEvImgs(attachImgs(data.cars),CARS);}catch(e){}try{idbSet('cars',stripImgs(CARS));}catch(e){}}if(data.cal==='g'||data.cal==='h'){CAL=data.cal;}try{updateCalBtn();}catch(e){}try{render();}catch(e){}}else{pushCloud();}}).catch(function(){});}catch(e){}}
+function pullCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').get().then(function(doc){if(doc.exists){var data=doc.data()||{};if(data.cars&&data.cars.length){try{CARS=mergeEvImgs(attachImgs(data.cars),CARS);}catch(e){}try{idbSet('cars',stripImgs(CARS));}catch(e){}}if(data.cal==='g'||data.cal==='h'){CAL=data.cal;}try{updateCalBtn();}catch(e){}try{ensureCarsV1();}catch(e){}try{render();}catch(e){}}else{try{ensureCarsV1();}catch(e){}pushCloud();}}).catch(function(){});}catch(e){}}
 function pushCloud(){if(!_cfbReady)return;try{_cdb.collection('cars_db').doc('main').set({cars:stripEvImgs(stripImgs(CARS)),cal:CAL,updatedAt:Date.now()}).catch(function(){});}catch(e){}}
 </script>
 <!-- ====== شاشة الدخول الموحّدة (مصادقة فايربيس) ====== -->
