@@ -223,8 +223,9 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         <div class="msel" id="f-type"></div>
         <div class="msel" id="f-cat"></div>
         <input id="f-search" placeholder="🔍 بحث في البيان…" oninput="renderAcc()">
+        <label id="acc-only-totals-wrap" title="إظهار بطاقات الإجمالي فقط في الأعلى وإخفاء جدول الحركة" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;color:var(--cream);white-space:nowrap;user-select:none"><input type="checkbox" id="acc-only-totals" onchange="toggleOnlyTotals()" style="width:16px;height:16px;cursor:pointer;accent-color:var(--gold)"> 📊 الإجمالي فقط</label>
       </div>
-      <div class="twrap"><table id="acc-tbl"></table></div>
+      <div class="twrap" id="acc-twrap"><table id="acc-tbl"></table></div>
       <div class="empty" id="acc-empty" style="display:none">لا توجد قيود مطابقة</div>
     </div>
   </div>
@@ -993,6 +994,8 @@ function openAccPage(){
   if(g('acc-btn-pe'))g('acc-btn-pe').style.display=(CUR==='propexp')?'':'none';
   renderAcc();
 }
+var ONLY_TOTALS=false;
+function toggleOnlyTotals(){ var c=g('acc-only-totals'); ONLY_TOTALS=!!(c&&c.checked); renderAcc(); }
 function renderAcc(){
   var m=ACCMETA[CUR], s=summary(CUR);
   // filter (multi-select) — يُحسب أولاً لأن البطاقات يجب أن تعكس الفترة المحدّدة
@@ -1035,6 +1038,10 @@ function renderAcc(){
     cards.splice(1,0,_oc);
   }
   g('acc-cards').innerHTML=cards.join('');
+  /* وضع «الإجمالي فقط»: نكتفي ببطاقات الأعلى ونُخفي جدول الحركة */
+  var _tw=g('acc-twrap');
+  if(ONLY_TOTALS){ if(_tw)_tw.style.display='none'; g('acc-empty').style.display='none'; return; }
+  if(_tw)_tw.style.display='';
   var rows=filtered.reverse(); /* الأحدث أولاً في العرض — الرصيد التراكمي محسوب زمنياً ويبقى صحيحاً */
   var tbl=g('acc-tbl');
   if(!rows.length){tbl.innerHTML='';g('acc-empty').style.display='block';return;}
