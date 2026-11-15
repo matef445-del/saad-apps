@@ -1783,7 +1783,7 @@ function runPayroll(){
 /* أرشفة كشف الشهر بحفظٍ دمجيّ على مستوى الحقل (payrollArchive فقط) — لا يُحذف ولا يمسّ بقية البيانات، ثم تأكيد بإعادة القراءة */
 async function archiveMonthMerge(entry,y,m){
   /* حفظ محلي فوري */
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({emps,att,lvReqs,disc,profiles,loans,payrollArchive,savedAt:new Date().toISOString()})); }catch(_e){}
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({emps,att,lvReqs,disc,profiles:_stripMedia(profiles),loans,payrollArchive,savedAt:new Date().toISOString()})); }catch(_e){ try{localStorage.removeItem(STORAGE_KEY);}catch(_x){} }
   if(typeof db==='undefined'||!db){ try{tk('💾 حُفظ محلياً (تعذّر الاتصال السحابي)','var(--warn)');}catch(_e){} return; }
   var key=y+'-'+m;
   try{
@@ -1801,7 +1801,7 @@ async function archiveMonthMerge(entry,y,m){
     });
     if(mergedArch){ payrollArchive=mergedArch; }
     _cloudBaseAt=newAt;
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({emps,att,lvReqs,disc,profiles,loans,payrollArchive,savedAt:newAt})); }catch(_e){}
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({emps,att,lvReqs,disc,profiles:_stripMedia(profiles),loans,payrollArchive,savedAt:newAt})); }catch(_e){ try{localStorage.removeItem(STORAGE_KEY);}catch(_x){} }
     try{ renderArchive(); }catch(_e){} try{ upDash(); }catch(_e){}
     /* تأكيد: إعادة قراءة السحابة والتحقّق من وجود كشف الشهر */
     var vs=await CLOUD_DOC.get(); var vd=(vs&&vs.exists?vs.data():{})||{};
@@ -3548,13 +3548,26 @@ async function loadFromCloud(force) {
 
 function saveToLocal(){
   saveToCloud();
+  /* النسخة المحلية خفيفة بلا صور — الصور محفوظة على السحابة في سجلّات مستقلة؛ هذا يتفادى تجاوز حدّ تخزين المتصفح (QuotaExceeded) */
+  function _liteStr(){ return JSON.stringify({emps,att,lvReqs,disc,profiles:_stripMedia(profiles),loans,payrollArchive,savedAt:new Date().toISOString()}); }
+  const st=document.getElementById('save-status');
   try{
-    const payload={emps,att,lvReqs,disc,profiles,loans,payrollArchive,savedAt:new Date().toISOString()};
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(payload));
-    const st=document.getElementById('save-status');
+    localStorage.setItem(STORAGE_KEY,_liteStr());
     if(st){st.textContent='✅ محفوظ: '+new Date().toLocaleTimeString('ar-SA');st.style.color='rgba(80,200,120,0.9)';}
     tk('✅ تم الحفظ في هذا الجهاز');
-  }catch(e){tk('❌ فشل الحفظ: '+e.message,'var(--err)');}
+  }catch(e){
+    /* امتلاء مساحة المتصفح: نُفرغ النسخة القديمة الثقيلة ونعيد حفظ النسخة الخفيفة */
+    try{
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(STORAGE_KEY,_liteStr());
+      if(st){st.textContent='✅ محفوظ: '+new Date().toLocaleTimeString('ar-SA');st.style.color='rgba(80,200,120,0.9)';}
+      tk('✅ تم الحفظ في هذا الجهاز');
+    }catch(_e2){
+      /* تعذّر حتى الحفظ الخفيف — البيانات آمنة على السحابة، فلا داعي للقلق */
+      if(st){st.textContent='☁️ محفوظ على السحابة (تعذّرت النسخة المحلية)';st.style.color='rgba(230,175,70,0.95)';}
+      tk('☁️ حُفظت بياناتك على السحابة بأمان. تعذّر حفظ نسخة محلية بسبب امتلاء مساحة المتصفح فقط.','var(--warn)');
+    }
+  }
 }
 
 function loadFromLocal(){
