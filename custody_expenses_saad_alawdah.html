@@ -1009,6 +1009,22 @@ function renderAcc(){
   };
   var filtered=s.rows.filter(match);
   var isFiltered=(fm.length||ft.length||fc.length||q)?true:false;
+  /* وضع «الإجمالي فقط»: بطاقة واحدة = إجمالي المبالغ المختارة، وبطاقة الفترة بدلاً من الرصيد/العدد/أول المدة */
+  if(ONLY_TOTALS){
+    var _selTot=0; filtered.forEach(function(r){ if(r._ref)return; _selTot+=Math.abs(+r.amount||0); });
+    var _totLbl=(fc&&fc.length===1)?('إجمالي «'+fc[0]+'»'):(fc&&fc.length>1?'إجمالي التصنيفات المختارة':'إجمالي المبالغ المختارة');
+    var _perLbl='';
+    if(fm&&fm.length){ _perLbl=fm.join('، '); }
+    else{ var _ds=[]; filtered.forEach(function(r){ if(r._ref)return; if(r.date)_ds.push(r.date); }); _ds.sort();
+      _perLbl=_ds.length?((_ds[0]===_ds[_ds.length-1])?dfmt(_ds[0]):(dfmt(_ds[0])+' — '+dfmt(_ds[_ds.length-1]))):'كل الفترات'; }
+    var _extra=(ft&&ft.length)?(' · '+esc(ft.join(' · '))):'';
+    var _mc='<div class="card" style="--accent:#b8921a"><div class="lbl">'+esc(_totLbl)+'</div><div class="val" style="--cv:var(--gold2)">'+fmt(_selTot)+' <span class="u">ر.س</span></div></div>'
+      +'<div class="card" style="--accent:#2f6db3"><div class="lbl">الفترة'+_extra+'</div><div class="val" style="--cv:#9cc3ef;font-size:16px;line-height:1.5">'+esc(_perLbl)+'</div></div>';
+    g('acc-cards').innerHTML=_mc;
+    g('acc-note').style.display='block';
+    var _tw0=g('acc-twrap'); if(_tw0)_tw0.style.display='none'; g('acc-empty').style.display='none';
+    return;
+  }
   // cards — تُعاد حسب الصفوف المفلترة عند تفعيل أي فلتر
   var lbls=m.lbls.slice(), vals;
   if(isFiltered){
@@ -1038,10 +1054,7 @@ function renderAcc(){
     cards.splice(1,0,_oc);
   }
   g('acc-cards').innerHTML=cards.join('');
-  /* وضع «الإجمالي فقط»: نكتفي ببطاقات الأعلى ونُخفي جدول الحركة */
-  var _tw=g('acc-twrap');
-  if(ONLY_TOTALS){ if(_tw)_tw.style.display='none'; g('acc-empty').style.display='none'; return; }
-  if(_tw)_tw.style.display='';
+  var _tw=g('acc-twrap'); if(_tw)_tw.style.display='';
   var rows=filtered.reverse(); /* الأحدث أولاً في العرض — الرصيد التراكمي محسوب زمنياً ويبقى صحيحاً */
   var tbl=g('acc-tbl');
   if(!rows.length){tbl.innerHTML='';g('acc-empty').style.display='block';return;}
