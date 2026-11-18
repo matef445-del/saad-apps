@@ -212,6 +212,7 @@ img[src*="logo_green"],img[src*="logo_badge"]{max-height:96px;max-width:150px;he
         <button class="btn ghost sm" onclick="exportAcc()">📤 تصدير Excel</button>
         <button class="btn ghost sm" id="acc-btn-sort" onclick="sortAccByDate()">↕️ ترتيب حسب التاريخ ثم الفاتورة</button>
         <button class="btn ghost sm" onclick="printAcc()">🖨️ طباعة</button>
+        <button class="btn sm" id="acc-btn-close-office" onclick="closeOfficeCustody()" style="display:none;background:#5a1e1e;border:1px solid #9a3f3f;color:#ffdede">🔒 تقفيل وتصفية العهدة</button>
       </div>
     </div>
     <input type="file" id="xl-in" accept=".xlsx,.xls" style="display:none" onchange="importXL(this.files[0])">
@@ -992,6 +993,7 @@ function openAccPage(){
   if(g('acc-btn-import'))g('acc-btn-import').style.display=(roAcc && CUR!=='bank')?'none':'';
   if(g('acc-btn-sort'))g('acc-btn-sort').style.display=roAcc?'none':'';
   if(g('acc-btn-pe'))g('acc-btn-pe').style.display=(CUR==='propexp')?'':'none';
+  if(g('acc-btn-close-office'))g('acc-btn-close-office').style.display=(CUR==='office')?'':'none';
   renderAcc();
 }
 var ONLY_TOTALS=false;
@@ -1231,6 +1233,26 @@ function delEntry(id){
   pushUndo();
   var a=STATE.accounts[CUR]; a.rows=a.rows.filter(function(x){return x.id!==id;});
   persist(); openAccPage(); toast('تم الحذف');
+}
+
+/* ============ تقفيل وتصفية عهدة المكتب ============ */
+/* زر خاص بتبويب «عهدة المكتب — محمد عاطف» فقط: يُفرّغ قيود العهدة لبدء دورة جديدة
+   عند تصفيتها، مع تأكيد مزدوج، خيار تصدير نسخة Excel للأرشفة أولاً، وإمكانية التراجع بـ Ctrl+Z. */
+function closeOfficeCustody(){
+  if(CUR!=='office'){ toast('هذا الزر خاص بعهدة المكتب فقط'); return; }
+  var a=STATE.accounts['office'];
+  if(!a || !a.rows || !a.rows.length){ toast('لا توجد قيود لتصفيتها'); return; }
+  var n=a.rows.length, tot=0; a.rows.forEach(function(r){ tot+=Math.abs(+r.amount||0); });
+  if(!confirm('تقفيل وتصفية عهدة المكتب (محمد عاطف)\n\nعدد القيود الحالية: '+n+'\nإجمالي المصروف: '+fmt(tot)+' ر.س\n\nسيتم مسح كل قيود هذه العهدة لبدء دورة جديدة من الصفر.\nلا يتأثر أي حساب آخر، ويمكن التراجع فوراً بـ Ctrl+Z.\n\nمتابعة؟')) return;
+  if(confirm('هل تريد حفظ نسخة Excel من قيود العهدة قبل المسح؟ (موصى به للأرشفة)\n\nموافق = تصدير أولاً ثم المتابعة • إلغاء = المتابعة دون تصدير.')){
+    try{ exportAcc(); }catch(e){}
+  }
+  if(!confirm('تأكيد أخير: مسح جميع قيود عهدة المكتب الآن وبدء دورة جديدة؟\n(الإجراء قابل للتراجع بـ Ctrl+Z.)')) return;
+  pushUndo();
+  a.rows=[];
+  persist(); openAccPage();
+  try{ renderDash(); }catch(e){}
+  toast('تم تقفيل وتصفية عهدة المكتب — بدأت دورة جديدة ✓');
 }
 
 /* ============ السلف (تبويب مستقل) ============ */
