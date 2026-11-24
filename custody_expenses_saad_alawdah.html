@@ -1045,6 +1045,7 @@ function renderAcc(){
   var cards=[];
   for(var i=0;i<4;i++){
     if(lbls[i]==='—'){continue;}
+    if(isFiltered&&i===0){continue;} /* حُذفت بطاقة «صافي الفترة المحددة» بناءً على طلب المستخدم */
     var isCount=(i===3);
     cards.push('<div class="card" style="--accent:'+acc[i]+'"><div class="lbl">'+esc(lbls[i])+'</div><div class="val" style="--cv:'+cv[i]+'">'+(isCount?vals[i]:fmt(vals[i])+' <span class="u">ر.س</span>')+'</div></div>');
   }
@@ -1614,7 +1615,7 @@ function buildAccSheet(wb,key,opts){
   ws.mergeCells('B2:J2'); var t=ws.getCell('B2'); t.value=m.icon+'   '+m.name+'  •  '+m.code+((filtered&&opts.label)?('     —     '+opts.label):'');
   fill(t,'385723'); fnt(t,{bold:true,size:18,color:{argb:'FFFFFFFF'}}); ctr(t); ws.getRow(2).height=34;
   // cards
-  var cards=filtered?[['B','C','صافي الفترة',_net,'548235'],['D','E',m.lbls[1],_inT,'1F4E79'],['F','G',m.lbls[2],_outT,'C00000'],['H','J',m.lbls[3],useRows.length,'595959']]:[['B','C',m.lbls[0],s.balance,'548235'],['D','E',m.lbls[1],s.inflow,'1F4E79'],['F','G',m.lbls[2],s.outflow,'C00000'],['H','J',m.lbls[3],s.count,'595959']];
+  var cards=filtered?[['B','C',m.lbls[1],_inT,'1F4E79'],['D','E',m.lbls[2],_outT,'C00000'],['F','G',m.lbls[3],useRows.length,'595959']]:[['B','C',m.lbls[0],s.balance,'548235'],['D','E',m.lbls[1],s.inflow,'1F4E79'],['F','G',m.lbls[2],s.outflow,'C00000'],['H','J',m.lbls[3],s.count,'595959']];
   cards.forEach(function(c){
     ws.mergeCells(c[0]+'3:'+c[1]+'3'); var tt=ws.getCell(c[0]+'3'); tt.value=c[2]; fill(tt,c[4]); fnt(tt,{bold:true,size:11,color:{argb:'FFFFFFFF'}}); ctr(tt);
     ws.mergeCells(c[0]+'4:'+c[1]+'5'); var vv=ws.getCell(c[0]+'4');

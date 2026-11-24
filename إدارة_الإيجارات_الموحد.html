@@ -545,7 +545,9 @@ function rFinance(){
   var h='<div class="sc" style="padding:14px 16px">';
   h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><b style="font-size:14px;color:#b8921a">💵 الملخّص المالي الموحّد — الوارد الفعلي</b>';
   h+='<select id="fin-y" onchange="finY=this.value;rFinance()" style="padding:5px 8px;font-size:12px;border-radius:6px">'+yopts+'</select>';
-  h+='<select id="fin-m" onchange="finM=this.value;rFinance()" style="padding:5px 8px;font-size:12px;border-radius:6px">'+mopts+'</select></div>';
+  h+='<select id="fin-m" onchange="finM=this.value;rFinance()" style="padding:5px 8px;font-size:12px;border-radius:6px">'+mopts+'</select>';
+  h+='<button class="nb" onclick="finStmtExport(\'إيجار\')" style="font-size:11.5px">⬇ كشف منصة إيجار</button>';
+  h+='<button class="nb" onclick="finStmtExport(\'مباشر\')" style="font-size:11.5px">⬇ كشف التحويلات المباشرة</button></div>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">';
   h+=_finCard('إجمالي الوارد الفعلي',_money(tot)+' ر.س',list.length+' عملية','#b8921a');
   h+=_finCard('منصة إيجار',_money(ej)+' ر.س',pe+'٪','#2563eb');
@@ -559,9 +561,29 @@ function rFinance(){
     h+='<tr style="font-weight:800"><td style="padding:7px">الإجمالي</td><td style="padding:7px;color:#2563eb">'+_money(ej)+'</td><td style="padding:7px;color:#059669">'+_money(dr)+'</td><td style="padding:7px">'+_money(tot)+'</td></tr>';
     h+='</table></div>';
   }
-  h+='<p style="font-size:11px;color:#9db3a3;margin-top:8px">«منصة إيجار» = تحصيلات المنصة. «تحويلات مباشرة» = حوالات وصلت الحساب مباشرةً. المصدر: كشف الإنماء المستورد.</p>';
+  var byM={}; list.forEach(function(b){var a=+b.amount||0; var ym=_bkDate(b.date).slice(0,7); var o=byM[ym]=byM[ym]||{e:0,d:0}; if(b.source==='إيجار')o.e+=a; else o.d+=a;});
+  var mk=Object.keys(byM).sort().reverse();
+  if(mk.length){
+    h+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:14px">';
+    h+='<tr><th colspan="4" style="text-align:right;color:#f3ead0;background:#1d3a5c;padding:7px;border-radius:6px 6px 0 0">📅 التفصيل الشهري حسب النوع</th></tr>';
+    h+='<tr><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">الشهر</th><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">منصة إيجار</th><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">تحويلات مباشرة</th><th style="text-align:right;color:#b8921a;padding:7px;border-bottom:1px solid #294669">الإجمالي</th></tr>';
+    mk.forEach(function(ym){var o=byM[ym]; var mm=+ym.slice(5,7); var lbl=(M[mm]?M[mm]+' ':'')+ym.slice(0,4); h+='<tr><td style="padding:7px;border-bottom:1px solid #294669">'+lbl+'</td><td style="padding:7px;border-bottom:1px solid #294669;color:#2563eb">'+_money(o.e)+'</td><td style="padding:7px;border-bottom:1px solid #294669;color:#059669">'+_money(o.d)+'</td><td style="padding:7px;border-bottom:1px solid #294669;font-weight:700">'+_money(o.e+o.d)+'</td></tr>';});
+    h+='<tr style="font-weight:800"><td style="padding:7px">الإجمالي</td><td style="padding:7px;color:#2563eb">'+_money(ej)+'</td><td style="padding:7px;color:#059669">'+_money(dr)+'</td><td style="padding:7px">'+_money(tot)+'</td></tr>';
+    h+='</table></div>';
+  }
+  h+='<p style="font-size:11px;color:#9db3a3;margin-top:8px">«منصة إيجار» = تحصيلات المنصة. «تحويلات مباشرة» = حوالات وصلت الحساب مباشرةً. المصدر: كشف الإنماء المستورد. استخدم زرّي الكشف أعلاه لتصدير تفاصيل كل نوع.</p>';
   h+='</div>';
   host.innerHTML=h;
+}
+function finStmtExport(kind){
+  var list=BANK.filter(function(b){var d=_bkDate(b.date); if(finY&&d.slice(0,4)!==finY)return false; if(finM&&d.slice(5,7)!==finM)return false; if(kind==='إيجار'&&b.source!=='إيجار')return false; if(kind==='مباشر'&&b.source==='إيجار')return false; return true;});
+  if(!list.length){ alert('لا توجد عمليات '+(kind==='إيجار'?'«منصة إيجار»':'«تحويلات مباشرة»')+' في الفترة المحددة'); return; }
+  list.sort(function(a,b){return _bkDate(a.date)<_bkDate(b.date)?-1:1;});
+  var rows=list.map(function(b){return {'التاريخ':_bkDate(b.date),'المبلغ (ر.س)':Math.round((+b.amount||0)*100)/100,'المستأجر':b.tenant||'','المُحوِّل':(b.source==='إيجار'?'منصة إيجار':(_bkSenderDisp(b.desc)||'')),'رقم المرجع':_bkRefNo(b.desc)||''};});
+  var tot=list.reduce(function(s,b){return s+(+b.amount||0);},0);
+  rows.push({'التاريخ':'','المبلغ (ر.س)':Math.round(tot*100)/100,'المستأجر':'','المُحوِّل':'الإجمالي ('+list.length+' عملية)','رقم المرجع':''});
+  var nm=kind==='إيجار'?'كشف منصة إيجار':'كشف التحويلات المباشرة';
+  try{ var ws=XLSX.utils.json_to_sheet(rows); var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,nm.slice(0,28)); var per=(finY||'كل الأعوام')+(finM?('-'+finM):''); XLSX.writeFile(wb,nm+'_'+per+'.xlsx'); }catch(err){ alert('تعذّر التصدير: '+err.message); }
 }
 function rBank(){
   if(g('bkfrom-w')&&!g('bkfrom_d'))buildBankDatePickers();
@@ -613,8 +635,14 @@ function _saveUploadCopy(file,kind){ try{ var c=g('keepUploads'); if(c&&!c.check
   var wb=XLSX.read(new Uint8Array(ee.target.result),{type:'array',cellDates:true}); var ws=wb.Sheets[wb.SheetNames[0]]; var aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:false}); var hr=-1, ci={};
   for(var i=0;i<aoa.length;i++){ var row=aoa[i]||[], j=row.join(' '); if(j.indexOf('تاريخ')>=0 && (j.indexOf('دائن')>=0||j.indexOf('إيداع')>=0||j.indexOf('تفاصيل')>=0)){ hr=i; for(var k=0;k<row.length;k++){ var s=String(row[k]||''); if(s.indexOf('تاريخ')>=0&&ci.date==null)ci.date=k; else if((s.indexOf('دائن')>=0||s.indexOf('إيداع')>=0)&&ci.credit==null)ci.credit=k; else if((s.indexOf('تفاصيل')>=0||s.indexOf('بيان')>=0||s.indexOf('وصف')>=0)&&ci.desc==null)ci.desc=k; } break; } }
   if(hr<0){ g('bank-msg').textContent='⚠️ لم أجد جدول الحركات'; return; }
-  BANK=[]; for(var i=hr+1;i<aoa.length;i++){ var row=aoa[i]||[]; var cr=parseFloat(String(row[ci.credit]!=null?row[ci.credit]:'').replace(/[^0-9.\-]/g,'')); var dt=row[ci.date], ds=row[ci.desc]; if((dt==null||dt==='')&&(ds==null||ds===''))continue; if(cr>0){ BANK.push({date:_bkDate(dt),desc:String(ds||'').replace(/[‪‫‬‏‎]/g,'').trim(),amount:cr,tenant:'',source:''}); } }
-  saveBankTx(); rBank(); g('bank-msg').textContent='✓ تم تحميل '+BANK.length+' إيداع';
+  var _newRows=[]; for(var i=hr+1;i<aoa.length;i++){ var row=aoa[i]||[]; var cr=parseFloat(String(row[ci.credit]!=null?row[ci.credit]:'').replace(/[^0-9.\-]/g,'')); var dt=row[ci.date], ds=row[ci.desc]; if((dt==null||dt==='')&&(ds==null||ds===''))continue; if(cr>0){ _newRows.push({date:_bkDate(dt),desc:String(ds||'').replace(/[‪‫‬‏‎]/g,'').trim(),amount:cr,tenant:'',source:''}); } }
+  var _merge=true; if(BANK&&BANK.length){ _merge=confirm('يوجد '+BANK.length+' حركة بنكية محفوظة.\n\nموافق = دمج الكشف الجديد مع الموجود (إضافة الجديد فقط بلا حذف) — موصى به.\nإلغاء = استبدال كل الحركات بهذا الكشف.'); }
+  if(!_merge) BANK=[];
+  function _bkKey(b){ var r=_bkRefNo(b.desc); return r?('R:'+r):('D:'+_bkDate(b.date)+'|'+Math.round((+b.amount||0)*100)+'|'+String(b.desc||'').replace(/\s+/g,'').slice(0,28)); }
+  var _have={}; BANK.forEach(function(b){ _have[_bkKey(b)]=1; });
+  var _added=0; _newRows.forEach(function(b){ var k=_bkKey(b); if(!_have[k]){ BANK.push(b); _have[k]=1; _added++; } });
+  saveBankTx(); rBank();
+  g('bank-msg').textContent = _merge ? ('✓ دُمج الكشف: أُضيف '+_added+' إيداع جديد، و'+(_newRows.length-_added)+' موجود مسبقاً. الإجمالي الآن '+BANK.length) : ('✓ استُبدل الكشف: '+BANK.length+' إيداع');
 }catch(err){ g('bank-msg').textContent='تعذّرت القراءة: '+err.message; } }; rd.readAsArrayBuffer(file); }; })();
 (function(){ var fi=g('ejar-file'); if(!fi)return; fi.onchange=function(ev){ var file=ev.target.files[0]; if(!file)return; _saveUploadCopy(file,'الملف المالي لإيجار'); var rd=new FileReader(); rd.onload=function(ee){ try{
   var wb=XLSX.read(new Uint8Array(ee.target.result),{type:'array',cellDates:true}); var ws=wb.Sheets[wb.SheetNames[0]]; var aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:false}); var hr=-1, ci={};
