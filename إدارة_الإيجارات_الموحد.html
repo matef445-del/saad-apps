@@ -692,8 +692,17 @@ function rRecon(){
   function propOK(p){ return !sel.length || (p && sel.indexOf(p)>=0); }
   var platT={}, platTotal=0;
   A.forEach(function(t){ if(!_recInA(t))return; if(!propOK(t[5]))return; var k=_norm(t[4]); (platT[k]=platT[k]||{name:t[4],prop:t[5],amt:0}).amt+=(+t[1]||0); platTotal+=(+t[1]||0); });
+  /* نسب إيداعات المنصة (لا تحمل اسم المستأجر) إلى بيانات إيجار A بالمبلغ وأقرب تاريخ — مطابقة فردية */
+  var _periodPlat=BANK.filter(function(b){ return _recInB(b) && b.source==='إيجار'; }).sort(function(a,b){return _bkDate(a.date)<_bkDate(b.date)?-1:1;});
+  var _aPool=A.map(function(t){ return {amt:Math.round((+t[1]||0)*100), date:t[2], ten:t[4], prop:t[5], used:false}; });
+  var _aByAmt={}; _aPool.forEach(function(x){ (_aByAmt[x.amt]=_aByAmt[x.amt]||[]).push(x); });
+  var _platAttr={};
+  _periodPlat.forEach(function(b){ var amt=Math.round((+b.amount||0)*100); var pool=_aByAmt[amt]; if(!pool)return; var bd=_bkDate(b.date); var best=null,bdf=1e9; pool.forEach(function(x){ if(x.used)return; var df=Math.abs((new Date(bd)-new Date(x.date))/86400000); if(df<bdf){bdf=df;best=x;} }); if(best&&bdf<=40){ best.used=true; _platAttr[_sig(b)]={ten:best.ten,prop:best.prop}; } });
   var bankT={}, bPlat=0,bDir=0,bExcl=0, directRows=[];
-  BANK.forEach(function(b){ if(!_recInB(b))return; var sig=_sig(b); var amt=+b.amount||0; var isPlat=(b.source==='إيجار'); var ten=b.tenant||''; var prop=ten?(tp[ten]||''):'';
+  BANK.forEach(function(b){ if(!_recInB(b))return; var sig=_sig(b); var amt=+b.amount||0; var isPlat=(b.source==='إيجار');
+    var ten=b.tenant||'', prop='';
+    if(isPlat && !ten && _platAttr[sig]){ ten=_platAttr[sig].ten; prop=_platAttr[sig].prop; }
+    else { prop=ten?(tp[ten]||''):''; }
     if(recExcl[sig]){ bExcl+=amt; }
     else if(propOK(prop)){ if(isPlat)bPlat+=amt; else bDir+=amt; if(ten){ var k=_norm(ten); (bankT[k]=bankT[k]||{name:ten,prop:prop,amt:0}).amt+=amt; } }
     if(!isPlat) directRows.push(b);
