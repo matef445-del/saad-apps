@@ -1243,7 +1243,7 @@ function pfDate(key,field,part,val){ var iso=PF[key][field]||''; var dd=iso.slic
   PF[key][field]= (val==='' && part==='y')? '' : (yy+'-'+mm+'-'+dd); _renderKey(key); }
 
 /* ---- موجّه إعادة العرض ---- */
-function _renderKey(key){ try{ if(key==='ejar')rEjarTab(); else if(key==='bank')rBankTab(); else if(key==='rep')rRepTab(); }catch(e){ console.error('render',key,e); } }
+function _renderKey(key){ try{ if(key==='ejar')rEjarTab(); else if(key==='bank')rBankTab(); else if(key==='rep')rRepTab(); }catch(e){ var host=g(key==='ejar'?'ej-body':key==='bank'?'bk-body':'rp-body'); if(host&&host.id){ host.innerHTML='<div style="background:#3a1414;color:#ff9a9a;padding:14px;border-radius:10px;font-size:13px;direction:rtl;line-height:1.8">تعذّر عرض البيانات — خطأ: <b>'+(e&&e.message?e.message:e)+'</b><br><span style="font-size:11px;color:#caa">'+(e&&e.stack?String(e.stack).split("\n").slice(0,4).join("<br>"):'')+'</span><br><span style="font-size:11px;color:#9db3a3">إن ظهر هذا بعد التحديث الكامل (Ctrl+Shift+R) فأرسل لي صورته.</span></div>'; } console.error('render',key,e); } }
 function _refreshAll(){ try{ if(typeof bankMatch==='function')bankMatch(); }catch(e){} try{ if(UTAB==='ejar')rEjarTab(); else if(UTAB==='bank')rBankTab(); else rRepTab(); }catch(e){ console.error(e); } }
 
 /* ---- التنقّل بين التبويبات الثلاثة ---- */
@@ -1462,7 +1462,10 @@ function _repMerge(){ try{bankMatch();}catch(e){}
 function rBank(){ try{ rBankTab(); }catch(e){} }
 
 /* ---- تهيئة ---- */
-function initUnified(){ try{ if(typeof _bkFixDates==='function'&&_bkFixDates())saveBankTx(); }catch(e){}
+var APP_BUILD='v3-2026-11-25-props';
+function initUnified(){ try{ console.log('[إدارة الإيجارات] build',APP_BUILD,'A='+(typeof A!=='undefined'?A.length:'?'),'BANK='+(typeof BANK!=='undefined'?BANK.length:'?')); }catch(e){}
+  if(!document.getElementById('ej-body')||!document.getElementById('bk-body')){ try{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;bottom:60px;left:14px;z-index:99998;background:#3a1414;color:#ff9a9a;padding:10px 14px;border-radius:10px;font-size:12.5px;direction:rtl">النسخة المحمّلة غير مكتملة (كاش قديم). حدّث الصفحة بالكامل: Ctrl+Shift+R</div>'); }catch(e){} return; }
+  try{ if(typeof _bkFixDates==='function'&&_bkFixDates())saveBankTx(); }catch(e){}
   try{ bankMatch(); }catch(e){}
   uTab('ejar'); }
 try{ if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',initUnified); } else { initUnified(); } }catch(e){ console.error(e); }
