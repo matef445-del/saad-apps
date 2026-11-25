@@ -458,11 +458,16 @@ var BANK=BANK_SEED.slice(), EJAR=[], _bankNames={}, _bkFil='un';
 var ACTIVE=["امال احمد علي دغريري", "انطونيو بركات يمين", "SEYFETTIN CEYHAN", "محمد غريب طه نصر", "عبدالله عبدالعزيز محمد الصالح", "محمد رضا محمد زهران", "MEHMET EMIN METIN", "SHOAIB ALI MUHAMMAD INAYAT", "محمد احمد كمال عوض", "اسامه محمد - شريف", "عبد الرحمن عبد المنعم محمد عبد العليم", "عادل محمد حسن راضى", "ادهم ابراهيم السيد الشرقاوى", "جواهر عبدالله بن عباس الادماوي", "طيف نايف بن فهد الدعجانى", "اروى صالح محمد العميري", "معتز محمد احمد خضر", "YUSUF - - MASOOD", "جمال كميل حمزه", "محمد صابر ابو العلا محمد", "محمد فؤاد عبدالغنى بخيت", "رباح انور العريضي", "ZIKRIA HAMEED ABDUL HAMEED", "محمود رضوان المصرى", "محمود اسماعيل شمس اسماعيل", "مصطفى محمد نجيب محمد", "جمال حسن محمد حسن", "محمد ابراهيم محمد النشار", "خالد اشرف محمد ابو المجد", "نهيان سلطان سعيد النيادى", "شادى مجدى زكى الشاعر", "ميس جمعه علي ابو شاويش", "محمد جمال سليمان بدران", "AHAMED ASLAM MOHAMED HUSSAIN", "مصطفى محمد الطواب كمال محمد", "عبدالمحسن محمد بن علي الراشد", "احمد فوزي محمد عبداللطيف", "هاني عبد الحميد عبد العزيز حسن", "روي جهاد التغريني", "شعبان ابراهيم محمود الشترى", "عبدالملك خالد على الشهرى", "اسلام مدحت قاياتى عبد التواب", "احمد صلاح مسلم محروس", "رامى احمد كمال حسنين", "مصطفى جمال الدين محمد الشريف", "ابراهيم كامل عبد المنعم عطيه", "صلاح احمد ابراهيم متولى", "HUSEYIN BOYRAZ", "شذى شيخ الدين محمد عبد القادر", "على محمد على خليل", "عبدالله عايض غالب الخالدي"]; var CURRENT_ACTIVE=["عبدالله عبدالعزيز محمد الصالح", "محمد رضا محمد زهران", "محمد احمد كمال عوض", "طيف نايف بن فهد الدعجانى", "YUSUF - - MASOOD", "رباح انور العريضي", "مصطفى محمد نجيب محمد", "محمد ابراهيم محمد النشار", "خالد اشرف محمد ابو المجد", "ميس جمعه علي ابو شاويش", "محمود اسماعيل شمس اسماعيل", "AHAMED ASLAM MOHAMED HUSSAIN", "عبدالمحسن محمد بن علي الراشد", "عبدالملك خالد على الشهرى", "اسلام مدحت قاياتى عبد التواب", "مصطفى جمال الدين محمد الشريف", "شذى شيخ الدين محمد عبد القادر"];
 try{ _bankNames=JSON.parse(localStorage.getItem('SAAD_RENTAL_BANK_NAMES')||'{}'); }catch(e){}
 try{ var _b=localStorage.getItem('SAAD_RENTAL_BANK_TX'); if(_b){ var _pb=JSON.parse(_b); if(_pb&&_pb.length)BANK=_pb; } }catch(e){}
+try{ if(_bkFixDates())saveBankTx(); }catch(e){}
 try{ var _e=localStorage.getItem('SAAD_RENTAL_EJAR'); if(_e)EJAR=JSON.parse(_e)||[]; }catch(e){}
 var SENDER_MAP={}; try{ var _sm=localStorage.getItem('SAAD_RENTAL_SENDER_MAP'); if(_sm)SENDER_MAP=JSON.parse(_sm)||{}; }catch(e){}
 function saveBankTx(){try{localStorage.setItem('SAAD_RENTAL_BANK_TX',JSON.stringify(BANK));}catch(e){}}
 function saveEjar(){try{localStorage.setItem('SAAD_RENTAL_EJAR',JSON.stringify(EJAR));}catch(e){}}
-function _bkDate(v){ if(v instanceof Date && !isNaN(v)){ return v.getFullYear()+'-'+('0'+(v.getMonth()+1)).slice(-2)+'-'+('0'+v.getDate()).slice(-2); } if(v==null||v==='')return''; var s=String(v); var m=s.match(/(\d{4})-(\d{2})-(\d{2})/); if(m)return m[0]; m=s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/); if(m)return m[3]+'-'+('0'+m[1]).slice(-2)+'-'+('0'+m[2]).slice(-2); return s.slice(0,10); }
+function _bkDate(v){ if(v instanceof Date && !isNaN(v)){ return v.getFullYear()+'-'+('0'+(v.getMonth()+1)).slice(-2)+'-'+('0'+v.getDate()).slice(-2); } if(v==null||v==='')return''; var s=String(v); var m=s.match(/(\d{4})-(\d{2})-(\d{2})/); if(m)return m[0]; m=s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/); if(m){ var a=+m[1],b=+m[2],dd,mm; if(a>12){dd=a;mm=b;} else if(b>12){mm=a;dd=b;} else {dd=a;mm=b;} /* كشف الإنماء: يوم/شهر/سنة */ return m[3]+'-'+('0'+mm).slice(-2)+'-'+('0'+dd).slice(-2); } return s.slice(0,10); }
+/* التاريخ المرجعي المؤكَّد من نص العملية: "Value date MM/DD/YYYY" (صيغة شهر/يوم) — هو المصدر الموثوق للتاريخ */
+function _bkVDate(desc){ var m=String(desc||'').match(/Value\s*date\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i); if(!m)return ''; return m[3]+'-'+('0'+m[1]).slice(-2)+'-'+('0'+m[2]).slice(-2); }
+/* تصحيح تواريخ كل الحركات من نص العملية الموثوق (يعالج أي تواريخ مقلوبة محفوظة سابقاً) */
+function _bkFixDates(){ if(!BANK||!BANK.length)return false; var ch=false; BANK.forEach(function(b){ var v=_bkVDate(b.desc); if(v && b.date!==v){ b.date=v; ch=true; } }); return ch; }
 function _norm(s){ return String(s||'').replace(/[أإآ]/g,'ا').replace(/\s+/g,'').toLowerCase(); }
 function _sig(b){ return String(Math.round((+b.amount||0)*100))+'|'+_bkDate(b.date)+'|'+String(b.desc||'').slice(0,26); }
 function senderKey(desc){ desc=String(desc||''); var m=desc.match(/from\s+(SA\d{20,24})\s+through/i); if(m)return 'IB:'+m[1]; m=desc.match(/Head Office from\s+([A-Za-z][A-Za-z, .]+?)\s+value/i); if(m)return 'NM:'+m[1].replace(/\s+/g,' ').trim().toUpperCase(); m=desc.match(/SAR\s+from\s+([A-Za-z][A-Za-z, .]+?)(?:\s+at\b|#|\s+Purpose)/i); if(m)return 'NM:'+m[1].replace(/\s+/g,' ').trim().toUpperCase(); return ''; }
@@ -530,24 +535,19 @@ function rAlerts(){
   var late=CURRENT_ACTIVE.filter(function(n){ return !paid[_norm(n)]; });
   el.innerHTML = late.length ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;margin-bottom:12px;font-size:12.5px"><div onclick="var d=g(\'alerts-body\');var o=d.style.display===\'none\';d.style.display=o?\'block\':\'none\';this.querySelector(\'.arw\').textContent=o?\'▾\':\'▸\';" style="cursor:pointer;padding:10px 12px;display:flex;align-items:center;gap:6px"><b style="color:#dc2626">🔔 مستأجرون ساريون بلا دفعة هذا الشهر ('+late.length+')</b><span class="arw" style="margin-inline-start:auto;color:#dc2626;font-size:13px">▸</span></div><div id="alerts-body" style="display:none;padding:0 12px 10px"><span style="color:#991b1b">'+late.map(e).join('  ·  ')+'</span></div></div>' : '';
 }
-var finY='',finM='';
+var finY='',finM='',_bankView=null;
 function _finCard(l,v,sub,c){ return '<div class="sc"><div style="font-size:11px;color:#9db3a3">'+l+'</div><div style="font-size:17px;font-weight:800;color:'+c+'">'+v+'</div><div style="font-size:11px;color:#9db3a3">'+(sub||'')+'</div></div>'; }
 function rFinance(){
   var host=g('fin-panel'); if(!host)return;
-  var years={}; BANK.forEach(function(b){var d=_bkDate(b.date); if(d)years[d.slice(0,4)]=1;});
-  var yk=Object.keys(years).sort().reverse();
-  var list=BANK.filter(function(b){var d=_bkDate(b.date); if(finY&&d.slice(0,4)!==finY)return false; if(finM&&d.slice(5,7)!==finM)return false; return true;});
+  var list=(_bankView||BANK);
   var tot=0,ej=0,dr=0,byY={};
   list.forEach(function(b){var a=+b.amount||0; tot+=a; var isE=(b.source==='إيجار'); if(isE)ej+=a; else dr+=a; var y=_bkDate(b.date).slice(0,4); var o=byY[y]=byY[y]||{e:0,d:0}; if(isE)o.e+=a; else o.d+=a;});
   var pe=tot?Math.round(ej/tot*100):0, pd=tot?Math.round(dr/tot*100):0;
-  var yopts='<option value="">كل الأعوام</option>'+yk.map(function(y){return '<option '+(y===finY?'selected':'')+'>'+y+'</option>';}).join('');
-  var mopts='<option value="">كل الأشهر</option>'; for(var m=1;m<=12;m++){var v=('0'+m).slice(-2); mopts+='<option value="'+v+'" '+(v===finM?'selected':'')+'>'+M[m]+'</option>';}
   var h='<div class="sc" style="padding:14px 16px">';
-  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px"><b style="font-size:14px;color:#b8921a">💵 الملخّص المالي الموحّد — الوارد الفعلي</b>';
-  h+='<select id="fin-y" onchange="finY=this.value;rFinance()" style="padding:5px 8px;font-size:12px;border-radius:6px">'+yopts+'</select>';
-  h+='<select id="fin-m" onchange="finM=this.value;rFinance()" style="padding:5px 8px;font-size:12px;border-radius:6px">'+mopts+'</select>';
+  h+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><b style="font-size:14px;color:#b8921a">💵 الملخّص المالي الموحّد — الوارد الفعلي</b>';
   h+='<button class="nb" onclick="finStmtExport(\'إيجار\')" style="font-size:11.5px">⬇ كشف منصة إيجار</button>';
   h+='<button class="nb" onclick="finStmtExport(\'مباشر\')" style="font-size:11.5px">⬇ كشف التحويلات المباشرة</button></div>';
+  h+='<p style="font-size:11px;color:#9db3a3;margin:0 0 12px">يعكس هذا الملخّص نفس الحركات الظاهرة في الجدول أعلاه تماماً. للتصفية حسب الفترة استخدم «من/إلى» في أعلى التبويب.</p>';
   h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">';
   h+=_finCard('إجمالي الوارد الفعلي',_money(tot)+' ر.س',list.length+' عملية','#b8921a');
   h+=_finCard('منصة إيجار',_money(ej)+' ر.س',pe+'٪','#2563eb');
@@ -576,14 +576,16 @@ function rFinance(){
   host.innerHTML=h;
 }
 function finStmtExport(kind){
-  var list=BANK.filter(function(b){var d=_bkDate(b.date); if(finY&&d.slice(0,4)!==finY)return false; if(finM&&d.slice(5,7)!==finM)return false; if(kind==='إيجار'&&b.source!=='إيجار')return false; if(kind==='مباشر'&&b.source==='إيجار')return false; return true;});
-  if(!list.length){ alert('لا توجد عمليات '+(kind==='إيجار'?'«منصة إيجار»':'«تحويلات مباشرة»')+' في الفترة المحددة'); return; }
-  list.sort(function(a,b){return _bkDate(a.date)<_bkDate(b.date)?-1:1;});
+  var base=(_bankView||BANK);
+  var list=base.filter(function(b){ if(kind==='إيجار'&&b.source!=='إيجار')return false; if(kind==='مباشر'&&b.source==='إيجار')return false; return true;});
+  if(!list.length){ alert('لا توجد عمليات '+(kind==='إيجار'?'«منصة إيجار»':'«تحويلات مباشرة»')+' في العرض الحالي'); return; }
+  list=list.slice().sort(function(a,b){return _bkDate(a.date)<_bkDate(b.date)?-1:1;});
   var rows=list.map(function(b){return {'التاريخ':_bkDate(b.date),'المبلغ (ر.س)':Math.round((+b.amount||0)*100)/100,'المستأجر':b.tenant||'','المُحوِّل':(b.source==='إيجار'?'منصة إيجار':(_bkSenderDisp(b.desc)||'')),'رقم المرجع':_bkRefNo(b.desc)||''};});
   var tot=list.reduce(function(s,b){return s+(+b.amount||0);},0);
   rows.push({'التاريخ':'','المبلغ (ر.س)':Math.round(tot*100)/100,'المستأجر':'','المُحوِّل':'الإجمالي ('+list.length+' عملية)','رقم المرجع':''});
   var nm=kind==='إيجار'?'كشف منصة إيجار':'كشف التحويلات المباشرة';
-  try{ var ws=XLSX.utils.json_to_sheet(rows); var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,nm.slice(0,28)); var per=(finY||'كل الأعوام')+(finM?('-'+finM):''); XLSX.writeFile(wb,nm+'_'+per+'.xlsx'); }catch(err){ alert('تعذّر التصدير: '+err.message); }
+  var per=(bkFrom||bkTo)?((bkFrom||'')+'_'+(bkTo||'')):'الفترة الظاهرة';
+  try{ var ws=XLSX.utils.json_to_sheet(rows); var wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,nm.slice(0,28)); XLSX.writeFile(wb,nm+'_'+per+'.xlsx'); }catch(err){ alert('تعذّر التصدير: '+err.message); }
 }
 function rBank(){
   if(g('bkfrom-w')&&!g('bkfrom_d'))buildBankDatePickers();
@@ -593,6 +595,7 @@ function rBank(){
   var from=bkFrom, to=bkTo;
   var q=(g('bk-q')?g('bk-q').value:'').trim().toLowerCase();
   var list=BANK.filter(function(b){ var d=_bkDate(b.date); if(from&&d&&d<from)return false; if(to&&d&&d>to)return false; if(bkPropSel.sel.length){ if(!b.tenant||!_tp[b.tenant]||bkPropSel.sel.indexOf(_tp[b.tenant])<0)return false; } if(_bkFil==='un'&&b.source!=='')return false; if(_bkFil==='set'&&!(b.source==='مباشر'&&!b.auto))return false; if(_bkFil==='ejar'&&b.source!=='إيجار')return false; if(_bkFil==='auto'&&b.auto!==true)return false; if(q){ var hay=[_bkSenderDisp(b.desc),b.desc,_bkRefNo(b.desc),String(b.amount),b.tenant||'',_bkDate(b.date)].join(' ').toLowerCase(); if(hay.indexOf(q)<0)return false; } return true; });
+  _bankView=list;
   var tot=0,cEj=0,cDir=0,cUn=0,cAuto=0;
   list.forEach(function(b){ tot+=+b.amount||0; if(b.source==='إيجار')cEj++; else if(b.source==='مباشر'){ if(b.auto)cAuto++; else cDir++; } else cUn++; });
   var _ac=g('bkf-auto'); if(_ac)_ac.checked=AUTO_LINK; var _sc=g('bkf-sel'); if(_sc)_sc.value=_bkFil;
@@ -635,7 +638,7 @@ function _saveUploadCopy(file,kind){ try{ var c=g('keepUploads'); if(c&&!c.check
   var wb=XLSX.read(new Uint8Array(ee.target.result),{type:'array',cellDates:true}); var ws=wb.Sheets[wb.SheetNames[0]]; var aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:false}); var hr=-1, ci={};
   for(var i=0;i<aoa.length;i++){ var row=aoa[i]||[], j=row.join(' '); if(j.indexOf('تاريخ')>=0 && (j.indexOf('دائن')>=0||j.indexOf('إيداع')>=0||j.indexOf('تفاصيل')>=0)){ hr=i; for(var k=0;k<row.length;k++){ var s=String(row[k]||''); if(s.indexOf('تاريخ')>=0&&ci.date==null)ci.date=k; else if((s.indexOf('دائن')>=0||s.indexOf('إيداع')>=0)&&ci.credit==null)ci.credit=k; else if((s.indexOf('تفاصيل')>=0||s.indexOf('بيان')>=0||s.indexOf('وصف')>=0)&&ci.desc==null)ci.desc=k; } break; } }
   if(hr<0){ g('bank-msg').textContent='⚠️ لم أجد جدول الحركات'; return; }
-  var _newRows=[]; for(var i=hr+1;i<aoa.length;i++){ var row=aoa[i]||[]; var cr=parseFloat(String(row[ci.credit]!=null?row[ci.credit]:'').replace(/[^0-9.\-]/g,'')); var dt=row[ci.date], ds=row[ci.desc]; if((dt==null||dt==='')&&(ds==null||ds===''))continue; if(cr>0){ _newRows.push({date:_bkDate(dt),desc:String(ds||'').replace(/[‪‫‬‏‎]/g,'').trim(),amount:cr,tenant:'',source:''}); } }
+  var _newRows=[]; for(var i=hr+1;i<aoa.length;i++){ var row=aoa[i]||[]; var cr=parseFloat(String(row[ci.credit]!=null?row[ci.credit]:'').replace(/[^0-9.\-]/g,'')); var dt=row[ci.date], ds=row[ci.desc]; if((dt==null||dt==='')&&(ds==null||ds===''))continue; if(cr>0){ var _cd=String(ds||'').replace(/[‪‫‬‏‎]/g,'').trim(); _newRows.push({date:(_bkVDate(_cd)||_bkDate(dt)),desc:_cd,amount:cr,tenant:'',source:''}); } }
   var _merge=true; if(BANK&&BANK.length){ _merge=confirm('يوجد '+BANK.length+' حركة بنكية محفوظة.\n\nموافق = دمج الكشف الجديد مع الموجود (إضافة الجديد فقط بلا حذف) — موصى به.\nإلغاء = استبدال كل الحركات بهذا الكشف.'); }
   if(!_merge) BANK=[];
   function _bkKey(b){ var r=_bkRefNo(b.desc); return r?('R:'+r):('D:'+_bkDate(b.date)+'|'+Math.round((+b.amount||0)*100)+'|'+String(b.desc||'').replace(/\s+/g,'').slice(0,28)); }
