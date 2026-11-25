@@ -573,6 +573,7 @@ function renderCarCards(){
  if(!list.length){host.innerHTML='<div class="emptybox" style="grid-column:1/-1">لا توجد نتائج مطابقة</div>';return;}
  host.innerHTML=list.map(function(o){var c=o.c,i=o.i;
    var ch=carChecks(c);var by={};ch.forEach(function(x){by[x.label]=x;});
+   var lic=by['رخصة السير']||{state:'none',txt:'—'};
    var ins=by['التأمين']||{state:'none',txt:'—'};
    var insp=by['الفحص الدوري']||{state:'none',txt:'—'};
    var vs=vioStats(c);
@@ -581,6 +582,7 @@ function renderCarCards(){
    var hasSoon=ch.some(function(x){return x.state==='soon';});
    var cardcls=hasExp?'bad':(hasSoon?'warn':'');
    var ind=
+     '<div class="cc-i '+_csState(lic.state)+'" style="grid-column:1/-1"><span class="cl">📋 رخصة السير</span><span class="cv">'+e(lic.txt)+'</span></div>'+
      '<div class="cc-i '+_csState(ins.state)+'"><span class="cl">🛡 التأمين</span><span class="cv">'+e(ins.txt)+'</span></div>'+
      '<div class="cc-i '+_csState(insp.state)+'"><span class="cl">🔍 الفحص</span><span class="cv">'+e(insp.txt)+'</span></div>'+
      '<div class="cc-i '+(vs.unpaid?'bad':'ok')+'"><span class="cl">🚫 المخالفات</span><span class="cv">'+(vs.unpaid?vs.unpaid+' غير مسددة':(vs.count?'لا متأخرات':'لا مخالفات'))+'</span></div>'+
