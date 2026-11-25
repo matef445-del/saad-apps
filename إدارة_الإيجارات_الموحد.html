@@ -611,13 +611,13 @@ function rBank(){
     var badge = b.source==='إيجار'?'<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:10px;font-size:10.5px">منصة إيجار</span>': (b.source==='مباشر'? (b.auto?'<span style="background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:10px;font-size:10.5px">تلقائي</span>':'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-size:10.5px">مباشر</span>') :'<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:10.5px">—</span>');
     var mv = b.source==='إيجار' ? 'منصة إيجار' : (_bkSenderDisp(b.desc)||'—');
     var ref = _bkRefNo(b.desc)||'-';
-    var hl = b.source!=='إيجار' ? ' style="background:rgba(216,180,65,.06)"' : '';
-    h+='<tr'+hl+'><td style="white-space:nowrap">'+fd(_bkDate(b.date))+'</td>'
+    var hl = b.source!=='إيجار' ? 'background:rgba(216,180,65,.06);' : '';
+    h+='<tr style="cursor:pointer;'+hl+'" onclick="openBankDetail(\''+encodeURIComponent(sig)+'\')"><td style="white-space:nowrap">'+fd(_bkDate(b.date))+'</td>'
       +'<td style="white-space:nowrap;color:#5bd07a;font-weight:700">'+_money(b.amount)+'</td>'
       +'<td style="font-size:12px;font-weight:600">'+e(mv)+'</td>'
       +'<td>'+badge+'</td>'
       +'<td style="font-size:10.5px;color:#9db3a3;white-space:nowrap">'+e(ref)+'</td>'
-      +'<td>'+cell+'</td>'
+      +'<td onclick="event.stopPropagation()">'+cell+'</td>'
       +'<td style="font-size:10px;color:#9db3a3;max-width:300px;white-space:normal;line-height:1.5">'+e(b.desc)+'</td></tr>';
   });
   g('bank-tbl').innerHTML=h; rAlerts(); try{rFinance();}catch(e){}
@@ -815,6 +815,30 @@ function openD(i){
   g("modal").classList.add("op");
 }
 function dr(k,v){return'<div class="dr"><span class="dk">'+e(k)+'</span><span class="dv">'+e(String(v||""))+"</span></div>";}
+/* مطابقة إيداع منصة بسجل منصة إيجار (A) لجلب تفاصيل السداد */
+function _matchA(b){ var amt=Math.round((+b.amount||0)*100); var bd=_bkDate(b.date); var best=null,bdf=1e9; for(var i=0;i<A.length;i++){ var t=A[i]; if(Math.round((+t[1]||0)*100)!==amt)continue; var df=Math.abs((new Date(bd)-new Date(t[2]))/86400000); if(df<bdf){bdf=df;best=t;} } return (best&&bdf<=40)?best:null; }
+/* بطاقة تفاصيل إيداع بنكي (الحساب مخصّص للعقارات: كل إيداع إيجار) */
+function openBankDetail(sig){
+  sig=decodeURIComponent(sig);
+  var b=BANK.filter(function(x){return _sig(x)===sig;})[0]; if(!b)return;
+  var isP=(b.source==='إيجار'); var a=isP?_matchA(b):null;
+  var tenant=b.tenant||(a?a[4]:'')||''; var prop=tenant?(_tenPropMap()[tenant]||''):''; if(!prop&&a)prop=a[5];
+  var sender=isP?'منصة إيجار':(_bkSenderDisp(b.desc)||'—'); var ref=_bkRefNo(b.desc)||'—';
+  g('mtl').textContent='تفاصيل الإيداع — '+_money(b.amount)+' ر.س';
+  var h='';
+  h+=dr('القناة', isP?'منصة إيجار':'تحويل مباشر');
+  h+=dr('المبلغ', _money(b.amount)+' ر.س');
+  h+=dr('تاريخ التحويل', fd(_bkDate(b.date)));
+  if(tenant) h+='<div class="dr"><span class="dk">المستأجر</span><span class="dv" style="color:#2563eb;cursor:pointer;border-bottom:1px dotted #2563eb" onclick="openTenant(decodeURIComponent(\''+encodeURIComponent(tenant)+'\'))">'+e(tenant)+'</span></div>';
+  else h+=dr('المستأجر','غير منسوب بعد');
+  h+=dr('العقار', prop||'—');
+  h+=dr('المُحوِّل', sender);
+  h+=dr('رقم المرجع', ref);
+  if(isP&&a){ h+=dr('رقم الإيصال', a[0]); h+=dr('تاريخ الاستحقاق', fd(a[3])); h+=dr('طريقة الدفع', a[8]); h+=dr('رقم العقد', a[6]); h+=dr('رقم الفاتورة', a[7]); h+=dr('الآيبان المُحوَّل منه', a[11]||''); }
+  h+=dr('الحساب', '68203034643003 — حساب العقارات');
+  h+='<div class="dr" style="flex-direction:column;align-items:stretch;gap:4px"><span class="dk">الوصف الكامل</span><span class="dv" style="font-size:11px;color:#9db3a3;line-height:1.6;white-space:normal;text-align:right">'+e(b.desc||'')+'</span></div>';
+  g('mbd').innerHTML=h; g('modal').classList.add('op');
+}
 
 var dashY='',dashMonth='',dashProps=[],dashPropOpen=false,_dashPK=[];
 function togP(i){ var p=_dashPK[i]; if(p==null)return; var k=dashProps.indexOf(p); if(k>=0)dashProps.splice(k,1); else dashProps.push(p); rDash(); }
